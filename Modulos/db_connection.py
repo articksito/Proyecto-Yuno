@@ -5,8 +5,10 @@ class Conexion:
         self.conexion1 = psycopg2.connect("postgresql://neondb_owner:npg_M1nvy9aksESm@ep-raspy-star-afucb7a1-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
         self.cursor_uno = self.conexion1.cursor()
 
-    def insertar_datos(self,sql):
-        self.cursor_uno.execute(sql)
+    def insertar_datos(self,sql:str,datos:tuple=None):
+        self.cursor_uno.execute(sql,datos)
+        self.conexion1.commit()
+        self.cursor_uno.close()
 
 
     def Select_users(self):
