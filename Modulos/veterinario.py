@@ -1,4 +1,13 @@
 class Veterinario:
+    def __init__(self,clave,nombre,especialidad):
+        self.clave=clave
+        self.nombre=nombre
+        self.especialidad=especialidad 
+        
+    def autenticacion(self):
+        ######AQUI ES DONDE SE MANDARA AL SELECCIONAR EL MENU DE VETERINARIO Y SI SE LOGUEA BIEN SE MANDA AL MENU########
+        pass
+
     def menuVET():
         while True:
             print("------Bienvenido al menu de veterinario------")
@@ -73,4 +82,9 @@ class Veterinario:
                     case 3:
                         print("Regresando al menu principal")
                         break
+    def consultar_expediente(self):
+        pass
+        
+    def añadir_comentarios (self):
+        pass 
                                     
