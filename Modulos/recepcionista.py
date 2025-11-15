@@ -5,7 +5,6 @@ class Recepcionista:
         self.nosense=''
     def cliente():
         cliente1=cliente()
-        #cliente1.insertar_datos_cliente()
         cliente1.mini_main()
 
     def mascota():

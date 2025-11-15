@@ -6,6 +6,7 @@ class cliente():
         self.conexion=Conexion()
     
     def mini_main(self):
+         #Creen interfaz.
          self.ver_registro_cliente()
 
     def insertar_datos_cliente(self):
@@ -25,12 +26,33 @@ class cliente():
             print("Error")
 
     def ver_registro_cliente(self):
-        tabla='cliente'
-        registro=self.conexion.Select_users(tabla)
+        try:
+            tabla='cliente'
+            registro=self.conexion.Select_users(tabla)
+            
+            for row in registro:
+                        print('\t'.join(map(str, row)))
+        except:
+             print("Error")
+            
+    def editar(self):
         
-        for row in registro:
-                    print('\t'.join(map(str, row)))
+        try:
+            datos=[]
+            id=int(input('ID:'))  
 
+            while True:
+                columna=input('Nombre de la columuna:')
+                datos.append(columna)
+                cerrar=int(input('Son todos? (1 para si)'))
+                
+                if cerrar==1:
+                    break 
+
+            self.conexion.editar_registro(id,datos,tabla='cliente')
+        except:
+             print("Error")
+ 
 def main():
     r=cliente()
     r.mini_main()

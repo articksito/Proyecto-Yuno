@@ -22,6 +22,14 @@ class Conexion:
 
         self.cursor_uno.close()
 
+    def editar_registro(self,id:int,datos,tabla:str):
+        try:
+            code='ALTER '
+            pass
+        except:
+            pass
+
+
     def Validacion_usuario(self, id_user: int):
         self.id_user = id_user
         self.validacion = bool
