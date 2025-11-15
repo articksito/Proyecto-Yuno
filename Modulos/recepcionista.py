@@ -3,7 +3,7 @@ from cliente import *
 class Recepcionista:
     def __init__(self):
         self.nosense=''
-    def cliente():
+    def cliente(self):
         cliente1=cliente()
         cliente1.mini_main()
 
@@ -14,5 +14,4 @@ class Recepcionista:
         pass
     def ver_registros(self):
         pass
-
 

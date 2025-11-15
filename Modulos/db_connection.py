@@ -7,9 +7,19 @@ class Conexion:
         self.cursor_uno = self.conexion1.cursor()
 
     def insertar_datos(self,sql:str,datos:tuple=None):
-        self.cursor_uno.execute(sql,datos)
-        self.conexion1.commit()
-        self.cursor_uno.close()
+        try:
+            self.cursor_uno.execute(sql,datos)
+            self.conexion1.commit()
+            self.cursor_uno.close()
+        except:
+            print("Error")
+            self.conexion1.rollback()
+        finally:
+            if self.conexion1:
+                self.conexion1.close()
+            if self.cursor_uno:
+                self.cursor_uno.close
+
 
     def Select_users(self,table:str):
         try:
@@ -19,15 +29,40 @@ class Conexion:
             return table
         except:
             print("Error")
+        finally:
+            if self.conexion1:
+                self.conexion1.close()
+            if self.cursor_uno:
+                self.cursor_uno.close()
 
-        self.cursor_uno.close()
-
-    def editar_registro(self,id:int,datos,tabla:str):
+    def editar_registro(self,id:int,datos:dict,tabla:str,id_columna:str):
         try:
-            code='ALTER '
-            pass
+            comando=[]
+            valores=[]
+
+            for columna, valor in datos.items():
+                comando.append(sql.SQL("{}=%s").format(sql.Identifier(columna)))
+                valores.append(valor)
+
+            unir=sql.SQL(', ').join(comando)
+
+            comando_sql= sql.SQL("""
+                                 UPDATE {}
+                                 SET {}
+                                 WHERE {}=%s
+                                 """).format(sql.Identifier(tabla),unir, sql.Identifier(id_columna))
+            
+            valores.append(id)
+
+            self.cursor_uno.execute(comando_sql,tuple(valores))
+            self.conexion1.commit()
         except:
-            pass
+            print("Error")
+        finally:
+            if self.conexion1:
+                self.conexion1.close()
+            if self.cursor_uno:
+                self.cursor_uno.close
 
 
     def Validacion_usuario(self, id_user: int):

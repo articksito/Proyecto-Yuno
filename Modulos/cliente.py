@@ -7,7 +7,16 @@ class cliente():
     
     def mini_main(self):
          #Creen interfaz.
-         self.ver_registro_cliente()
+         opcion=int(input("Elige:"))
+         match opcion:
+            case 1:
+                self.insertar_datos_cliente()
+            case 2:
+                self.ver_registro_cliente()
+            case 3:             
+                self.ver_registro_cliente()
+            case __:
+                   print("Equivocado")
 
     def insertar_datos_cliente(self):
         try:
@@ -38,24 +47,20 @@ class cliente():
     def editar(self):
         
         try:
-            datos=[]
+            datos={}
             id=int(input('ID:'))  
 
             while True:
-                columna=input('Nombre de la columuna:')
-                datos.append(columna)
+                columna=input('Nombre de la columuna:').strip()
+                valor=input(f'nuevo valor({columna}):')
+
+                datos[columna]=valor
+
                 cerrar=int(input('Son todos? (1 para si)'))
-                
                 if cerrar==1:
                     break 
 
-            self.conexion.editar_registro(id,datos,tabla='cliente')
+            self.conexion.editar_registro(id,datos,tabla='cliente',id_columna='id_cliente')
         except:
              print("Error")
  
-def main():
-    r=cliente()
-    r.mini_main()
-
-main()
-
