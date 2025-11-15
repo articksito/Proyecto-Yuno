@@ -1,36 +1,19 @@
-
-from db_connection import *
+from cliente import *
 
 class Recepcionista:
     def __init__(self):
         self.nosense=''
+    def cliente():
+        cliente1=cliente()
+        #cliente1.insertar_datos_cliente()
+        cliente1.mini_main()
 
-    def insertar_datos_cliente(self):
-        
-        try:
-            nombre=input('Nombre:')
-            apellido=input('Apellido:')
-            direccion=input('Direccion:')
-            correo=input('Correo electronico:')
-            telefono=int(input('Numero de telefono:'))
-            datos=(nombre,apellido,direccion,correo,telefono)
-
-            sql=f'INSERT INTO cliente(nombre,apellido,direccion,correo,telefono) VALUES (%s,%s,%s,%s,%s);'
-            conexion=Conexion()
-            conexion.insertar_datos(sql,datos)
-
-            
-        except:
-            print("Error")
-
+    def mascota():
+        pass
 
     def agendar_citas(self):
         pass
     def ver_registros(self):
         pass
 
-def main():
-    r=Recepcionista()
-    r.insertar_datos_cliente()
 
-main()

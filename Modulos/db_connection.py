@@ -1,4 +1,5 @@
 import psycopg2
+from psycopg2 import sql
 
 class Conexion:
     def __init__(self):
@@ -10,15 +11,16 @@ class Conexion:
         self.conexion1.commit()
         self.cursor_uno.close()
 
+    def Select_users(self,table:str):
+        try:
+            code = sql.SQL("SELECT * FROM {} ").format(sql.Identifier(table))
+            self.cursor_uno.execute(code)
+            table=self.cursor_uno.fetchall()
+            return table
+        except:
+            print("Error")
 
-    def Select_users(self):
-        sql = "SELECT * FROM usuario"
-        self.cursor_uno.execute(sql)
-
-        for row in self.cursor_uno:
-            print(f"{row[0]}\t{row[1]}\t{row[2]}\t{row[3]}\t{row[4]}\t{row[5]}\t{row[6]}\t{row[7]}\t{row[8]}")
-
-        self.conexion1.close()
+        self.cursor_uno.close()
 
     def Validacion_usuario(self, id_user: int):
         self.id_user = id_user

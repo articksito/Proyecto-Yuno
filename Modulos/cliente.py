@@ -4,6 +4,9 @@ class cliente():
 
     def __init__(self):
         self.conexion=Conexion()
+    
+    def mini_main(self):
+         self.ver_registro_cliente()
 
     def insertar_datos_cliente(self):
         try:
@@ -22,17 +25,15 @@ class cliente():
             print("Error")
 
     def ver_registro_cliente(self):
-        tabla=input("Tabla:")
-        datos=(tabla)
-        
-        registro=self.conexion.Select_users()
+        tabla='cliente'
+        registro=self.conexion.Select_users(tabla)
         
         for row in registro:
                     print('\t'.join(map(str, row)))
 
 def main():
     r=cliente()
-    r.ver_registro_cliente()
+    r.mini_main()
 
 main()
 
