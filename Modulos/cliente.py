@@ -25,14 +25,15 @@ class cliente():
             direccion=input('Direccion:')
             correo=input('Correo electronico:')
             telefono=int(input('Numero de telefono:'))
-            datos=(nombre,apellido,direccion,correo,telefono)
 
-            sql=f'INSERT INTO cliente(nombre,apellido,direccion,correo,telefono) VALUES (%s,%s,%s,%s,%s);'
+            datos=(nombre,apellido,direccion,correo,telefono)
+            clumnas=('nombre','apellido','direccion','correo','telefono')
+            table='cliente'
             
-            self.conexion.insertar_datos(sql,datos)
+            self.conexion.insertar_datos(table,datos,clumnas)
             
-        except:
-            print("Error")
+        except Exception as Error:
+            print(f"Error: {Error}")
 
     def ver_registro_cliente(self):
         try:

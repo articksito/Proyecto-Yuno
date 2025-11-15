@@ -3,6 +3,9 @@ from cliente import *
 class Recepcionista:
     def __init__(self):
         self.nosense=''
+
+    def citas():
+        pass
     def cliente(self):
         cliente1=cliente()
         cliente1.mini_main()
