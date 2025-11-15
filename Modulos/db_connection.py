@@ -17,13 +17,8 @@ class Conexion:
 
             print("Correcto")
         except psycopg2.Error as error:
-            print(f"Error: {error}")
+            print(f"Error en insertar_datos: {error}")
             self.conexion1.rollback()
-        finally:
-            if self.conexion1:
-                self.conexion1.close()
-            if self.cursor_uno:
-                self.cursor_uno.close
 
 
     def Select_users(self,table:str):
@@ -32,13 +27,8 @@ class Conexion:
             self.cursor_uno.execute(code)
             table=self.cursor_uno.fetchall()
             return table
-        except:
-            print("Error")
-        finally:
-            if self.conexion1:
-                self.conexion1.close()
-            if self.cursor_uno:
-                self.cursor_uno.close()
+        except Exception as a:
+            print(f"Error en Select_users:{a}")
 
     def editar_registro(self,id:int,datos:dict,tabla:str,id_columna:str):
         try:
@@ -61,13 +51,16 @@ class Conexion:
 
             self.cursor_uno.execute(comando_sql,tuple(valores))
             self.conexion1.commit()
-        except:
-            print("Error")
-        finally:
-            if self.conexion1:
-                self.conexion1.close()
-            if self.cursor_uno:
-                self.cursor_uno.close
+            print('Correcto')
+        except Exception as a:
+            print(f"Error al editar registro/s:{a}")
+
+    def cerrar_conexion(self):
+        if self.conexion1:
+            self.conexion1.close()
+        if self.cursor_uno:
+            self.cursor_uno.close
+        print('Cerrado, vuelva pronto')
 
 
     def Validacion_usuario(self, id_user: int):

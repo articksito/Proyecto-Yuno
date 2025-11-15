@@ -1,40 +1,65 @@
+from db_connection import *
+
 class citas:
-    def menu_citas():
+    def __init__(self):
+        self.conexion1=Conexion()
+        
+    def menu_citas(self):
+        print("Bienvenido al menu de citas")
+
         while True:
-            print("Bienvenido al menu de citas")
-            print("Elige una opcion: ")
-            print("")
-            print("1. Editar citas")
-            print("2. Revisar las citas")
-            print("3. Ver expedientes")
-            print("4. Confirmar las citas")
-            print("5. Crear citas de rutina")
-            print("6. Ver citas del dia")
-            print("7. Salir")
+            print("1. Crear cita")
+            print("2. Editar las citas")
             
             try:
-                opcionC = int(input("Elije la opcion que desees elegir (1-7): "))
+                opcionC = int(input("Elije la opcion que desees elegir: "))
             except ValueError:
                 print("Error: Debe ingresar un número válido")
                 continue
             
             match opcionC:
                 case 1:
-                    print("Has elegido el editor de citas")
+                    self.crear_cita()
                 case 2:
-                    print("Estas revisando las citas")
+                    self.modificar_cita()
                 case 3:
-                    print("Estas mirando los expedientes")
-                case 4:
-                    print("Has entrado a la confirmacion de citas")
-                case 5:
-                    print("Estas ceando citas de rutina")
-                case 6:
-                    print("Estas viendo las citas del dia de hoy")
-                case 7:
-                    print("Buen dia")
                     break
-                case _:
-                    print("Elige una opcion del 1 al 7")
                 
+    def crear_cita(self):
+        try:
+            fecha=input('Pon la fecha:')
+            hora=input('Pon hora:')
+            estado=input('El estado del animal:')
+            motivo=input('Motivo:')
+            mascota=int(input('Id de mascota:'))
+            veterinario=int(input('Id de veterinario:'))
+            
+            datos=(fecha,hora,estado,motivo,mascota,veterinario)
+            columnas=('fecha','hora','estado','motivo','fk_mascota','fk_veterinario')
+            table='cita'
+
+            self.conexion1.insertar_datos(table,datos,columnas)
+
+        except Exception as a:
+            print(f'Error: {a}')
+
+    def modificar_cita(self):
+        try:
+            datos={}
+            id=int(input('ID:'))  
+
+            while True:
+                columna=input('Nombre de la columuna:').strip()
+                valor=input(f'nuevo valor({columna}):')
+
+                datos[columna]=valor
+
+                cerrar=int(input('Son todos? (1 para si)'))
+                if cerrar==1:
+                    break 
+
+            self.conexion1.editar_registro(id,datos,tabla='cita',id_columna='id_cita')
+        except Exception as a:
+            print(f'Error al modificar cita: {a}')
+            
                 

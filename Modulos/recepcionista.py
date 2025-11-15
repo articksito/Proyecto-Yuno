@@ -1,11 +1,14 @@
 from cliente import *
+from cita import *
 
 class Recepcionista:
     def __init__(self):
         self.nosense=''
 
-    def citas():
-        pass
+    def citas(self):
+        cita1=citas()
+        cita1.menu_citas()
+
     def cliente(self):
         cliente1=cliente()
         cliente1.mini_main()

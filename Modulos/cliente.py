@@ -7,16 +7,18 @@ class cliente():
     
     def mini_main(self):
          #Creen interfaz.
-         opcion=int(input("Elige:"))
+         opcion=int(input("Elige\n1.Registrar cliente\n2.Clientes registrados\n3.editar registro de cliente\n"))
+        
          match opcion:
             case 1:
                 self.insertar_datos_cliente()
             case 2:
                 self.ver_registro_cliente()
             case 3:             
-                self.ver_registro_cliente()
+                self.editar_cliente()
             case __:
                    print("Equivocado")
+
 
     def insertar_datos_cliente(self):
         try:
@@ -45,7 +47,7 @@ class cliente():
         except:
              print("Error")
             
-    def editar(self):
+    def editar_cliente(self):
         
         try:
             datos={}
@@ -62,6 +64,6 @@ class cliente():
                     break 
 
             self.conexion.editar_registro(id,datos,tabla='cliente',id_columna='id_cliente')
-        except:
-             print("Error")
+        except Exception as a:
+             print(f"Error en editar: {a}")
  
