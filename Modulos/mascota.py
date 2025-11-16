@@ -48,7 +48,7 @@ class Mascota:
                 print('\t'.join(map(str,colum)))
 
         except Exception as a:
-            print (f'Error al consultar citas: {a}')
+            print (f'Error al consultar mascotas: {a}')
 
     def modificar_mascota(self):
         try:
@@ -68,4 +68,4 @@ class Mascota:
             self.conexion1.editar_registro(id,datos,tabla='mascota',id_columna='id_mascota')
 
         except Exception as a:
-            print(f'Error al modificar cita: {a}')
+            print(f'Error al modificar mascota: {a}')

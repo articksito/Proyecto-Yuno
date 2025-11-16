@@ -3,6 +3,7 @@ from db_connection import *
 connetion_main=Conexion()
 
 def main():
+    #Esto no va a ir aqui, solo es una prueba:v
     recepcion=Recepcionista()
     selccion=int(input('Selecciona\n1.Recepcionista\n'))
     
