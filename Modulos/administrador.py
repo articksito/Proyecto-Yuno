@@ -8,7 +8,7 @@ class administrador:
         while True:
             try:
                 opcion=int(input('''
-                                   1.Usuario
+                                    1.Usuario
                                     2.Mascota
                                     3.Cita
                                     4.Cliente

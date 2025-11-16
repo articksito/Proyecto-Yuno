@@ -11,7 +11,8 @@ class Usuario:
                 opcion=int(input('''
                                     1.Registrar usuario
                                     2.Consultar usuarios
-                                    3.Salir
+                                    3.Modificar usuarios
+                                    4.Salir
                                     Elige:'''))
                 match opcion:
                     case 1:
@@ -19,6 +20,8 @@ class Usuario:
                     case 2:
                         self.consultar_usuarios()
                     case 3:
+                        self.modificar_usuarios()
+                    case 4:
                         break
                     case __:
                         print(f'Pon un numero correcto')
@@ -52,6 +55,27 @@ class Usuario:
 
         except Exception as a:
             print (f'Error al consultar tablas de usuario: {a}')
+    
+    def modificar_usuarios(self):
+        try:
+            datos={}
+            id=int(input('ID:'))  
+
+            while True:
+                columna=input('Nombre de la columuna:').strip()
+                valor=input(f'nuevo valor({columna}):')
+
+                datos[columna]=valor
+
+                cerrar=int(input('Son todos? (1 para si)'))
+                if cerrar==1:
+                    break 
+
+            self.conexion.editar_registro(id,datos,tabla='usuario',id_columna='id_usuario')
+
+        except Exception as a:
+            print(f'Error al modificar usuario: {a}')
+
 
                 
     def consultrar_expediente(self):
