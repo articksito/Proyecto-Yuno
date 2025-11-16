@@ -6,10 +6,26 @@ class Conexion:
         self.conexion1 = psycopg2.connect("postgresql://neondb_owner:npg_M1nvy9aksESm@ep-raspy-star-afucb7a1-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
         self.cursor_uno = self.conexion1.cursor()
 
+    def truncase(self,table:str):
+        try:
+            code = sql.SQL("TRUNCATE TABLE {} RESTART IDENTITY CASCADE").format(sql.Identifier(table))
+
+            self.cursor_uno.execute(code)
+            self.conexion1.commit()
+
+            print(f'{table} reiniciada')
+
+        except Exception as a:
+            print(f'Error en conxion: {a}')
+
+            if hasattr(self, 'conexion'):
+             self.conexion1.rollback()
+
     def insertar_datos(self,table:str,datos:tuple=None,columna:tuple=None):
         try:
             columas_safe=[sql.Identifier(c) for c in columna] #Use la compresion de Barac :v
             lugares=[sql.SQL('%s')]*len(datos)
+        
 
             comando=sql.SQL('INSERT INTO {}({}) VALUES ({})').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares))
             self.cursor_uno.execute(comando,datos)

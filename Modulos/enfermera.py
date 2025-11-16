@@ -1,4 +1,5 @@
 from cita import *
+from mascota import *
 
 class Enfermera:
     def __init__(self):
@@ -23,5 +24,8 @@ class Enfermera:
     def consulat_citas(self):
          citas1=citas()
          citas1.consultar_citas()
+    def conslurtar_paciente():
+        mascota1=Mascota()
+        mascota1.consultar_mascota()
          
          

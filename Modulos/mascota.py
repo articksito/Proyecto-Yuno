@@ -38,6 +38,11 @@ class Mascota:
 
             self.conexion1.insertar_datos(table,datos,columnas)
 
+            ruta_expediente='/home/owner_jose/Proyecto-Yuno/expediente.txt'
+            comando_expediente=f'{datos}'
+            with open(ruta_expediente, 'a') as f:
+                f.write(comando_expediente)
+
         except Exception as a:
             print(f'Error al añadir mascota: {a}')
 
