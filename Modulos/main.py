@@ -4,15 +4,14 @@ connetion_main=Conexion()
 
 def main():
     recepcion=Recepcionista()
-    selccion=int(input('Selecciona\n1.Cliente\n2.Cita\n'))
+    selccion=int(input('Selecciona\n1.Recepcionista\n'))
     
     match selccion :
         case 1:
-            recepcion.cliente()
+            recepcion.menu_recepcion()
         case 2:
-            recepcion.citas()
+            pass
     
-
     connetion_main.cerrar_conexion()
 
    

@@ -55,13 +55,26 @@ class Conexion:
         except Exception as a:
             print(f"Error al editar registro/s:{a}")
 
+    def eliminar_registro(self,id:int,tabla:str,id_columna:str):
+        try:
+
+            comando_sql=sql.SQL("""
+                        DELETE FROM {}
+                        WHERE {}=%s
+                                """).format(sql.Identifier(tabla),sql.Identifier(id_columna))
+            self.cursor_uno.execute(comando_sql,(id,))
+            self.conexion1.commit()
+            print('Eliminado correctamente.')
+        except Exception as a:
+            print(f"Error al eliminar registro:{a}")
+            self.conexion1.rollback()
+
     def cerrar_conexion(self):
         if self.conexion1:
             self.conexion1.close()
         if self.cursor_uno:
             self.cursor_uno.close
         print('Cerrado, vuelva pronto')
-
 
     def Validacion_usuario(self, id_user: int):
         self.id_user = id_user

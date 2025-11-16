@@ -7,17 +7,25 @@ class cliente():
     
     def mini_main(self):
          #Creen interfaz.
-         opcion=int(input("Elige\n1.Registrar cliente\n2.Clientes registrados\n3.editar registro de cliente\n"))
-        
-         match opcion:
-            case 1:
-                self.insertar_datos_cliente()
-            case 2:
-                self.ver_registro_cliente()
-            case 3:             
-                self.editar_cliente()
-            case __:
-                   print("Equivocado")
+         try:
+            while True:
+                opcion=int(input("Elige\n1.Registrar cliente\n2.Clientes registrados\n3.editar registro de cliente\n4.Para eliminar a un cliente\n5.Salir\n:"))
+                
+                match opcion:
+                    case 1:
+                        self.insertar_datos_cliente()
+                    case 2:
+                        self.ver_registro_cliente()
+                    case 3:             
+                        self.editar_cliente()
+                    case 4:
+                        self.eliminar_cliente()
+                    case 5:
+                        break
+                    case __:
+                        print("Equivocado")
+         except Exception as a:
+             print(f'Error en la seleccion: {a}')
 
 
     def insertar_datos_cliente(self):
@@ -66,4 +74,12 @@ class cliente():
             self.conexion.editar_registro(id,datos,tabla='cliente',id_columna='id_cliente')
         except Exception as a:
              print(f"Error en editar: {a}")
+        
+    def eliminar_cliente(self):
+        try:
+            id=int(input('Id de la cliente a eliminar:'))
+            self.conexion.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')
+
+        except Exception as a:
+            print(f'Error al eliminar cliente: {a}')
  
