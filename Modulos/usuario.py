@@ -36,11 +36,36 @@ class Usuario:
             telefono=int(input('Telefono del usuario:'))
             contraseña=input('Contraseña del usuario:')
             status=input('Estatus del usuario(True or False):')
-            rol=input('Rol del usuario:')
+
+            seleccion_rol=int(input('''Seleccion de rol.\n1.Recepcionista
+2.Enfermera/o\n3.Veterinario\n4.Admin\nElige: '''))
+            rol=''
+            
+            while seleccion_rol:
+                try:
+                    match seleccion_rol:
+                        case 1:
+                            rol='Recepcionista'
+                            seleccion_rol=False
+                        case 2:
+                            rol='Enfermera/o'
+                            seleccion_rol=False
+                        case 3:
+                            rol='Veterinario'
+                            seleccion_rol=False
+                        case 4:
+                            rol='Admin'
+                            seleccion_rol=False
+                        case __:
+                            print('Pon el numero correcto')
+                except:
+                    print("Pon caracteres validos")
+
             
             datos=(nombre,apellido,correo,telefono,contraseña,status,rol)
             columnas=('nombre','apellido','correo','telefono','contraseña','status','rol')
             table='usuario'
+            print(datos)
 
             self.conexion.insertar_datos(table,datos,columnas)
 
