@@ -43,7 +43,7 @@ class cliente():
             self.conexion.insertar_datos(table,datos,clumnas)
             
         except Exception as Error:
-            print(f"Error: {Error}")
+            print(f"Error en cliente: {Error}")
 
     def ver_registro_cliente(self):
         try:

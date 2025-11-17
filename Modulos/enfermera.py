@@ -24,7 +24,7 @@ class Enfermera:
     def consulat_citas(self):
          citas1=citas()
          citas1.consultar_citas()
-    def conslurtar_paciente():
+    def consultar_paciente():
         mascota1=Mascota()
         mascota1.consultar_mascota()
          

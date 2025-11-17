@@ -23,15 +23,27 @@ class Conexion:
 
     def insertar_datos(self,table:str,datos:tuple=None,columna:tuple=None):
         try:
+            pk_columna = 'id_' + table
+
             columas_safe=[sql.Identifier(c) for c in columna] #Use la compresion de Barac :v
             lugares=[sql.SQL('%s')]*len(datos)
         
 
-            comando=sql.SQL('INSERT INTO {}({}) VALUES ({})').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares))
+            comando=sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares)
+                ,sql.Identifier(pk_columna))
+            
             self.cursor_uno.execute(comando,datos)
+            id_generado = self.cursor_uno.fetchone()[0]
+
             self.conexion1.commit()
 
+            devolver_id=int(input('Queires devolver el id?\n1.Para si\nElige:'))
+
             print("Correcto")
+
+            if devolver_id==1:
+                return id_generado
+
         except psycopg2.Error as error:
             print(f"Error en insertar_datos: {error}")
             self.conexion1.rollback()
@@ -45,6 +57,22 @@ class Conexion:
             return table
         except Exception as a:
             print(f"Error en Select_users:{a}")
+        
+    def selcionar_dato(self,dato:int,table:str,columna:str):
+        try:
+            comando_sql = sql.SQL("SELECT {} FROM {} WHERE {} = %s").format(
+            sql.Identifier(columna),
+            sql.Identifier(table),
+            sql.Identifier(columna)
+        )
+            
+            self.cursor_uno.execute(comando_sql,dato)
+            a=self.cursor_uno.fetchone()
+
+            return a[0]
+        
+        except Exception as a:
+            print(f'Error al seleccionar dato:{a}')
 
     def editar_registro(self,id:int,datos:dict,tabla:str,id_columna:str):
         try:
