@@ -150,3 +150,24 @@ class Conexion:
                 self.validacion_pwd = False
         
         return self.validacion_pwd 
+    
+    def cambiar_contraseña(self):
+        try:
+    
+            id=int(input('¿Cual es tu id?:'))  
+
+            columna='contraseña'
+            nuevo_valor=input(f'nueva({columna}):')
+
+            comando_sql= sql.SQL("""
+                                 UPDATE {}
+                                 SET contraseña=%s
+                                 WHERE id_usuario=%s
+                                 """).format(sql.Identifier('usuario'))
+
+            self.cursor_uno.execute(comando_sql,(nuevo_valor,id))
+            self.conexion1.commit()
+            print('Correcto')
+
+        except Exception as a:
+            print(f'Error al cambiar contraseña, desde Conexion: {a}')

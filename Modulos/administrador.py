@@ -1,55 +1,50 @@
 from usuario import *
-from cita import *
-from cliente import *
-from mascota import *
+from recepcionista import *
+from veterinario import *
+from enfermera import *
 from db_connection import *
 
 class administrador:
     def __init__(self):
         self.conexion=Conexion()
+        self.recepcion=Recepcionista()
+        self.veterinario=Veterinario()
+        self.enfermera=Enfermera()
+        self.usuario=Usuario()
 
     def menu_administrador(self):
         while True:
             try:
                 opcion=int(input('''
                                     1.Usuario
-                                    2.Mascota
-                                    3.Cita
-                                    4.Cliente
+                                    2.Recepcion
+                                    3.Veterinario
+                                    4.Enfermero/a
                                     5.Eliminar records de tabla entera.
-                                    6.Salir
+                                    6.Cambiar contraseña
+                                    7.Salir
                                     Elige:'''))
                 
                 match opcion:
                     case 1:
-                        self.usuario()
+                        self.usuario.menu_usuario()
                     case 2:
-                        self.mascota()
+                        self.recepcion.menu_recepcion()
                     case 3:
-                        self.cita()
+                        self.veterinario.menu_veterinario()
                     case 4:
-                        self.cliente()
+                        self.enfermera.menu_enfermera()
                     case 5:
                         self.eliminar_datos_full()
                     case 6:
+                        self.conexion.cambiar_contraseña()
+                    case 7:
                         break
                     case __:
                         print('Pon un numero correcto.')
             except Exception as a:
                 print(f'Error en el menu de admin: {a}')
         pass
-    def usuario(self):
-        usuario1=Usuario()
-        usuario1.menu_usuario()
-    def mascota(self):
-        mascota1=Mascota()
-        mascota1.menu_mascotas()
-    def cita(self):
-        cita1=citas()
-        cita1.menu_citas()
-    def cliente(self):
-        cliente1=cliente()
-        cliente1.mini_main()
 
     def eliminar_datos_full(self):
         while True:
