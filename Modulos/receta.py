@@ -8,7 +8,7 @@ class receta:
         try:
             print('\nLa receta\n')
             indicaciones=input('Indicaciones de uso:')
-            medicamento=1
+            medicamento=int(input('Pon la id del medicamento:'))
 
             datos=(indicaciones,medicamento)
             clumnas=('indicaciones','fk_medicamento')

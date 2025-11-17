@@ -9,12 +9,16 @@ class Enfermera:
     def menu_enfermera(self):
             while True:
                 try:
-                    opcionE = int(input("""1.Consultar informacion de citas\nIngrese una opción: """))
+                    opcionE = int(input("""1.Consultar informacion de citas\n2.Consultar imformancion de pacientes\nIngrese una opción: """))
 
                     match opcionE:
-                         case 1:
-                              self.consulat_citas()
-                         case __:
+                        case 1:
+                            self.consulat_citas()
+                        case 2:
+                            self.consultar_paciente()
+                        case 3:
+                              break
+                        case __:
                               print('Pon el numero correcto.')
                       
                       
