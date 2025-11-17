@@ -11,7 +11,7 @@ class consulta():
             consultorio=input('Consultorio donde se realizara:')
             motivo=input('Motivo de la consulta:')
             metodo_pago=input('Metodo de pago:')
-            id_veterinario=int(input('Id del veterinario asignado'))
+            id_veterinario=int(input('Id del veterinario asignado:'))
             id_mascota=int(input('Id de la mascota:'))
             receta=int(self.receta.insertar_receta())
             id_cita=int(input('Id de la cita:'))

@@ -12,18 +12,26 @@ def main():
     veterinario=Veterinario()
     enfermera=Enfermera()
 
-    selccion=int(input('''Selecciona\n1.Recepcionista\n2.Administrador
-3.Enfermero/a\n4.Veterinario\nElige:'''))
+  
     
-    match selccion :
-        case 1:
-            recepcion.menu_recepcion()
-        case 2:
-            administrador1.menu_administrador()
-        case 3:
-            enfermera.menu_enfermera()
-        case 4:
-            veterinario.menu_veterinario()
+    while True:
+        try:
+            selccion=int(input('''Selecciona\n1.Recepcionista\n2.Administrador
+3.Enfermero/a\n4.Veterinario\n5.Salir\nElige:'''))
+            
+            match selccion :
+                case 1:
+                    recepcion.menu_recepcion()
+                case 2:
+                    administrador1.menu_administrador()
+                case 3:
+                    enfermera.menu_enfermera()
+                case 4:
+                    veterinario.menu_veterinario()
+                case 5:
+                    break
+        except Exception as a:
+            print(f'Error en menu main:{a}')
 
             
     connetion_main.cerrar_conexion()

@@ -9,11 +9,12 @@ class Usuario:
         while True:
             try:
                 opcion=int(input('''
-                                    1.Registrar usuario
-                                    2.Consultar usuarios
-                                    3.Modificar usuarios
-                                    4.Salir
-                                    Elige:'''))
+1.Registrar usuario
+2.Consultar usuarios
+3.Modificar usuarios
+4.Eliminar usuario
+5.Salir
+Elige:'''))
                 match opcion:
                     case 1:
                         self.registro_usuario()
@@ -22,6 +23,8 @@ class Usuario:
                     case 3:
                         self.modificar_usuarios()
                     case 4:
+                        self.eliminar_usuario()
+                    case 5:
                         break
                     case __:
                         print(f'Pon un numero correcto')
@@ -101,7 +104,13 @@ class Usuario:
         except Exception as a:
             print(f'Error al modificar usuario: {a}')
 
+    def eliminar_usuario(self):
+        try:
+            id=int(input('Id del usuario a eliminar:'))
+            self.conexion.eliminar_registro(id,tabla='usuario',id_columna='id_usuario')
 
-                
+        except Exception as a:
+            print(f'Error al eliminar usuario desde usuario: {a}')
+              
     def consultrar_expediente(self):
         pass

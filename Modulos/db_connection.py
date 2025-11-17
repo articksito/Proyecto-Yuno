@@ -23,27 +23,29 @@ class Conexion:
 
     def insertar_datos(self,table:str,datos:tuple=None,columna:tuple=None):
         try:
-            pk_columna = 'id_' + table
 
             columas_safe=[sql.Identifier(c) for c in columna] #Use la compresion de Barac :v
             lugares=[sql.SQL('%s')]*len(datos)
-        
 
-            comando=sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares)
-                ,sql.Identifier(pk_columna))
-            
-            self.cursor_uno.execute(comando,datos)
-            id_generado = self.cursor_uno.fetchone()[0]
+            #devolver_id=int(input('Queires devolver el id?\n1.Para si\nElige:'))
+            if table=='receta':
+                pk_columna = 'id_' + table
 
-            self.conexion1.commit()
+                comando=sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares)
+                    ,sql.Identifier(pk_columna))
+                
+                self.cursor_uno.execute(comando,datos)
+                id_generado = self.cursor_uno.fetchone()[0]
+                print("Correcto")
 
-            devolver_id=int(input('Queires devolver el id?\n1.Para si\nElige:'))
-
-            print("Correcto")
-
-            if devolver_id==1:
                 return id_generado
+            else:
+                comando=sql.SQL('INSERT INTO {}({}) VALUES ({})').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares))
+                self.cursor_uno.execute(comando,datos)
+                print('Correcto')
 
+            self.conexion1.commit() 
+            
         except psycopg2.Error as error:
             print(f"Error en insertar_datos: {error}")
             self.conexion1.rollback()
