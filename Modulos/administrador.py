@@ -16,14 +16,15 @@ class administrador:
         while True:
             try:
                 opcion=int(input('''
-                                    1.Usuario
-                                    2.Recepcion
-                                    3.Veterinario
-                                    4.Enfermero/a
-                                    5.Eliminar records de tabla entera.
-                                    6.Cambiar contraseña
-                                    7.Salir
-                                    Elige:'''))
+1.Usuario
+2.Recepcion
+3.Veterinario
+4.Enfermero/a
+5.Eliminar records de tabla entera.
+6.Agregar algun tipo de animal
+7.Consultar tipo de animal
+8.Salir
+Elige:'''))
                 
                 match opcion:
                     case 1:
@@ -37,8 +38,10 @@ class administrador:
                     case 5:
                         self.eliminar_datos_full()
                     case 6:
-                        self.conexion.cambiar_contraseña()
+                        self.agregar_tipo_animal()
                     case 7:
+                        self.consulta_tipo_animal()
+                    case 8:
                         break
                     case __:
                         print('Pon un numero correcto.')
@@ -89,3 +92,28 @@ class administrador:
 
             except Exception as a:
                 print(f'Fallo desde administrador:{a}')
+        
+    def agregar_tipo_animal(self):
+        try:
+            especie=input('Especie del animal:')
+            raza=input('Raza del animal:')
+            descripocion=input('Descripcion del animal:')
+            
+            
+            datos=(especie,raza,descripocion)
+            columnas=('especie','raza','descripcion')
+            table='tipo_animal'
+
+            self.conexion.insertar_datos(table,datos,columnas)
+
+        except Exception as a:
+             print(f'Error al agregar tipo del animal: {a}')
+
+    def consulta_tipo_animal(self):
+        try:
+            columnas=self.conexion.Select_users(table='tipo_animal')
+            for colum in columnas:
+                print('\t'.join(map(str,colum)))
+
+        except Exception as a:
+            print (f'Error al consultar tipos de animales: {a}')

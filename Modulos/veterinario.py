@@ -10,7 +10,7 @@ class Veterinario:
         while True:
             try:
                 print("Menu mascotas")
-                print("""1.Consultar veterinarios\n2.Realizar consulta\n3.Salir""")
+                print("""1.Consultar veterinarios\n2.Realizar consulta\n3.Cambiar contraseña\n4.Salir""")
                     
                 opcionC = int(input("Elije la opcion que desees elegir: ")) 
                 match opcionC:
@@ -19,6 +19,8 @@ class Veterinario:
                     case 2:
                         self.realizar_consulta()
                     case 3:
+                        self.conexion1.cambiar_contraseña()
+                    case 4:
                         break
             except ValueError:
                     print("Error: Debe ingresar un número válido")

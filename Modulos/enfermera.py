@@ -1,17 +1,18 @@
 from cita import *
+from db_connection import *
 from mascota import *
-from Sesion import *
+
 
 class Enfermera:
     def __init__(self):
-        self.sesion_opciones=sesion()
+        self.conexion=Conexion()
             
 
     def menu_enfermera(self):
             while True:
                 try:
                     opcionE = int(input("""1.Consultar informacion de citas\n2.Consultar imformancion de pacientes
-3.Actualizar diagnostico\n4.Opciones de sesion\n5.Salir\nIngrese una opción: """))
+3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Salir\nIngrese una opción: """))
 
                     match opcionE:
                         case 1:
@@ -21,7 +22,9 @@ class Enfermera:
                         case 3:
                             self.actualizar_diagnostico() 
                         case 4:
-                            self.sesion() 
+                            self.conexion.cambiar_contraseña()
+                        case 5:
+                              self.agregar_medicina()
                         case 5:
                               break
                         case __:
@@ -44,6 +47,28 @@ class Enfermera:
         with open(ruta_expediente, 'a') as f:
             f.write(comando_expediente)
 
-    def sesion(self):
-         self.sesion_opciones()
-        
+    def agregar_medicina(self):
+        try:
+            nombre=input('Nombre de la medicina:')
+            tipo=input('Tipo de medicina:')
+            composicion=input('Composicion del medicamento:')
+            dosis_recomendada=input('Dosis recoemndada del medicamento:')
+            via_administracion=input('Se administra por:')
+            
+            datos=(nombre,tipo,composicion,dosis_recomendada,via_administracion)
+            columnas=('nombre','tipo','composicion(mg)','dosis_recomendada','via_administracion')
+            table='medicamento'
+
+            self.conexion.insertar_datos(table,datos,columnas)
+
+        except Exception as a:
+             print(f'Error al agregar medicina: {a}')
+    
+    def consultar_medicamento(self):
+        try:
+            columnas=self.conexion.Select_users(table='medicamento')
+            for colum in columnas:
+                print('\t'.join(map(str,colum)))
+
+        except Exception as a:
+            print (f'Error al consultar medicamentos en repertorio: {a}')
