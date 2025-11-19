@@ -7,6 +7,8 @@ import sys
 
 from db_connection import Conexion
 
+from UI_Veterinario import VeterinarioMenu
+
 
 # ---------------------------
 #     LOGO BASE64 (PENPOT)
@@ -115,7 +117,16 @@ class LoginWindow(QWidget):
 
         if conexion.Validacion_usuario(username) and conexion.Validacion_contrasena(password):
             self.animate_success()
-            self.status_label.setText("✅ Inicio de sesión exitoso")
+            
+            rol = conexion.Validacion_Perfil(username)
+            
+            if rol == "ADMIN":
+                print("Perfil Admin")
+
+            elif rol == "VET":
+                self.vet = VeterinarioMenu("Isaid")
+                self.vet.show()
+                self.close()
         else:
             self.status_label.setText("❌ Usuario o contraseña incorrectos")
             QMessageBox.warning(self, "Error", "Credenciales inválidas")

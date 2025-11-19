@@ -126,7 +126,7 @@ class Conexion:
         self.id_user = id_user
         self.validacion = bool
 
-        sql = "SELECT 1 FROM usuario where id_usuario = %s"
+        sql = "SELECT 1 FROM usuario WHERE id_usuario = %s"
 
         self.cursor_uno.execute(sql, (id_user,))
         result = self.cursor_uno.fetchone()
@@ -134,6 +134,22 @@ class Conexion:
         self.validacion = result is not None
 
         return self.validacion
+
+        #Se valida el rol para desplegar la pantalla correcta
+    def Validacion_Perfil(self, perffil: int):
+        self.perfil = perffil
+        self.rol = ""
+
+        self.cursor_uno.execute("SELECT rol FROM usuario WHERE id_usuario = %s", (perffil,))
+        result= self.cursor_uno.fetchone()
+
+        if result:
+            rol = result[0]
+            self.rol = rol
+        else:
+            print("Usuario no encontrado.")
+
+        return self.rol
 
     def Validacion_contrasena(self, user_pwd):
         self.pwd = user_pwd
@@ -171,3 +187,11 @@ class Conexion:
 
         except Exception as a:
             print(f'Error al cambiar contraseña, desde Conexion: {a}')
+
+class main:
+    def __init__(self):
+        con = Conexion()
+        con.Validacion_Perfil(1)
+
+if __name__ == "__main__":
+    main()
