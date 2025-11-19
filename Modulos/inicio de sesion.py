@@ -1,11 +1,11 @@
-import sys
-import base64
 from PyQt6.QtWidgets import (
-    QApplication, QWidget, QLabel, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QPushButton
+    QApplication, QWidget, QLabel, QLineEdit, QPushButton, QVBoxLayout, QMessageBox
 )
-from PyQt6.QtGui import QPainter, QLinearGradient, QColor, QPixmap
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
+from PyQt6.QtGui import QFont, QPalette, QLinearGradient, QColor, QBrush
+import sys
+
+from db_connection import Conexion
 
 
 # ---------------------------
@@ -19,91 +19,117 @@ iVBORw0KGgoAAAANSUhEUgAAAVYAAAF7CAYAAACJnaNrAAAAAXNSR0IArs4c6QAAIABJREFUeAHsvfmb
 # ---------------------------
 #      WIDGET PRINCIPAL
 # ---------------------------
-class LoginUI(QWidget):
-
+class LoginWindow(QWidget):
     def __init__(self):
         super().__init__()
-        self.setWindowTitle("Inicio de Sesión")
+        self.setWindowTitle("Inicio de sesión")
         self.setFixedSize(400, 300)
-
         self.setup_ui()
-        self.load_logo()
 
     def setup_ui(self):
-        main_layout = QVBoxLayout()
-        main_layout.setContentsMargins(40, 30, 40, 30)
-        main_layout.setSpacing(15)
+        # Fondo degradado
+        palette = QPalette()
+        gradient = QLinearGradient(0, 0, 0, self.height())
+        gradient.setColorAt(0.0, QColor("#FC7CE2"))
+        gradient.setColorAt(1.0, QColor("#7CEBFC"))
+        palette.setBrush(QPalette.ColorRole.Window, QBrush(gradient))
+        self.setAutoFillBackground(True)
+        self.setPalette(palette)
 
-        # Titulo
-        title = QLabel("BIENVENIDO")
-        title.setStyleSheet("""
-            color: white;
-            font-size: 18px;
-        """)
+        # Layout principal
+        layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Título
+        title = QLabel("Bienvenido")
+        title.setFont(QFont("Segoe UI", 18, QFont.Weight.Bold))
+        title.setStyleSheet("color: white;")
         title.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(title)
 
-        # Usuario
-        user_label = QLabel("Usuario")
-        user_label.setStyleSheet("color: rgba(0,0,0,.52); font-size: 16px;")
-        user_input = QLineEdit()
-        user_input.setFixedHeight(25)
-        user_input.setStyleSheet("""
-            background: white;
-            border-radius: 8px;
-            padding-left: 8px;
+        # Campo usuario
+        self.username_input = QLineEdit()
+        self.username_input.setPlaceholderText("Usuario")
+        self.username_input.setFixedWidth(250)
+        self.username_input.setStyleSheet("""
+            QLineEdit {
+                border-radius: 8px;
+                border: 2px solid #ddd;
+                padding: 8px;
+                background: white;
+            }
         """)
 
-        main_layout.addWidget(user_label)
-        main_layout.addWidget(user_input)
-
-        # Contraseña
-        pass_label = QLabel("Contraseña")
-        pass_label.setStyleSheet("color: rgba(0,0,0,.52); font-size: 16px;")
-        pass_input = QLineEdit()
-        pass_input.setFixedHeight(25)
-        pass_input.setEchoMode(QLineEdit.EchoMode.Password)
-        pass_input.setStyleSheet("""
-            background: white;
-            border-radius: 8px;
-            padding-left: 8px;
+        # Campo contraseña
+        self.password_input = QLineEdit()
+        self.password_input.setPlaceholderText("Contraseña")
+        self.password_input.setEchoMode(QLineEdit.EchoMode.Password)
+        self.password_input.setFixedWidth(250)
+        self.password_input.setStyleSheet("""
+            QLineEdit {
+                border-radius: 8px;
+                border: 2px solid #ddd;
+                padding: 8px;
+                background: white;
+            }
         """)
-
-        main_layout.addWidget(pass_label)
-        main_layout.addWidget(pass_input)
 
         # Botón
-        login_button = QPushButton("Iniciar sesión")
-        login_button.setFixedHeight(30)
-        login_button.setStyleSheet("""
-            background: #5f2c82;
-            color: white;
-            border-radius: 19px;
-            font-size: 16px;
+        self.login_button = QPushButton("Iniciar sesión")
+        self.login_button.setFixedWidth(200)
+        self.login_button.setCursor(Qt.CursorShape.PointingHandCursor)
+        self.login_button.setStyleSheet("""
+            QPushButton {
+                background-color: #5f2c82;
+                color: white;
+                font-weight: bold;
+                border-radius: 10px;
+                padding: 8px;
+            }
+            QPushButton:hover {
+                background-color: #49a09d;
+            }
         """)
+        self.login_button.clicked.connect(self.login)
 
-        main_layout.addWidget(login_button)
+        # Mensaje de estado
+        self.status_label = QLabel("")
+        self.status_label.setStyleSheet("color: white; font-size: 13px;")
+        self.status_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        # Espacio del logo
-        self.logo_label = QLabel()
-        self.logo_label.setAlignment(Qt.AlignmentFlag.AlignRight)
-        main_layout.addWidget(self.logo_label)
+        # Añadir widgets al layout
+        layout.addWidget(title)
+        layout.addSpacing(10)
+        layout.addWidget(self.username_input)
+        layout.addWidget(self.password_input)
+        layout.addSpacing(10)
+        layout.addWidget(self.login_button)
+        layout.addWidget(self.status_label)
 
-        self.setLayout(main_layout)
+        self.setLayout(layout)
 
-    # Cargar logo DESPUÉS de tener QApplication
-    def load_logo(self):
-        pix = QPixmap()
-        pix.loadFromData(base64.b64decode(logo_base64))
-        self.logo_label.setPixmap(pix.scaled(60, 60, Qt.AspectRatioMode.KeepAspectRatio))
+    def login(self):
+        conexion = Conexion()
 
-    # Fondo con gradiente
-    def paintEvent(self, event):
-        painter = QPainter(self)
-        gradient = QLinearGradient(0, 0, 0, self.height())
-        gradient.setColorAt(0.11, QColor(124, 235, 252))
-        gradient.setColorAt(0.92, QColor(252, 124, 226))
-        painter.fillRect(self.rect(), gradient)
+        username = self.username_input.text()
+        password = self.password_input.text()
+
+        if conexion.Validacion_usuario(username) and conexion.Validacion_contrasena(password):
+            self.animate_success()
+            self.status_label.setText("✅ Inicio de sesión exitoso")
+        else:
+            self.status_label.setText("❌ Usuario o contraseña incorrectos")
+            QMessageBox.warning(self, "Error", "Credenciales inválidas")
+
+    def animate_success(self):
+        """Animación del botón al iniciar sesión correctamente"""
+        anim = QPropertyAnimation(self.login_button, b"geometry")
+        anim.setDuration(400)
+        anim.setEasingCurve(QEasingCurve.Type.OutBounce)
+        anim.setStartValue(self.login_button.geometry())
+        anim.setEndValue(self.login_button.geometry().adjusted(0, -10, 0, -10))
+        anim.start()
+        self.anim = anim  # evitar que se destruya
+
 
 
 # ---------------------------
@@ -111,6 +137,6 @@ class LoginUI(QWidget):
 # ---------------------------
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = LoginUI()
+    window = LoginWindow()
     window.show()
     sys.exit(app.exec())
