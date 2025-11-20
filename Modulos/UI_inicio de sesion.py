@@ -123,7 +123,7 @@ class LoginWindow(QWidget):
             if rol == "ADMIN":
                 print("Perfil Admin")
 
-            elif rol == "VET":
+            elif rol == "Vet":
                 self.vet = VeterinarioMenu("Isaid")
                 self.vet.show()
                 self.close()

@@ -74,3 +74,11 @@ class Mascota:
 
         except Exception as a:
             print(f'Error al modificar mascota: {a}')
+
+    def eliminar_mascota(self):
+            try:
+                id=int(input('Id de la mascota a eliminar:'))
+                self.conexion1.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')
+
+            except Exception as a:
+                print(f'Error al eliminar mascota: {a}')

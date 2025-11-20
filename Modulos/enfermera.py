@@ -12,7 +12,8 @@ class Enfermera:
             while True:
                 try:
                     opcionE = int(input("""1.Consultar informacion de citas\n2.Consultar imformancion de pacientes
-3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Salir\nIngrese una opción: """))
+3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Consultar medicina\n7.Salir
+Ingrese una opción: """))
 
                     match opcionE:
                         case 1:
@@ -25,8 +26,10 @@ class Enfermera:
                             self.conexion.cambiar_contraseña()
                         case 5:
                               self.agregar_medicina()
-                        case 5:
-                              break
+                        case 6:
+                              self.consultar_medicamento()
+                        case 7:
+                            break
                         case __:
                               print('Pon el numero correcto.')
                       
