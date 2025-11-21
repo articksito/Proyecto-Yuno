@@ -129,7 +129,7 @@ class LoginWindow(QWidget):
                 self.vet.show()
                 self.close()
             elif rol == "REP":
-                self.rep = Recepcionista()
+                self.rep = Recepcionista(conexion.Nombre_Usuario(username))
                 self.rep.show()
                 self.close()
         else:

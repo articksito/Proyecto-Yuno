@@ -152,6 +152,7 @@ class Conexion:
             self.cursor_uno.close
         print('Cerrado, vuelva pronto')
 
+        #Retorna el rol del usuario
     def Validacion_usuario(self, id_user: int):
         self.id_user = id_user
         self.validacion = bool
@@ -180,6 +181,28 @@ class Conexion:
             print("Usuario no encontrado.")
 
         return self.rol
+
+    #retorna el nombre del usuario
+    def Nombre_Usuario (self, perffil: int):
+        self.perfil = perffil
+        self.nombre_usuario = ""
+        self.apellido_usuario = ""
+
+        self.cursor_uno.execute("SELECT nombre FROM usuario WHERE id_usuario = %s", (perffil,))
+        result_n = self.cursor_uno.fetchone()
+
+        self.cursor_uno.execute("SELECT apellido FROM usuario WHERE id_usuario = %s", (perffil,))
+        result_a = self.cursor_uno.fetchone()
+
+        for row in result_n:
+            self.nombre_usuario = f"{row}"
+
+        for row_2 in result_a:
+            self.apellido_usuario = f"{row_2}"
+
+        self.nombre_completo = f"{self.nombre_usuario} {self.apellido_usuario}"
+
+        return self.nombre_completo
 
     def Validacion_contrasena(self, user_pwd):
         self.pwd = user_pwd

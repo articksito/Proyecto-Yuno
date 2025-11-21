@@ -5,11 +5,14 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
 
+from db_connection import Conexion
+
 from UI_Crear_cita import MainWindow as AgendarCita
 from UI_Revisar_Cita import MainWindow as Visualizar
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    def __init__(self, nombre):
+        self.nombre = nombre
         super().__init__()
 
         self.setWindowTitle("Sistema Veterinario Yuno - Recepción")
@@ -17,7 +20,7 @@ class MainWindow(QMainWindow):
 
         # Datos simulados (Aquí conectarías tu BD)
         self.user_data = {
-            "nombre": "Ana García",
+            "nombre": f"{self.nombre}",
             "puesto": "Recepcionista Senior",
             "id": "REC-001"
         }
