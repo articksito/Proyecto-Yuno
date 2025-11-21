@@ -8,6 +8,7 @@ import sys
 from db_connection import Conexion
 
 from UI_Veterinario import VeterinarioMenu
+from UI_Recepcionista import MainWindow as Recepcionista
 
 
 # ---------------------------
@@ -123,9 +124,13 @@ class LoginWindow(QWidget):
             if rol == "ADMIN":
                 print("Perfil Admin")
 
-            elif rol == "Vet":
+            elif rol == "VET":
                 self.vet = VeterinarioMenu("Isaid")
                 self.vet.show()
+                self.close()
+            elif rol == "REP":
+                self.rep = Recepcionista()
+                self.rep.show()
                 self.close()
         else:
             self.status_label.setText("❌ Usuario o contraseña incorrectos")
