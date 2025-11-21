@@ -1,5 +1,6 @@
 import psycopg2
 from psycopg2 import sql
+import os
 
 class Conexion:
     def __init__(self):
@@ -216,6 +217,14 @@ class Conexion:
 
         except Exception as a:
             print(f'Error al cambiar contraseña, desde Conexion: {a}')
+
+    def limpiar_terminal(self):
+        if os.name == 'nt':
+            _ = os.system('cls')
+
+        else:
+            _ = os.system('clear')
+    
 
 class main:
     def __init__(self):

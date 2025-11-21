@@ -22,12 +22,16 @@ def main():
             match selccion :
                 case 1:
                     recepcion.menu_recepcion()
+                    connetion_main.limpiar_terminal()
                 case 2:
                     administrador1.menu_administrador()
+                    connetion_main.limpiar_terminal()
                 case 3:
                     enfermera.menu_enfermera()
+                    connetion_main.limpiar_terminal()
                 case 4:
                     veterinario.menu_veterinario()
+                    connetion_main.limpiar_terminal()
                 case 5:
                     break
         except Exception as a:
