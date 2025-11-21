@@ -9,7 +9,7 @@ class citas:
         while True:
             try:    
                     print("1. Crear cita")
-                    print("2. Editar las citas\n3.Eliminar cita\n4.Consultar citas")
+                    print("2. Editar las citas\n3.Eliminar cita\n4.Consultar citas\n5.Buscador de citas")
                     opcionC = int(input("Elije la opcion que desees elegir: "))
                     match opcionC:
                         case 1:
@@ -21,6 +21,8 @@ class citas:
                         case 4:
                             self.consultar_citas()
                         case 5:
+                            self.buscardor_de_citas()
+                        case 6:
                             break
             except ValueError:
                     print("Error: Debe ingresar un número válido")
@@ -79,3 +81,62 @@ class citas:
 
         except Exception as a:
             print (f'Error al consultar citas: {a}')
+            
+    def buscardor_de_citas(self):
+        print (" BUSCADOR DE CITAS ")
+        while True:
+            try:
+                opcion= int (input('''
+    1. Buscar cita por ID
+    2. Buscar cita por de Mascota
+    3. Buscar cita por ID Cliente
+    4. Buscar cita por ID Veterinario
+    5. Salir
+    Por cual metodo seas realizar la busqueda : '''))
+                if opcion ==5:
+                    break
+                
+                buscador= input('Ingresa el dato para la busqueda : ')
+                resultados = []
+                columna_busqueda = ''
+                
+                match opcion: 
+                    case 1: #este es de id de cita
+                        columna_busqueda='id_cita'
+                        resultados= self.conexion1.select_con_filtro('cita', columna_busqueda, buscador)
+                    
+                    case 2: #Por nombre de mascota
+                        columna_busqueda= 'fk_mascota'
+                        resultados= self.conexion1.select_con_filtro('cita', columna_busqueda,buscador)
+                    case 3:
+                        continue
+                    case 4: 
+                        columna_busqueda='fk_veterinario'
+                        resultados= self.conexion1.select_con_filtro('cita',columna_busqueda, buscador)
+                    case __:
+                        print('opcion no valida')
+                        continue
+                if resultados:
+                    print(f"\n--- Resultados para '{buscador} en {columna_busqueda}---'")
+                    for i in resultados:
+                        print(f"ID: {i[0]} \n FECHA: {i[1]} \n HORA: {i[2]} \n ESTADO {i[3]}\n ID MASCOTA: {i[5]}\n ID VETERINARIO ASIGNADO: {i[6]}")
+                else:
+                    print(" No se encontro ninguna cita con ese valor")
+            except ValueError:
+                print ("Error: Ingresar solo numeros")
+            except Exception as e:
+                print(f" Error con el buscador: {e}")
+                
+                
+                    
+                    
+            
+                    
+                    
+                        
+                        
+                        
+                
+                
+                
+                
