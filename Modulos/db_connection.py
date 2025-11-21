@@ -21,6 +21,35 @@ class Conexion:
             if hasattr(self, 'conexion'):
              self.conexion1.rollback()
 
+    def select_con_filtro(self, table: str, condition_column: str, condition_value):
+        try: #Ilike es para buscar nombres, y los %s son para los ids.
+            buscador = sql.SQL("SELECT * FROM {} WHERE {} ILIKE %s").format(
+                sql.Identifier(table),
+                sql.Identifier(condition_column)
+            )
+            if condition_column.startswith('id_'):
+                search_value= str(condition_value)
+            else:
+                search_value= f"%{condition_value}%"
+            
+            self.cursor_uno.execute(buscador, (search_value,))
+            resultados= self.cursor_uno.fetchall()
+            
+            return resultados 
+        except Exception as a:
+            print(f'Error al seleccionar la busqueda')
+            return []
+    def select_citas_por_cliente(self, id_cliente):
+        try:
+            especial = """SELECT c.* FROM cita c JOIN mascota m ON c.fk_mascota = m.id_mascota WHERE m.fk_cliente = %s; """
+            self.cursor_uno.execute(especial , (id_cliente,))
+            return self.cursor_uno.fetchall()
+            
+        except Exception as e:
+            print(f'Error al buscar citas por cliente: {e}')
+            return []
+    
+
     def insertar_datos(self,table:str,datos:tuple=None,columna:tuple=None):
         try:
 
