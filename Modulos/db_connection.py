@@ -152,7 +152,7 @@ class Conexion:
             self.cursor_uno.close
         print('Cerrado, vuelva pronto')
 
-        #Retorna el rol del usuario
+        #Verifica que exista el usuario
     def Validacion_usuario(self, id_user: int):
         self.id_user = id_user
         self.validacion = bool
@@ -166,7 +166,7 @@ class Conexion:
 
         return self.validacion
 
-        #Se valida el rol para desplegar la pantalla correcta
+        #Devuelve el rol
     def Validacion_Perfil(self, perffil: int):
         self.perfil = perffil
         self.rol = ""

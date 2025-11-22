@@ -6,10 +6,8 @@ class cliente():
         self.conexion=Conexion()
     
     def manu_cliente(self):
-         try:            
+        try:            
             while True:
-                self.conexion.limpiar_terminal()
-
                 opcion=int(input("Elige\n1.Registrar cliente\n2.Clientes registrados\n3.editar registro de cliente\n4.Para eliminar a un cliente\n5.Salir\n:"))
                 
                 match opcion:
@@ -25,13 +23,12 @@ class cliente():
                         break
                     case __:
                         print("Equivocado")
-         except Exception as a:
+        except Exception as a:
              print(f'Error en la seleccion: {a}')
-
+        finally:
+            self.conexion.limpiar_terminal()        
 
     def insertar_datos_cliente(self):
-        self.conexion.limpiar_terminal()
-
         try:
             nombre=input('Nombre:')
             apellido=input('Apellido:')
@@ -47,22 +44,24 @@ class cliente():
             
         except Exception as Error:
             print(f"Error en cliente: {Error}")
+        finally:
+            self.conexion.limpiar_terminal()
 
     def ver_registro_cliente(self):
-        self.conexion.limpiar_terminal()
-
         try:
             tabla='cliente'
             registro=self.conexion.Select_users(tabla)
             
             for row in registro:
-                        print('\t'.join(map(str, row)))
+                print('\t'.join(map(str, row)))
+            input()
+                
         except:
              print("Error")
+        finally:
+            self.conexion.limpiar_terminal()
             
     def editar_cliente(self):
-        self.conexion.limpiar_terminal()
-        
         try:
             datos={}
             id=int(input('ID:'))  
@@ -80,14 +79,16 @@ class cliente():
             self.conexion.editar_registro(id,datos,tabla='cliente',id_columna='id_cliente')
         except Exception as a:
              print(f"Error en editar: {a}")
+        finally:
+            self.conexion.limpiar_terminal()
         
     def eliminar_cliente(self):
-        self.conexion.limpiar_terminal()
-        
         try:
             id=int(input('Id de la cliente a eliminar:'))
             self.conexion.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')
 
         except Exception as a:
             print(f'Error al eliminar cliente: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
  

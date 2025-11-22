@@ -1,5 +1,5 @@
 from db_connection import *
-from cita import *
+from terminal_cita import *
 
 class Usuario:
     def __init__(self):
@@ -7,8 +7,6 @@ class Usuario:
 
     def menu_usuario(self):
         while True:
-            self.conexion.limpiar_terminal()
-
             try:
                 opcion=int(input('''
 1.Registrar usuario
@@ -32,10 +30,10 @@ Elige:'''))
                         print(f'Pon un numero correcto')
             except Exception as a:
                 print(f'Error en el menu de usuario: {a}')
+            finally:
+                self.conexion.limpiar_terminal()
     
     def registro_usuario(self):
-        self.conexion.limpiar_terminal()
-
         try:
             nombre=input('Nombre del usuario:')
             apellido=input('Apellido del usuario:')
@@ -78,21 +76,23 @@ Elige:'''))
 
         except Exception as a:
             print(f'Error al crear usuario: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
 
     def consultar_usuarios(self):
         self.conexion.limpiar_terminal()
-
         try:
             columnas=self.conexion.Select_users(table='usuario')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
+            input()
 
         except Exception as a:
             print (f'Error al consultar tablas de usuario: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
     
     def modificar_usuarios(self):
-        self.conexion.limpiar_terminal()
-
         try:
             datos={}
             id=int(input('ID:'))  
@@ -111,16 +111,19 @@ Elige:'''))
 
         except Exception as a:
             print(f'Error al modificar usuario: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
 
     def eliminar_usuario(self):
         self.conexion.limpiar_terminal()
-
         try:
             id=int(input('Id del usuario a eliminar:'))
             self.conexion.eliminar_registro(id,tabla='usuario',id_columna='id_usuario')
 
         except Exception as a:
             print(f'Error al eliminar usuario desde usuario: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
               
     def consultrar_expediente(self):
         pass

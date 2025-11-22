@@ -5,8 +5,6 @@ class receta:
         self.conexion=Conexion()
     
     def insertar_receta(self):
-        self.conexion.limpiar_terminal()
-
         try:
             print('\nLa receta\n')
             indicaciones=input('Indicaciones de uso:')
@@ -29,11 +27,11 @@ class receta:
 
         except Exception as a:
             print(f'Error en receta:{a}')
+        finally:
+            self.conexion.limpiar_terminal()
         
     def agregar_medicamentos(self, id_receta):
         while True:
-            self.conexion.limpiar_terminal()
-            
             try:
                 id_medicamento=int(input('Id del medicamento: (0 para cerrar)'))
 
@@ -47,4 +45,6 @@ class receta:
 
             except Exception as a:
                 print(f'Error al agregar medicamentos {a}')
+            finally:
+                self.conexion.limpiar_terminal()
         

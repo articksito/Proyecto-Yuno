@@ -1,5 +1,5 @@
 from db_connection import *
-from consulta import *
+from terminal_consulta import *
 
 class Veterinario:
     def __init__(self):
@@ -8,8 +8,6 @@ class Veterinario:
         
     def menu_veterinario(self):
         while True:
-            self.conexion1.limpiar_terminal()
-
             try:
                 print("Menu mascotas")
                 print("""1.Consultar veterinarios\n2.Realizar consulta\n3.Cambiar contraseña\n4.Salir""")
@@ -26,16 +24,20 @@ class Veterinario:
                         break
             except ValueError:
                     print("Error: Debe ingresar un número válido")
+            finally:
+                self.conexion1.limpiar_terminal()
                 
     def consultar_veterinarios(self):
-        self.conexion1.limpiar_terminal()
         try:
             columnas=self.conexion1.Select_users(table='veterinario')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
+            input()
 
         except Exception as a:
             print (f'Error al consultar veterinarios: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
         
     def realizar_consulta(self):
         self.consulta.realizar_consulta()

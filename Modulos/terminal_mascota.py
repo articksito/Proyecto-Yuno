@@ -5,10 +5,7 @@ class Mascota:
         self.conexion1=Conexion()
         
     def menu_mascotas(self):
-        self.conexion1.limpiar_terminal()
-
         while True:
-
             try:
                 print("Menu mascotas")
                 print("1.Añadir mascota\n2.Consultar mascotasa\n3.Editar registro de mascota\n4.Salir")
@@ -24,11 +21,11 @@ class Mascota:
                     case 4:
                         break
             except ValueError:
-                    print("Error: Debe ingresar un número válido")
+                print("Error: Debe ingresar un número válido")
+            finally:
+                self.conexion1.limpiar_terminal()
                 
     def añadir_mascota(self):
-        self.conexion1.limpiar_terminal()
-
         try:
             nombre=input("Nombre de la mascota:")
             edad=int(input("Edad del animal:"))
@@ -49,21 +46,22 @@ class Mascota:
 
         except Exception as a:
             print(f'Error al añadir mascota: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
 
     def consultar_mascota(self):
-        self.conexion1.limpiar_terminal()
-
         try:
             columnas=self.conexion1.Select_users(table='mascota')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
+            input()
 
         except Exception as a:
             print (f'Error al consultar mascotas: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
 
     def modificar_mascota(self):
-        self.conexion1.limpiar_terminal()
-
         try:
             datos={}
             id=int(input('ID:'))  
@@ -82,13 +80,15 @@ class Mascota:
 
         except Exception as a:
             print(f'Error al modificar mascota: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
 
     def eliminar_mascota(self):
-            self.conexion1.limpiar_terminal()
-            
             try:
                 id=int(input('Id de la mascota a eliminar:'))
                 self.conexion1.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')
 
             except Exception as a:
                 print(f'Error al eliminar mascota: {a}')
+            finally:
+                self.conexion1.limpiar_terminal()

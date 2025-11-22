@@ -7,8 +7,6 @@ class citas:
     def menu_citas(self):
         print("Bienvenido al menu de citas")
         while True:
-            self.conexion1.limpiar_terminal()
-            
             try:    
                     print("""1. Crear cita"\n2. Editar las citas\n3.Eliminar cita\n4.Consultar citas\n5.Buscador de citas
 6.Salir""")
@@ -28,10 +26,11 @@ class citas:
                             break
             except ValueError:
                     print("Error: Debe ingresar un número válido")
+            finally:
+                self.conexion1.limpiar_terminal()
                      
                 
     def crear_cita(self):
-        self.conexion1.limpiar_terminal()
         try:
             fecha=input('Pon la fecha:')
             hora=input('Pon hora:')
@@ -48,10 +47,10 @@ class citas:
 
         except Exception as a:
             print(f'Error al crear cita: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
 
     def modificar_cita(self):
-        self.conexion1.limpiar_terminal()
-
         try:
             datos={}
             id=int(input('ID:'))  
@@ -69,31 +68,32 @@ class citas:
             self.conexion1.editar_registro(id,datos,tabla='cita',id_columna='id_cita')
         except Exception as a:
             print(f'Error al modificar cita: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
     
     def eliminar_cita(self):
-        self.conexion1.limpiar_terminal()
-
         try:
             id=int(input('Id de la cita a eliminar:'))
             self.conexion1.eliminar_registro(id,tabla='cita',id_columna='id_cita')
 
         except Exception as a:
             print(f'Error al eliminar cita: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
                 
     def consultar_citas(self):
-        self.conexion1.limpiar_terminal()
-
         try:
             columnas=self.conexion1.Select_users(table='cita')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
+            input()
 
         except Exception as a:
             print (f'Error al consultar citas: {a}')
+        finally:
+            self.conexion1.limpiar_terminal()
             
     def buscardor_de_citas(self):
-        self.conexion1.limpiar_terminal()
-
         print (" BUSCADOR DE CITAS ")
         while True:
             try:
@@ -129,14 +129,19 @@ class citas:
                         continue
                 if resultados:
                     print(f"\n--- Resultados para '{buscador} en {columna_busqueda}---'")
+                    input()
+
                     for i in resultados:
                         print(f"ID: {i[0]} \n FECHA: {i[1]} \n HORA: {i[2]} \n ESTADO {i[3]}\n ID MASCOTA: {i[5]}\n ID VETERINARIO ASIGNADO: {i[6]}")
+                    input()
                 else:
                     print(" No se encontro ninguna cita con ese valor")
             except ValueError:
                 print ("Error: Ingresar solo numeros")
             except Exception as e:
                 print(f" Error con el buscador: {e}")
+            finally:
+                self.conexion1.limpiar_terminal()
                 
                 
                     

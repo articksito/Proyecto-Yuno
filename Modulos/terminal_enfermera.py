@@ -1,6 +1,6 @@
-from cita import *
+from terminal_cita import *
 from db_connection import *
-from mascota import *
+from terminal_mascota import *
 
 
 class Enfermera:
@@ -10,8 +10,6 @@ class Enfermera:
 
     def menu_enfermera(self):
             while True:
-                self.conexion.limpiar_terminal()
-
                 try:
                     opcionE = int(input("""1.Consultar informacion de citas\n2.Consultar imformancion de pacientes
 3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Consultar medicina\n7.Salir
@@ -35,9 +33,10 @@ Ingrese una opción: """))
                         case __:
                               print('Pon el numero correcto.')
                       
-                      
                 except Exception as a:
                     print(f'Error en el menu de enfermera/o')
+                finally:
+                    self.conexion.limpiar_terminal()
     
     def consulat_citas(self):
          citas1=citas()
@@ -55,8 +54,6 @@ Ingrese una opción: """))
 
     def agregar_medicina(self):
         try:
-            self.conexion.limpiar_terminal()
-
             nombre=input('Nombre de la medicina:')
             tipo=input('Tipo de medicina:')
             composicion=input('Composicion del medicamento:')
@@ -71,13 +68,17 @@ Ingrese una opción: """))
 
         except Exception as a:
              print(f'Error al agregar medicina: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
     
     def consultar_medicamento(self):
-        self.conexion.limpiar_terminal()
         try:
             columnas=self.conexion.Select_users(table='medicamento')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
+            input()
 
         except Exception as a:
             print (f'Error al consultar medicamentos en repertorio: {a}')
+        finally:
+            self.conexion.limpiar_terminal()

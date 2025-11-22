@@ -1,5 +1,5 @@
 from db_connection import *
-from receta import *
+from terminal_receta import *
 
 class consulta():
     def __init__(self):
@@ -7,8 +7,6 @@ class consulta():
         self.receta=receta()
     
     def realizar_consulta(self):
-        self.conexion.limpiar_terminal()
-        
         try:
             consultorio=input('Consultorio donde se realizara:')
             motivo=input('Motivo de la consulta:')
@@ -28,3 +26,5 @@ class consulta():
                 
         except Exception as Error:
             print(f"Error en cliente: {Error}")
+        finally:
+            self.conexion.limpiar_terminal()

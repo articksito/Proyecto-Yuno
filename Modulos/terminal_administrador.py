@@ -1,7 +1,7 @@
-from usuario import *
-from recepcionista import *
-from veterinario import *
-from enfermera import *
+from terminal_usuario import *
+from terminal_recepcionista import *
+from terminal_veterinario import *
+from terminal_enfermera import *
 from db_connection import *
 
 class administrador:
@@ -13,9 +13,7 @@ class administrador:
         self.usuario=Usuario()
 
     def menu_administrador(self):
-        while True:
-            self.conexion.limpiar_terminal()
-            
+        while True:        
             try:
                 self.conexion.limpiar_terminal()
                 opcion=int(input('''
@@ -50,13 +48,11 @@ Elige:'''))
                         print('Pon un numero correcto.')
             except Exception as a:
                 print(f'Error en el menu de admin: {a}')
-        pass
+            finally:
+                self.conexion.limpiar_terminal()
 
     def eliminar_datos_full(self):
-
         while True:
-            self.conexion.limpiar_terminal()
-
             try:
                 opcion_tabla=int(input('''Tabla a eliminar\n1.Cita\n2.Cliente\n3.Mascota\n4.Usuario
 5.Consulta\n6.Enfermero\n7.Especialidad\n8.Hospitalizacion\n9.Medicamento\n10.Receta
@@ -98,6 +94,8 @@ Elige:'''))
 
             except Exception as a:
                 print(f'Fallo desde administrador:{a}')
+            finally:
+                self.conexion.limpiar_terminal()
         
     def agregar_tipo_animal(self):
         self.conexion.limpiar_terminal()
@@ -116,14 +114,18 @@ Elige:'''))
 
         except Exception as a:
              print(f'Error al agregar tipo del animal: {a}')
+        finally:
+            self.conexion.limpiar_terminal()
 
     def consulta_tipo_animal(self):
         self.conexion.limpiar_terminal()
-
         try:
             columnas=self.conexion.Select_users(table='tipo_animal')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
+            input()
 
         except Exception as a:
             print (f'Error al consultar tipos de animales: {a}')
+        finally:
+            self.conexion.limpiar_terminal()

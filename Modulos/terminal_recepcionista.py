@@ -1,7 +1,7 @@
-from cliente import *
-from cita import *
-from mascota import *
-from veterinario import *
+from terminal_cliente import *
+from terminal_cita import *
+from terminal_mascota import *
+from terminal_veterinario import *
 from db_connection import *
 
 class Recepcionista:
@@ -13,8 +13,6 @@ class Recepcionista:
         self.conexion=Conexion()
 
     def menu_recepcion(self):
-        self.conexion.limpiar_terminal()
-
         while True:
             try:
                 selccion=int(input('''Selecciona\n1.Citas\n2.Clientes\n3.Mascotas\n4.Ver veterinarios
@@ -36,5 +34,7 @@ class Recepcionista:
                     
             except Exception as a:
                 print(f'Error en menu de recepcionista: {a}')
+            finally:
+                self.conexion.limpiar_terminal()
 
 
