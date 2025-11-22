@@ -7,9 +7,11 @@ class citas:
     def menu_citas(self):
         print("Bienvenido al menu de citas")
         while True:
+            self.conexion1.limpiar_terminal()
+            
             try:    
-                    print("1. Crear cita")
-                    print("2. Editar las citas\n3.Eliminar cita\n4.Consultar citas\n5.Buscador de citas")
+                    print("""1. Crear cita"\n2. Editar las citas\n3.Eliminar cita\n4.Consultar citas\n5.Buscador de citas
+6.Salir""")
                     opcionC = int(input("Elije la opcion que desees elegir: "))
                     match opcionC:
                         case 1:
@@ -29,6 +31,7 @@ class citas:
                      
                 
     def crear_cita(self):
+        self.conexion1.limpiar_terminal()
         try:
             fecha=input('Pon la fecha:')
             hora=input('Pon hora:')
@@ -47,6 +50,8 @@ class citas:
             print(f'Error al crear cita: {a}')
 
     def modificar_cita(self):
+        self.conexion1.limpiar_terminal()
+
         try:
             datos={}
             id=int(input('ID:'))  
@@ -66,6 +71,8 @@ class citas:
             print(f'Error al modificar cita: {a}')
     
     def eliminar_cita(self):
+        self.conexion1.limpiar_terminal()
+
         try:
             id=int(input('Id de la cita a eliminar:'))
             self.conexion1.eliminar_registro(id,tabla='cita',id_columna='id_cita')
@@ -74,6 +81,8 @@ class citas:
             print(f'Error al eliminar cita: {a}')
                 
     def consultar_citas(self):
+        self.conexion1.limpiar_terminal()
+
         try:
             columnas=self.conexion1.Select_users(table='cita')
             for colum in columnas:
@@ -83,6 +92,8 @@ class citas:
             print (f'Error al consultar citas: {a}')
             
     def buscardor_de_citas(self):
+        self.conexion1.limpiar_terminal()
+
         print (" BUSCADOR DE CITAS ")
         while True:
             try:

@@ -8,6 +8,8 @@ class Veterinario:
         
     def menu_veterinario(self):
         while True:
+            self.conexion1.limpiar_terminal()
+
             try:
                 print("Menu mascotas")
                 print("""1.Consultar veterinarios\n2.Realizar consulta\n3.Cambiar contraseña\n4.Salir""")
@@ -26,6 +28,7 @@ class Veterinario:
                     print("Error: Debe ingresar un número válido")
                 
     def consultar_veterinarios(self):
+        self.conexion1.limpiar_terminal()
         try:
             columnas=self.conexion1.Select_users(table='veterinario')
             for colum in columnas:

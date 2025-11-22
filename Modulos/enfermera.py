@@ -10,6 +10,8 @@ class Enfermera:
 
     def menu_enfermera(self):
             while True:
+                self.conexion.limpiar_terminal()
+
                 try:
                     opcionE = int(input("""1.Consultar informacion de citas\n2.Consultar imformancion de pacientes
 3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Consultar medicina\n7.Salir
@@ -44,7 +46,8 @@ Ingrese una opción: """))
         mascota1=Mascota()
         mascota1.consultar_mascota()
 
-    def actualizar_diagnostico():
+    def actualizar_diagnostico(self):
+        self.conexion.limpiar_terminal()
         ruta_expediente='/home/owner_jose/Proyecto-Yuno/diagnostico.txt'
         comando_expediente=input('Agrega algo:')
         with open(ruta_expediente, 'a') as f:
@@ -52,6 +55,8 @@ Ingrese una opción: """))
 
     def agregar_medicina(self):
         try:
+            self.conexion.limpiar_terminal()
+
             nombre=input('Nombre de la medicina:')
             tipo=input('Tipo de medicina:')
             composicion=input('Composicion del medicamento:')
@@ -68,6 +73,7 @@ Ingrese una opción: """))
              print(f'Error al agregar medicina: {a}')
     
     def consultar_medicamento(self):
+        self.conexion.limpiar_terminal()
         try:
             columnas=self.conexion.Select_users(table='medicamento')
             for colum in columnas:

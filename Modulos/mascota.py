@@ -5,6 +5,8 @@ class Mascota:
         self.conexion1=Conexion()
         
     def menu_mascotas(self):
+        self.conexion1.limpiar_terminal()
+
         while True:
 
             try:
@@ -25,6 +27,8 @@ class Mascota:
                     print("Error: Debe ingresar un número válido")
                 
     def añadir_mascota(self):
+        self.conexion1.limpiar_terminal()
+
         try:
             nombre=input("Nombre de la mascota:")
             edad=int(input("Edad del animal:"))
@@ -47,6 +51,8 @@ class Mascota:
             print(f'Error al añadir mascota: {a}')
 
     def consultar_mascota(self):
+        self.conexion1.limpiar_terminal()
+
         try:
             columnas=self.conexion1.Select_users(table='mascota')
             for colum in columnas:
@@ -56,6 +62,8 @@ class Mascota:
             print (f'Error al consultar mascotas: {a}')
 
     def modificar_mascota(self):
+        self.conexion1.limpiar_terminal()
+
         try:
             datos={}
             id=int(input('ID:'))  
@@ -76,6 +84,8 @@ class Mascota:
             print(f'Error al modificar mascota: {a}')
 
     def eliminar_mascota(self):
+            self.conexion1.limpiar_terminal()
+            
             try:
                 id=int(input('Id de la mascota a eliminar:'))
                 self.conexion1.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')

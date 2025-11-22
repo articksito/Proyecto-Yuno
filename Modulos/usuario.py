@@ -7,6 +7,8 @@ class Usuario:
 
     def menu_usuario(self):
         while True:
+            self.conexion.limpiar_terminal()
+
             try:
                 opcion=int(input('''
 1.Registrar usuario
@@ -32,6 +34,8 @@ Elige:'''))
                 print(f'Error en el menu de usuario: {a}')
     
     def registro_usuario(self):
+        self.conexion.limpiar_terminal()
+
         try:
             nombre=input('Nombre del usuario:')
             apellido=input('Apellido del usuario:')
@@ -76,6 +80,8 @@ Elige:'''))
             print(f'Error al crear usuario: {a}')
 
     def consultar_usuarios(self):
+        self.conexion.limpiar_terminal()
+
         try:
             columnas=self.conexion.Select_users(table='usuario')
             for colum in columnas:
@@ -85,6 +91,8 @@ Elige:'''))
             print (f'Error al consultar tablas de usuario: {a}')
     
     def modificar_usuarios(self):
+        self.conexion.limpiar_terminal()
+
         try:
             datos={}
             id=int(input('ID:'))  
@@ -105,6 +113,8 @@ Elige:'''))
             print(f'Error al modificar usuario: {a}')
 
     def eliminar_usuario(self):
+        self.conexion.limpiar_terminal()
+
         try:
             id=int(input('Id del usuario a eliminar:'))
             self.conexion.eliminar_registro(id,tabla='usuario',id_columna='id_usuario')

@@ -5,10 +5,11 @@ class cliente():
     def __init__(self):
         self.conexion=Conexion()
     
-    def mini_main(self):
-         #Creen interfaz.
-         try:
+    def manu_cliente(self):
+         try:            
             while True:
+                self.conexion.limpiar_terminal()
+
                 opcion=int(input("Elige\n1.Registrar cliente\n2.Clientes registrados\n3.editar registro de cliente\n4.Para eliminar a un cliente\n5.Salir\n:"))
                 
                 match opcion:
@@ -29,6 +30,8 @@ class cliente():
 
 
     def insertar_datos_cliente(self):
+        self.conexion.limpiar_terminal()
+
         try:
             nombre=input('Nombre:')
             apellido=input('Apellido:')
@@ -46,6 +49,8 @@ class cliente():
             print(f"Error en cliente: {Error}")
 
     def ver_registro_cliente(self):
+        self.conexion.limpiar_terminal()
+
         try:
             tabla='cliente'
             registro=self.conexion.Select_users(tabla)
@@ -56,6 +61,7 @@ class cliente():
              print("Error")
             
     def editar_cliente(self):
+        self.conexion.limpiar_terminal()
         
         try:
             datos={}
@@ -76,6 +82,8 @@ class cliente():
              print(f"Error en editar: {a}")
         
     def eliminar_cliente(self):
+        self.conexion.limpiar_terminal()
+        
         try:
             id=int(input('Id de la cliente a eliminar:'))
             self.conexion.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')

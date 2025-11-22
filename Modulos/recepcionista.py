@@ -13,6 +13,8 @@ class Recepcionista:
         self.conexion=Conexion()
 
     def menu_recepcion(self):
+        self.conexion.limpiar_terminal()
+
         while True:
             try:
                 selccion=int(input('''Selecciona\n1.Citas\n2.Clientes\n3.Mascotas\n4.Ver veterinarios
@@ -22,7 +24,7 @@ class Recepcionista:
                     case 1:
                         self.cita.menu_citas()
                     case 2:
-                        self.cliente.mini_main()
+                        self.cliente.manu_cliente()
                     case 3:
                         self.mascota.menu_mascotas()
                     case 4:

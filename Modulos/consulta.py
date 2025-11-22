@@ -7,6 +7,8 @@ class consulta():
         self.receta=receta()
     
     def realizar_consulta(self):
+        self.conexion.limpiar_terminal()
+        
         try:
             consultorio=input('Consultorio donde se realizara:')
             motivo=input('Motivo de la consulta:')

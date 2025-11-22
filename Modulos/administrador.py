@@ -14,6 +14,8 @@ class administrador:
 
     def menu_administrador(self):
         while True:
+            self.conexion.limpiar_terminal()
+            
             try:
                 self.conexion.limpiar_terminal()
                 opcion=int(input('''
@@ -51,7 +53,10 @@ Elige:'''))
         pass
 
     def eliminar_datos_full(self):
+
         while True:
+            self.conexion.limpiar_terminal()
+
             try:
                 opcion_tabla=int(input('''Tabla a eliminar\n1.Cita\n2.Cliente\n3.Mascota\n4.Usuario
 5.Consulta\n6.Enfermero\n7.Especialidad\n8.Hospitalizacion\n9.Medicamento\n10.Receta
@@ -95,6 +100,8 @@ Elige:'''))
                 print(f'Fallo desde administrador:{a}')
         
     def agregar_tipo_animal(self):
+        self.conexion.limpiar_terminal()
+
         try:
             especie=input('Especie del animal:')
             raza=input('Raza del animal:')
@@ -111,6 +118,8 @@ Elige:'''))
              print(f'Error al agregar tipo del animal: {a}')
 
     def consulta_tipo_animal(self):
+        self.conexion.limpiar_terminal()
+
         try:
             columnas=self.conexion.Select_users(table='tipo_animal')
             for colum in columnas:
