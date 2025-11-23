@@ -12,8 +12,8 @@ class Enfermera:
             while True:
                 try:
                     opcionE = int(input("""1.Consultar informacion de citas\n2.Consultar imformancion de pacientes
-3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Consultar medicina\n7.Salir
-Ingrese una opción: """))
+3.Actualizar diagnostico\n4.Cambiar contraseña\n5.Agregar medicina a farmacia\n6.Consultar medicina\n7.Internar mascota
+8.Salir\nIngrese una opción: """))
 
                     match opcionE:
                         case 1:
@@ -29,6 +29,8 @@ Ingrese una opción: """))
                         case 6:
                               self.consultar_medicamento()
                         case 7:
+                            self.internar()
+                        case 8:
                             break
                         case __:
                               print('Pon el numero correcto.')
@@ -82,3 +84,19 @@ Ingrese una opción: """))
             print (f'Error al consultar medicamentos en repertorio: {a}')
         finally:
             self.conexion.limpiar_terminal()
+        
+    def internar(self):
+            try:
+                observaciones=input('Pon las observaciones:')
+                id_consulta=int(input('Pon el id de consultar:'))
+
+                datos=(observaciones,id_consulta)
+                columnas=('observaciones','fk_consulta')
+                table='hospitalizacion'
+                
+                self.conexion.insertar_datos(table,datos,columnas)
+                input()
+            except Exception as a:
+                print(f'Error al internar:{a}')
+            finally:
+                self.conexion.limpiar_terminal()
