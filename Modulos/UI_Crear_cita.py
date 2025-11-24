@@ -10,6 +10,14 @@ from PyQt6.QtGui import QFont, QPixmap
 # Asumimos que el archivo db_connection.py existe en el mismo directorio
 from db_connection import Conexion
 
+#Conexiones de botones
+from UI_Revisar_Cita import MainWindow as Visualizar_cita
+from UI_Modificar_cita import MainWindow as Modificar_cita
+from UI_Registrar_mascota import MainWindow as Registrar_mascota
+from UI_Revisar_Mascota import MainWindow as Modificar_mascota 
+from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+
 class MainWindow(QMainWindow):
     # Instancia de conexión
     conexion1 = Conexion()
@@ -154,9 +162,9 @@ class MainWindow(QMainWindow):
 
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
+        self.setup_accordion_group("Citas", ["Visualizar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
+        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -189,11 +197,60 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            
+            # --- CONEXIÓN DE BOTONES ---
+            # Conectamos cada sub-botón a la función abrir_ventana, pasando su categoría y nombre
+            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
+            
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
+
+    # --- NUEVA FUNCIÓN: GESTOR DE VENTANAS ---
+    def abrir_ventana(self, categoria, opcion):
+        """
+        Esta función recibe qué botón se presionó y ejecuta la lógica correspondiente.
+        Aquí es donde debes agregar la instanciación de tus nuevas ventanas.
+        """
+        print(f"Navegando a: {categoria} -> {opcion}")
+
+        # Lógica para CITAS
+        if categoria == "Citas":
+            if opcion == "Visualizar":
+                self.visualizarC = Visualizar_cita()
+                self.visualizarC.show()
+                self.close()
+
+            elif opcion == "Modificar":
+                self.modificarC = Modificar_cita()
+                self.modificarC.show()
+                self.close()
+
+        # Lógica para MASCOTAS
+        elif categoria == "Mascotas":
+            if opcion == "Registrar":
+                self.registrarM = Registrar_mascota()
+                self.registrarM.show()
+                self.close()
+
+            elif opcion == "Modificar":
+                self.modificarM = Modificar_mascota()
+                self.modificarM.show()
+                self.close()
+
+        # Lógica para CLIENTES
+        elif categoria == "Clientes":
+            if opcion == "Registrar":
+                self.registrarD = Regsitrar_dueno()
+                self.registrarD.show()
+                self.close()
+                
+            elif opcion == "Modificar":
+                self.modificarD = Modficiar_dueno()
+                self.modificarD.show()
+                self.close()
 
     def toggle_menu(self, frame):
         if frame.isVisible():
@@ -380,7 +437,7 @@ class MainWindow(QMainWindow):
         # 4. INTENTO DE CONEXIÓN CON TRY-EXCEPT
         try:
             print("Enviando datos a la base de datos:", datos)
-        
+            
             nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)
             
             # Éxito: Mostramos el ID retornado
