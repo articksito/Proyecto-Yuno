@@ -380,12 +380,7 @@ class MainWindow(QMainWindow):
         # 4. INTENTO DE CONEXIÓN CON TRY-EXCEPT
         try:
             print("Enviando datos a la base de datos:", datos)
-            
-            # --- NOTA IMPORTANTE PARA TU CONEXIÓN ---
-            # Asegúrate que tu función insertar_datos retorne el ID generado.
-            # Ejemplo en postgres: cursor.execute("INSERT ... RETURNING id_cita", ...)
-            # nuevo_id = cursor.fetchone()[0]
-            
+        
             nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)
             
             # Éxito: Mostramos el ID retornado
