@@ -1,12 +1,18 @@
 import sys
+import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
-                             QGridLayout, QComboBox, QDoubleSpinBox, QSpinBox, QFileDialog)
-from PyQt6.QtCore import Qt, QSize
-from PyQt6.QtGui import QFont, QIcon, QPixmap, QColor
+                             QGridLayout, QComboBox, QMessageBox)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QIcon, QPixmap
+
+# Importar conexión
+from db_connection import Conexion
 
 class MainWindow(QMainWindow):
+    conexion1 = Conexion()
+
     def __init__(self):
         super().__init__()
 
@@ -40,7 +46,6 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Estilos del Sidebar */
             QLabel#Logo {
                 color: white; 
                 font-size: 36px; 
@@ -82,18 +87,17 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # --- 1. BARRA LATERAL (Izquierda) ---
+        # --- 1. BARRA LATERAL ---
         self.setup_sidebar()
 
-        # --- 2. PANEL BLANCO (Derecha - Registro) ---
+        # --- 2. PANEL BLANCO ---
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 30, 50, 40)
 
-        # Header con Título y Botón Cerrar
+        # Header
         header_layout = QHBoxLayout()
-        
         lbl_header = QLabel("Registro Mascota")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
@@ -113,7 +117,7 @@ class MainWindow(QMainWindow):
                 color: #cc0000;
             }
         """)
-        btn_close_view.clicked.connect(self.close) 
+        btn_close_view.clicked.connect(self.close)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
@@ -122,16 +126,13 @@ class MainWindow(QMainWindow):
         self.white_layout.addLayout(header_layout)
         self.white_layout.addSpacing(20)
 
-        # Contenedor Horizontal para Formulario + Panel Info
+        # Contenedor Formulario
         content_container = QWidget()
         content_layout = QHBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
 
-        # --- A. FORMULARIO DE REGISTRO (Izquierda) ---
         self.setup_register_form(content_layout)
-
-        # --- B. PANEL DE INFORMACIÓN/FOTO (Derecha) ---
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
@@ -139,7 +140,6 @@ class MainWindow(QMainWindow):
         # Botón Guardar
         self.setup_save_button()
 
-        # Agregar al layout principal
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
@@ -151,14 +151,27 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
-        lbl_logo = QLabel("YUNO VET")
+        # --- LOGO ---
+        lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        ruta_logo = "logo.png" 
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET") 
+        else:
+            lbl_logo.setText("YUNO VET") 
+
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
+        self.setup_accordion_group("Citas", ["Agendar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Modificar"])
+        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -191,11 +204,56 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            # Conexión de botones
+            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
+
+    # --- GESTOR DE VENTANAS ---
+    def abrir_ventana(self, categoria, opcion):
+        print(f"Navegando a: {categoria} -> {opcion}")
+        try:
+            if categoria == "Citas":
+                if opcion == "Agendar":
+                    from UI_Crear_cita import MainWindow as Agendar_cita
+                    self.ventana = Agendar_cita()
+                    self.ventana.show()
+                    self.close()
+
+                elif opcion == "Modificar":
+                    from UI_Modificar_cita import MainWindow as Modificar_cita
+                    self.ventana = Modificar_cita()
+                    self.ventana.show()
+                    self.close()
+
+            elif categoria == "Mascotas":
+                if opcion == "Registrar":
+                    pass # Ya estamos aquí
+                elif opcion == "Modificar":
+                    from UI_Revisar_Mascota import MainWindow as Modificar_mascota
+                    self.ventana = Modificar_mascota()
+                    self.ventana.show()
+                    self.close()
+
+            elif categoria == "Clientes":
+                if opcion == "Registrar":
+                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+                    self.ventana = Regsitrar_dueno()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+                    self.ventana = Modficiar_dueno()
+                    self.ventana.show()
+                    self.close()
+                    
+        except ImportError as e:
+            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Ocurrió un error al intentar abrir la ventana: {e}")
 
     def toggle_menu(self, frame):
         if frame.isVisible():
@@ -210,9 +268,9 @@ class MainWindow(QMainWindow):
         grid_layout.setHorizontalSpacing(30)
         grid_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Estilo de Inputs (Fondo Lila Transparente)
+        # Estilo de Inputs
         input_style = """
-            QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox {
+            QLineEdit, QComboBox {
                 background-color: rgba(241, 131, 227, 0.35); 
                 border: none;
                 border-radius: 10px;
@@ -227,62 +285,87 @@ class MainWindow(QMainWindow):
 
         # --- Campos ---
         
-        # 1. Nombre
-        lbl_nombre = QLabel("Nombre:")
+        # 1. ID Cliente (Dueño)
+        lbl_cliente = QLabel("ID Dueño:")
+        lbl_cliente.setStyleSheet(label_style)
+        self.inp_cliente = QLineEdit()
+        self.inp_cliente.setPlaceholderText("ID del dueño registrado")
+        self.inp_cliente.setStyleSheet(input_style)
+
+        # 2. Nombre Mascota
+        lbl_nombre = QLabel("Nombre Mascota:")
         lbl_nombre.setStyleSheet(label_style)
-        inp_nombre = QLineEdit()
-        inp_nombre.setPlaceholderText("Nombre de la mascota")
-        inp_nombre.setStyleSheet(input_style)
+        self.inp_nombre = QLineEdit()
+        self.inp_nombre.setPlaceholderText("Nombre de la mascota")
+        self.inp_nombre.setStyleSheet(input_style)
 
-        # 2. Edad
-        lbl_edad = QLabel("Edad:")
+        # 3. Edad
+        lbl_edad = QLabel("Edad (Años):")
         lbl_edad.setStyleSheet(label_style)
-        inp_edad = QLineEdit()
-        inp_edad.setPlaceholderText("Ej: 4 años")
-        inp_edad.setStyleSheet(input_style)
+        self.inp_edad = QLineEdit()
+        self.inp_edad.setPlaceholderText("Ej: 4")
+        self.inp_edad.setStyleSheet(input_style)
 
-        # 3. Peso
-        lbl_peso = QLabel("Peso:")
+        # 4. Peso
+        lbl_peso = QLabel("Peso (Kg):")
         lbl_peso.setStyleSheet(label_style)
-        inp_peso = QLineEdit()
-        inp_peso.setPlaceholderText("Ej: 12.5 kg")
-        inp_peso.setStyleSheet(input_style)
+        self.inp_peso = QLineEdit()
+        self.inp_peso.setPlaceholderText("Ej: 12.5")
+        self.inp_peso.setStyleSheet(input_style)
 
-        # 4. Especie
+        # 5. Especie (Reincorporado)
         lbl_especie = QLabel("Especie:")
         lbl_especie.setStyleSheet(label_style)
-        inp_especie = QComboBox()
-        inp_especie.addItems(["Perro", "Gato", "Ave", "Roedor", "Otro"])
-        inp_especie.setStyleSheet(input_style)
+        self.inp_especie = QComboBox()
+        self.inp_especie.addItems(["Perro", "Gato", "Ave", "Roedor", "Otro"])
+        self.inp_especie.setStyleSheet(input_style)
 
-        # 5. Raza
+        # 6. Raza (Reincorporado)
         lbl_raza = QLabel("Raza:")
         lbl_raza.setStyleSheet(label_style)
-        inp_raza = QLineEdit()
-        inp_raza.setPlaceholderText("Ej: Golden Retriever")
-        inp_raza.setStyleSheet(input_style)
+        self.inp_raza = QLineEdit()
+        self.inp_raza.setPlaceholderText("Ej: Golden Retriever")
+        self.inp_raza.setStyleSheet(input_style)
+
+        # --- CONEXIÓN PARA VISTA PREVIA ---
+        self.inp_cliente.textChanged.connect(self.update_preview)
+        self.inp_nombre.textChanged.connect(self.update_preview)
+        self.inp_edad.textChanged.connect(self.update_preview)
+        self.inp_peso.textChanged.connect(self.update_preview)
+        self.inp_especie.currentTextChanged.connect(self.update_preview)
+        self.inp_raza.textChanged.connect(self.update_preview)
 
         # Añadir al Grid
-        grid_layout.addWidget(lbl_nombre, 0, 0)
-        grid_layout.addWidget(inp_nombre, 0, 1)
+        # Fila 0: ID Dueño
+        grid_layout.addWidget(lbl_cliente, 0, 0)
+        grid_layout.addWidget(self.inp_cliente, 0, 1)
 
-        grid_layout.addWidget(lbl_edad, 1, 0)
-        grid_layout.addWidget(inp_edad, 1, 1)
+        # Fila 1: Nombre
+        grid_layout.addWidget(lbl_nombre, 1, 0)
+        grid_layout.addWidget(self.inp_nombre, 1, 1)
 
-        grid_layout.addWidget(lbl_peso, 2, 0)
-        grid_layout.addWidget(inp_peso, 2, 1)
+        # Fila 2: Edad
+        grid_layout.addWidget(lbl_edad, 2, 0)
+        grid_layout.addWidget(self.inp_edad, 2, 1)
 
-        grid_layout.addWidget(lbl_especie, 3, 0)
-        grid_layout.addWidget(inp_especie, 3, 1)
+        # Fila 3: Peso
+        grid_layout.addWidget(lbl_peso, 3, 0)
+        grid_layout.addWidget(self.inp_peso, 3, 1)
 
-        grid_layout.addWidget(lbl_raza, 4, 0)
-        grid_layout.addWidget(inp_raza, 4, 1)
+        # Fila 4: Especie
+        grid_layout.addWidget(lbl_especie, 4, 0)
+        grid_layout.addWidget(self.inp_especie, 4, 1)
 
-        grid_layout.setRowStretch(5, 1)
+        # Fila 5: Raza
+        grid_layout.addWidget(lbl_raza, 5, 0)
+        grid_layout.addWidget(self.inp_raza, 5, 1)
+
+        # Expansión para que no se pegue todo arriba
+        grid_layout.setRowStretch(6, 1)
         parent_layout.addWidget(form_widget, stretch=3)
 
     def setup_info_board(self, parent_layout):
-        # Panel derecho para información / foto
+        # Panel derecho para información / vista previa
         board_container = QFrame()
         board_container.setFixedWidth(350)
         board_container.setStyleSheet("""
@@ -312,48 +395,71 @@ class MainWindow(QMainWindow):
         lbl_info_title.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_info_title)
 
-        # Contenido (Simulación de carga de imagen)
+        # Contenido (Vista Previa)
         content_frame = QFrame()
         content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
-        content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
-        # Placeholder para la imagen
-        self.img_placeholder = QLabel("📷")
-        self.img_placeholder.setFixedSize(200, 200)
-        self.img_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.img_placeholder.setStyleSheet("""
-            background-color: #F5F5F5;
-            border: 2px dashed #CCC;
-            border-radius: 10px;
-            font-size: 40px;
-            color: #CCC;
-        """)
-        
-        btn_upload = QPushButton("Subir Foto")
-        btn_upload.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_upload.setStyleSheet("""
-            QPushButton {
-                background-color: #7CEBFC;
-                color: #333;
-                border-radius: 15px;
-                padding: 8px 15px;
-                font-weight: bold;
-            }
-            QPushButton:hover { background-color: #6bdcf0; }
-        """)
-        btn_upload.clicked.connect(self.upload_photo)
+        # Título de la sección
+        lbl_preview = QLabel("Vista Previa")
+        lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_preview.setStyleSheet("color: #888; font-size: 14px; font-weight: bold; margin-bottom: 10px;")
 
-        content_layout.addWidget(self.img_placeholder)
-        content_layout.addSpacing(20)
-        content_layout.addWidget(btn_upload)
+        # Detalles
+        self.lbl_prev_nombre = QLabel("Nombre Mascota")
+        self.lbl_prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_prev_nombre.setWordWrap(True)
+        self.lbl_prev_nombre.setStyleSheet("font-size: 24px; font-weight: bold; color: #333; margin-top: 10px;")
+
+        self.lbl_prev_dueno = QLabel("Dueño ID: --")
+        self.lbl_prev_dueno.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_prev_dueno.setStyleSheet("font-size: 16px; color: #555;")
+
+        self.lbl_prev_detalles = QLabel("Especie - Raza")
+        self.lbl_prev_detalles.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_prev_detalles.setStyleSheet("font-size: 16px; color: #555; margin-top: 10px;")
+
+        self.lbl_prev_stats = QLabel("Edad: -- | Peso: --")
+        self.lbl_prev_stats.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_prev_stats.setStyleSheet("font-size: 14px; color: #888; margin-top: 5px;")
+
+        content_layout.addWidget(lbl_preview)
+        content_layout.addWidget(self.lbl_prev_nombre)
+        content_layout.addWidget(self.lbl_prev_dueno)
+        content_layout.addWidget(self.lbl_prev_detalles)
+        content_layout.addWidget(self.lbl_prev_stats)
         content_layout.addStretch()
         
         board_layout.addWidget(header_frame)
         board_layout.addWidget(content_frame)
 
         parent_layout.addWidget(board_container, stretch=1)
+
+    # --- ACTUALIZACIÓN DE VISTA PREVIA ---
+    def update_preview(self):
+        id_cliente = self.inp_cliente.text().strip()
+        nombre = self.inp_nombre.text().strip()
+        edad = self.inp_edad.text().strip()
+        peso = self.inp_peso.text().strip()
+        especie = self.inp_especie.currentText()
+        raza = self.inp_raza.text().strip()
+
+        # Nombre
+        self.lbl_prev_nombre.setText(nombre if nombre else "Nombre Mascota")
+        
+        # Dueño
+        self.lbl_prev_dueno.setText(f"Dueño ID: {id_cliente}" if id_cliente else "Dueño ID: --")
+        
+        # Detalles
+        raza_txt = raza if raza else "Raza"
+        self.lbl_prev_detalles.setText(f"{especie} - {raza_txt}")
+
+        # Stats
+        edad_txt = f"{edad} años" if edad else "Edad: --"
+        peso_txt = f"{peso} kg" if peso else "Peso: --"
+        self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
 
     def setup_save_button(self):
         btn_save = QPushButton("Guardar")
@@ -375,6 +481,8 @@ class MainWindow(QMainWindow):
             }
         """)
         
+        btn_save.clicked.connect(self.guardar_datos)
+
         btn_container = QHBoxLayout()
         btn_container.addStretch()
         btn_container.addWidget(btn_save)
@@ -382,13 +490,53 @@ class MainWindow(QMainWindow):
         
         self.white_layout.addLayout(btn_container)
 
-    def upload_photo(self):
-        # Simulación de carga de imagen
-        file_name, _ = QFileDialog.getOpenFileName(self, "Seleccionar Imagen", "", "Images (*.png *.xpm *.jpg)")
-        if file_name:
-            pixmap = QPixmap(file_name)
-            self.img_placeholder.setPixmap(pixmap.scaled(self.img_placeholder.size(), Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
-            self.img_placeholder.setStyleSheet("border: none;")
+    # --- LÓGICA DE GUARDADO ---
+    def guardar_datos(self):
+        # 1. Obtener datos
+        id_cliente = self.inp_cliente.text().strip()
+        nombre = self.inp_nombre.text().strip()
+        edad_str = self.inp_edad.text().strip()
+        peso_str = self.inp_peso.text().strip()
+        especie = self.inp_especie.currentText()
+        raza = self.inp_raza.text().strip()
+
+        # 2. Validaciones
+        if not id_cliente or not nombre or not especie:
+            QMessageBox.warning(self, "Campos vacíos", "ID Dueño, Nombre y Especie son obligatorios.")
+            return
+
+        # Conversión de tipos
+        try:
+            edad = int(edad_str) if edad_str else 0
+            peso = float(peso_str) if peso_str else 0.0
+        except ValueError:
+            QMessageBox.warning(self, "Formato inválido", "Edad debe ser entero y Peso un número (ej: 12.5).")
+            return
+
+        # 3. Insertar en BD
+        datos = (nombre, edad, peso, id_cliente, especie, raza)
+        columnas = ('nombre', 'edad', 'peso', 'fk_cliente', 'especie', 'raza')
+        table = 'mascota'
+
+
+        try:
+            nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)
+            QMessageBox.information(self, "Éxito", f"Mascota registrada correctamente.\nID Generado: {nuevo_id}")
+            
+            # Limpiar campos
+            self.inp_cliente.clear()
+            self.inp_nombre.clear()
+            self.inp_edad.clear()
+            self.inp_peso.clear()
+            self.inp_raza.clear()
+            self.inp_especie.setCurrentIndex(0)
+
+        except Exception as e:
+            # Si el ID de cliente no existe, psycopg2 arrojará un error de Foreign Key
+            if "foreign key constraint" in str(e) or "violates foreign key" in str(e):
+                QMessageBox.warning(self, "Error de Cliente", f"El ID de dueño '{id_cliente}' no existe en la base de datos.")
+            else:
+                QMessageBox.critical(self, "Error", f"No se pudo registrar la mascota.\nError: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
