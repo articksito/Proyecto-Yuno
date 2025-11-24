@@ -147,11 +147,16 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
+        # --- LOGO (IMAGEN) ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "logo.png" 
+        # ---------------------------------------------------------
+        # LA RUTA DEL LOGO
+        # ---------------------------------------------------------
+        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/logo_yuno.png" 
+        
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -164,8 +169,8 @@ class MainWindow(QMainWindow):
 
         self.sidebar_layout.addWidget(lbl_logo)
         
-        # Agregamos "Agendar" para poder regresar a la pantalla de crear
-        self.setup_accordion_group("Citas", ["Agendar"])
+        # Menú lateral
+        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
         
@@ -212,44 +217,47 @@ class MainWindow(QMainWindow):
 
     # --- NUEVA FUNCIÓN: GESTOR DE VENTANAS ---
     def abrir_ventana(self, categoria, opcion):
-        from UI_Crear_cita import MainWindow as Agendar_cita
-        from UI_Registrar_mascota import MainWindow as Registrar_mascota
-        from UI_Revisar_Mascota import MainWindow as Modificar_mascota
-        from UI_Registra_cliente import MainWindow as Regsitrar_dueno
-        from UI_Revisar_cliente import MainWindow as Modficiar_dueno
-        
         """
-        Navegación entre ventanas. Importamos dentro de la función para evitar
-        errores de importación circular.
+        Navegación entre ventanas.
         """
         print(f"Navegando a: {categoria} -> {opcion}")
 
         try:
-            # Lógica para CITAS
+            # Importaciones locales para evitar ciclos
             if categoria == "Citas":
                 if opcion == "Agendar":
+                    from UI_Crear_cita import MainWindow as Agendar_cita
                     self.ventana = Agendar_cita()
                     self.ventana.show()
                     self.close()
+                elif opcion == "Visualizar":
+                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+                    self.ventana = Visualizar_cita()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    pass # Ya estamos aquí
 
-            # Lógica para MASCOTAS
             elif categoria == "Mascotas":
                 if opcion == "Registrar":
+                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
                     self.ventana = Registrar_mascota()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
+                    from UI_Revisar_Mascota import MainWindow as Modificar_mascota
                     self.ventana = Modificar_mascota()
                     self.ventana.show()
                     self.close()
 
-            # Lógica para CLIENTES
             elif categoria == "Clientes":
                 if opcion == "Registrar":
+                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
                     self.ventana = Regsitrar_dueno()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
+                    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
                     self.ventana = Modficiar_dueno()
                     self.ventana.show()
                     self.close()

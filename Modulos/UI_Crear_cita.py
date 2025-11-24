@@ -144,7 +144,7 @@ class MainWindow(QMainWindow):
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # Intentamos cargar la imagen "logo.png"
-        ruta_logo = "logo.png" 
+        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/logo_yuno.png" 
         
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
