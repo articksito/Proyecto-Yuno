@@ -49,6 +49,33 @@ class Conexion:
         except Exception as e:
             print(f'Error al buscar citas por cliente: {e}')
             return []
+
+    # --- NUEVA FUNCIÓN: CONSULTAR (SELECT) ---
+    def consultar_registro(self, tabla:str, id_columna:str, id_valor, columnas=None):
+        """
+        Busca un registro por ID y retorna las columnas solicitadas.
+        Si columnas=None, retorna SELECT * (cuidado con el orden).
+        Retorna una tupla con los valores o None.
+        """
+        try:
+            if columnas:
+                cols_sql = sql.SQL(", ").join([sql.Identifier(c) for c in columnas])
+            else:
+                cols_sql = sql.SQL("*")
+
+            query = sql.SQL("SELECT {} FROM {} WHERE {} = %s").format(
+                cols_sql,
+                sql.Identifier(tabla),
+                sql.Identifier(id_columna)
+            )
+
+            self.cursor_uno.execute(query, (id_valor,))
+            resultado = self.cursor_uno.fetchone()
+            return resultado
+
+        except Exception as e:
+            print(f"Error en consultar_registro: {e}")
+            raise e
     
 
     def insertar_datos(self,table:str,datos:tuple=None,columna:tuple=None):
@@ -125,6 +152,49 @@ class Conexion:
             print('Correcto')
         except Exception as a:
             print(f"Error al editar registro/s:{a}")
+
+    from psycopg2 import sql
+
+    def update_registro(self, id, datos:dict, tabla:str, id_columna:str):
+
+        if not datos:
+            print("No se proporcionaron datos para actualizar.")
+            return False
+
+        try:
+            # Crear asignaciones dinámicas "columna = %s"
+            columnas = [sql.Identifier(col) for col in datos.keys()]
+            asignaciones = [
+                sql.SQL("{} = %s").format(col)
+                for col in columnas
+            ]
+
+            # Construir SQL seguro
+            query = sql.SQL("""
+                UPDATE {tabla}
+                SET {asignaciones}
+                WHERE {id_columna} = %s
+            """).format(
+                tabla=sql.Identifier(tabla),
+                asignaciones=sql.SQL(", ").join(asignaciones),
+                id_columna=sql.Identifier(id_columna)
+            )
+
+            # Valores en el orden correcto (valores del dict + el ID al final para el WHERE)
+            valores = list(datos.values()) + [id]
+
+            # Ejecutar
+            self.cursor_uno.execute(query, valores)
+            self.conexion1.commit()
+
+            print("Registro actualizado correctamente.")
+            return True
+
+        except Exception as e:
+            self.conexion1.rollback()
+            print(f"Error al editar registro: {e}")
+            raise e # Relanzamos el error para mostrarlo en el QMessageBox de la UI
+
 
     def eliminar_registro(self,id:int,tabla:str,id_columna:str):
         try:
