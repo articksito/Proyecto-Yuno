@@ -15,7 +15,7 @@ class administrador:
     def menu_administrador(self):
         while True:        
             try:
-                self.conexion.limpiar_terminal()
+
                 opcion=int(input('''
 1.Usuario
 2.Recepcion
@@ -139,3 +139,8 @@ Elige:'''))
             
         finally:
             self.conexion.limpiar_terminal()
+
+'''
+b=administrador()
+b.agregar_tipo_animal
+'''
