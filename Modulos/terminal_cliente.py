@@ -109,5 +109,3 @@ class cliente():
         finally:
             self.conexion.limpiar_terminal()
  
-a=cliente()
-a.manu_cliente()
