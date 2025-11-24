@@ -51,32 +51,41 @@ class Conexion:
             return []
 
     # --- NUEVA FUNCIÓN: CONSULTAR (SELECT) ---
-    def consultar_registro(self, tabla:str, id_columna:str, id_valor, columnas=None):
-        """
-        Busca un registro por ID y retorna las columnas solicitadas.
-        Si columnas=None, retorna SELECT * (cuidado con el orden).
-        Retorna una tupla con los valores o None.
-        """
+    def consultar_registro(self, tabla: str, id_columna: str, id_valor, columnas=None, joins: str = ""):
         try:
+            # --- SELECT columns ---
             if columnas:
-                cols_sql = sql.SQL(", ").join([sql.Identifier(c) for c in columnas])
+                cols_sql = sql.SQL(", ").join([
+                    sql.SQL(c) if "." in c else sql.Identifier(c)
+                    for c in columnas
+                ])
             else:
                 cols_sql = sql.SQL("*")
 
-            query = sql.SQL("SELECT {} FROM {} WHERE {} = %s").format(
-                cols_sql,
-                sql.Identifier(tabla),
-                sql.Identifier(id_columna)
+            # --- WHERE ---
+            if "." in id_columna:
+                tabla_id, col_id = id_columna.split(".")
+                where_sql = sql.SQL("{}.{}").format(sql.Identifier(tabla_id), sql.Identifier(col_id))
+            else:
+                where_sql = sql.Identifier(id_columna)
+
+            # --- JOINS ---
+            joins_sql = sql.SQL(joins) if joins else sql.SQL("")
+
+            # --- Construcción final ---
+            query = sql.SQL("SELECT {cols} FROM {tabla} {joins} WHERE {where} = %s").format(
+                cols=cols_sql,
+                tabla=sql.Identifier(tabla),
+                joins=joins_sql,
+                where=where_sql
             )
 
             self.cursor_uno.execute(query, (id_valor,))
-            resultado = self.cursor_uno.fetchone()
-            return resultado
+            return self.cursor_uno.fetchone()
 
         except Exception as e:
-            print(f"Error en consultar_registro: {e}")
+            print(f"Error en consultar_registro (JOIN): {e}")
             raise e
-    
 
     def insertar_datos(self,table:str,datos:tuple=None,columna:tuple=None):
         try:

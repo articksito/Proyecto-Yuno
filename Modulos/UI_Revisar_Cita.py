@@ -1,10 +1,18 @@
 import sys
+import os
+from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
+                             QMessageBox, QGridLayout)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QIcon, QPixmap
+
+# Importar conexión
+from db_connection import Conexion
 
 class MainWindow(QMainWindow):
+    conexion1 = Conexion()
+
     def __init__(self):
         super().__init__()
 
@@ -38,71 +46,58 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Estilos del Sidebar */
-            QLabel#Logo {
-                color: white; 
-                font-size: 36px; 
-                font-weight: bold; 
-                margin-bottom: 30px;
-            }
+            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                color: #E0E0E0;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
-                border: none;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
-                background-color: transparent;
-                height: 30px;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
-            }
-            /* Estilo para los datos de revisión */
-            QLabel.data-label {
-                font-size: 22px;
-                padding: 10px 0;
-                border-bottom: 1px solid #F0F0F0;
-                color: #444;
-            }
-            QLabel.data-label span {
-                font-weight: bold;
-                color: #000;
             }
         """)
 
-        # --- 1. BARRA LATERAL (Izquierda) ---
+        # --- 1. BARRA LATERAL ---
         self.setup_sidebar()
 
-        # --- 2. PANEL BLANCO (Derecha - Revisión) ---
+        # --- 2. PANEL BLANCO ---
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 30, 50, 40)
 
-        # Header con Título y Botón Cerrar
+        # Header
         header_layout = QHBoxLayout()
-        
         lbl_header = QLabel("Revisar Cita")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
@@ -122,31 +117,38 @@ class MainWindow(QMainWindow):
                 color: #cc0000;
             }
         """)
-        btn_close_view.clicked.connect(lambda: print("Cerrar vista de revisión")) # Aquí iría la lógica de volver atrás
+        btn_close_view.clicked.connect(self.close)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
         header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
+        
+        # --- ESPACIADOR SUPERIOR (Centrado) ---
+        self.white_layout.addStretch(1)
+
+        # Barra de Búsqueda
+        self.setup_search_bar()
         self.white_layout.addSpacing(20)
 
         # Contenedor Horizontal para Datos + Panel Info
         content_container = QWidget()
         content_layout = QHBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(50)
+        content_layout.setSpacing(40)
 
         # --- A. LISTA DE DATOS (Izquierda) ---
-        self.setup_details_list(content_layout)
+        self.setup_details_form(content_layout)
 
         # --- B. PANEL DE INFORMACIÓN (Derecha - Motivo) ---
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
-        self.white_layout.addStretch()
+        
+        # --- ESPACIADOR INFERIOR (Centrado) ---
+        self.white_layout.addStretch(2)
 
-        # Agregar al layout principal
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
@@ -158,14 +160,27 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
-        lbl_logo = QLabel("YUNO VET")
+        # --- LOGO ---
+        lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET")
+        else:
+            lbl_logo.setText("YUNO VET")
+
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
+        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
+        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -192,17 +207,65 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
+
+    # --- GESTOR DE VENTANAS ---
+    def abrir_ventana(self, categoria, opcion):
+        print(f"Navegando a: {categoria} -> {opcion}")
+        try:
+            if categoria == "Citas":
+                if opcion == "Agendar":
+                    from UI_Crear_cita import MainWindow as Agendar_cita
+                    self.ventana = Agendar_cita()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    pass # Ya estamos aquí
+                elif opcion == "Modificar":
+                    from UI_Modificar_cita import MainWindow as Modificar_cita
+                    self.ventana = Modificar_cita()
+                    self.ventana.show()
+                    self.close()
+
+            elif categoria == "Mascotas":
+                if opcion == "Registrar":
+                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
+                    self.ventana = Registrar_mascota()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_Revisar_Mascota import MainWindow as Modificar_mascota
+                    self.ventana = Modificar_mascota()
+                    self.ventana.show()
+                    self.close()
+
+            elif categoria == "Clientes":
+                if opcion == "Registrar":
+                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+                    self.ventana = Regsitrar_dueno()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    self.ventana = Modificar_cliente()
+                    self.ventana.show()
+                    self.close()
+                    
+        except ImportError as e:
+            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Ocurrió un error al intentar abrir la ventana: {e}")
 
     def toggle_menu(self, frame):
         if frame.isVisible():
@@ -210,37 +273,94 @@ class MainWindow(QMainWindow):
         else:
             frame.show()
 
-    def setup_details_list(self, parent_layout):
-        # Contenedor vertical para la lista de datos
-        details_widget = QWidget()
-        details_layout = QVBoxLayout(details_widget)
-        details_layout.setSpacing(15)
-        details_layout.setContentsMargins(0, 0, 0, 0)
-        details_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    def setup_search_bar(self):
+        search_container = QWidget()
+        search_layout = QHBoxLayout(search_container)
+        search_layout.setContentsMargins(0, 0, 0, 0)
+        
+        lbl_search = QLabel("ID Cita:")
+        lbl_search.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        
+        self.inp_search = QLineEdit()
+        self.inp_search.setPlaceholderText("Ingresa el ID de la cita a revisar")
+        self.inp_search.setFixedWidth(300)
+        self.inp_search.setStyleSheet("""
+            QLineEdit {
+                border: 2px solid #ddd;
+                border-radius: 10px;
+                padding: 8px 15px;
+                font-size: 16px;
+                color: #333;
+                background-color: #F9F9F9;
+            }
+        """)
+        
+        btn_search = QPushButton("Buscar")
+        btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_search.setFixedSize(120, 40)
+        btn_search.setStyleSheet("""
+            QPushButton {
+                background-color: #7CEBFC;
+                color: #333;
+                font-weight: bold;
+                font-size: 16px;
+                border-radius: 10px;
+                border: 1px solid #5CD0E3;
+            }
+            QPushButton:hover { background-color: #5CD0E3; }
+        """)
+        btn_search.clicked.connect(self.buscar_cita)
+        
+        search_layout.addWidget(lbl_search)
+        search_layout.addWidget(self.inp_search)
+        search_layout.addWidget(btn_search)
+        search_layout.addStretch()
+        
+        self.white_layout.addWidget(search_container)
 
-        # Datos simulados para mostrar
-        data = {
-            "ID de la cita": "C-2024-089",
-            "ID": "89231",
-            "Fecha": "24/11/2025",
-            "Hora": "10:30 AM",
-            "Estado": "Confirmada",
-            "ID Mascota": "PET-452 (Luna)",
-            "ID Veterinario": "VET-004 (Dr. House)"
-        }
+    def setup_details_form(self, parent_layout):
+        form_widget = QWidget()
+        grid_layout = QGridLayout(form_widget)
+        grid_layout.setVerticalSpacing(20)
+        grid_layout.setHorizontalSpacing(30)
+        grid_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Generar etiquetas dinámicamente
-        for label, value in data.items():
-            # Creamos un string formateado, pero usamos HTML en el QLabel para negritas
-            lbl = QLabel(f"<b>{label}:</b> {value}")
-            lbl.setProperty("class", "data-label")
-            lbl.setTextInteractionFlags(Qt.TextInteractionFlag.TextSelectableByMouse)
-            details_layout.addWidget(lbl)
+        # Estilo "Solo Lectura"
+        readonly_style = """
+            QLineEdit {
+                background-color: #F0F0F0;
+                border: 1px solid #DDD;
+                border-radius: 10px;
+                padding: 5px 15px;
+                font-size: 18px;
+                color: #555;
+                height: 45px;
+            }
+        """
+        label_style = "font-size: 20px; color: black; font-weight: 400;"
 
-        parent_layout.addWidget(details_widget, stretch=2)
+        def add_row(row, label_text, attr_name):
+            lbl = QLabel(label_text)
+            lbl.setStyleSheet(label_style)
+            inp = QLineEdit()
+            inp.setReadOnly(True)
+            inp.setText("---")
+            inp.setStyleSheet(readonly_style)
+            setattr(self, attr_name, inp)
+            grid_layout.addWidget(lbl, row, 0)
+            grid_layout.addWidget(inp, row, 1)
+
+        add_row(0, "Fecha:", "inp_fecha")
+        add_row(1, "Hora:", "inp_hora")
+        add_row(2, "Estado:", "inp_estado")
+        add_row(3, "Mascota:", "inp_mascota")
+        add_row(4, "Cliente:", "inp_cliente")
+        add_row(5, "Veterinario:", "inp_vet")
+
+        grid_layout.setRowStretch(6, 1)
+        parent_layout.addWidget(form_widget, stretch=2)
 
     def setup_info_board(self, parent_layout):
-        # El "Board" de la derecha (Contenedor del Motivo)
         board_container = QFrame()
         board_container.setFixedWidth(350)
         board_container.setStyleSheet("""
@@ -255,7 +375,6 @@ class MainWindow(QMainWindow):
         board_layout.setContentsMargins(0, 0, 0, 0)
         board_layout.setSpacing(0)
 
-        # Header degradado del Board
         header_frame = QFrame()
         header_frame.setFixedHeight(60)
         header_frame.setStyleSheet("""
@@ -265,35 +384,108 @@ class MainWindow(QMainWindow):
             border-bottom: none;
         """)
         header_layout = QVBoxLayout(header_frame)
-        lbl_info_title = QLabel("Información")
+        lbl_info_title = QLabel("Motivo de la Cita")
         lbl_info_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_info_title.setStyleSheet("color: white; font-size: 20px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_info_title)
 
-        # Área de Contenido (Motivo)
         content_frame = QFrame()
         content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
         
-        # Texto del Motivo (Simulado)
-        motivo_text = ("<b>Motivo:</b><br><br>"
-                       "Revisión general anual y actualización de vacunas. "
-                       "El dueño reporta que la mascota ha estado un poco decaída "
-                       "en los últimos dos días.")
+        self.lbl_motivo_text = QLabel("Ingrese un ID para ver los detalles...")
+        self.lbl_motivo_text.setWordWrap(True)
+        self.lbl_motivo_text.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
+        self.lbl_motivo_text.setStyleSheet("color: #555; font-size: 18px; border: none; line-height: 1.5;")
         
-        lbl_motivo = QLabel(motivo_text)
-        lbl_motivo.setWordWrap(True)
-        lbl_motivo.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        lbl_motivo.setStyleSheet("color: #555; font-size: 18px; border: none; line-height: 1.5;")
-        
-        content_layout.addWidget(lbl_motivo)
+        content_layout.addWidget(self.lbl_motivo_text)
         content_layout.addStretch()
         
         board_layout.addWidget(header_frame)
         board_layout.addWidget(content_frame)
 
         parent_layout.addWidget(board_container, stretch=1)
+
+    # --- FUNCIÓN: BUSCAR CITA ---
+    def buscar_cita(self):
+        id_cita = self.inp_search.text().strip()
+        
+        if not id_cita:
+            QMessageBox.warning(self, "Aviso", "Ingresa un ID de cita.")
+            return
+        
+        if not id_cita.isdigit():
+            QMessageBox.warning(self, "Error", "El ID debe ser numérico.")
+            return
+
+        print(f"Consultando cita ID: {id_cita}")
+        try:
+            # Traer Nombres en lugar de IDs usando JOINs
+            # Ajusta 'cliente.nombre' y 'cliente.apellido' según tu tabla cliente
+            columnas = [
+                "cita.fecha",
+                "cita.hora",
+                "cita.motivo",
+                "cita.estado",
+                "mascota.nombre",
+                "cliente.nombre",
+                "cliente.apellido",
+                "usuario.nombre",
+                "usuario.apellido"
+            ]
+
+            
+            # Ajustar JOINS según tu esquema real
+            joins = """
+                JOIN mascota ON cita.fk_mascota = mascota.id_mascota
+                JOIN cliente ON mascota.fk_cliente = cliente.id_cliente
+                JOIN veterinario ON cita.fk_veterinario = veterinario.id_veterinario
+                JOIN usuario ON veterinario.fk_usuario = usuario.id_usuario
+            """
+            
+            registro = self.conexion1.consultar_registro(
+                tabla='cita', 
+                id_columna='cita.id_cita', 
+                id_valor=id_cita, 
+                columnas=columnas,
+                joins=joins
+            )
+            
+            if registro:
+                # Mapeo: 
+                # 0: fecha, 1: hora, 2: motivo, 3: estado, 4: mascota, 5: cte_nom, 6: cte_ape, 7: vet_nom, 8: vet_ape
+                
+                self.inp_fecha.setText(str(registro[0]))
+                self.inp_hora.setText(str(registro[1]))
+                self.lbl_motivo_text.setText(str(registro[2]))
+                self.inp_estado.setText(str(registro[3]))
+                
+                self.inp_mascota.setText(str(registro[4]))
+                self.inp_cliente.setText(f"{registro[5]} {registro[6]}")
+                
+                # Asumiendo que el veterinario también tiene apellido en la posición 8
+                nombre_vet = str(registro[7])
+                if len(registro) > 8:
+                    nombre_vet += f" {registro[8]}"
+                self.inp_vet.setText(f"Dr. {nombre_vet}")
+                
+                QMessageBox.information(self, "Encontrado", "Cita cargada exitosamente.")
+            else:
+                self.limpiar_datos()
+                QMessageBox.warning(self, "No encontrado", "No existe cita con ese ID.")
+                
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al buscar: {e}")
+
+    def limpiar_datos(self):
+        self.inp_fecha.setText("---")
+        self.inp_hora.setText("---")
+        self.inp_estado.setText("---")
+        self.inp_mascota.setText("---")
+        self.inp_cliente.setText("---")
+        self.inp_vet.setText("---")
+        self.lbl_motivo_text.setText("---")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

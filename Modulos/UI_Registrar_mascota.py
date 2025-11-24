@@ -46,43 +46,43 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            QLabel#Logo {
-                color: white; 
-                font-size: 36px; 
-                font-weight: bold; 
-                margin-bottom: 30px;
-            }
+            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                color: #E0E0E0;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
-                border: none;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
-                background-color: transparent;
-                height: 30px;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
         """)
@@ -124,7 +124,9 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(20)
+        
+        # --- ESPACIADOR SUPERIOR (Centrado) ---
+        self.white_layout.addStretch(1)
 
         # Contenedor Formulario
         content_container = QWidget()
@@ -137,8 +139,14 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(content_container)
         
+        # Espacio entre form y botón
+        self.white_layout.addSpacing(30)
+        
         # Botón Guardar
         self.setup_save_button()
+
+        # --- ESPACIADOR INFERIOR (Centrado) ---
+        self.white_layout.addStretch(2)
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
@@ -156,7 +164,7 @@ class MainWindow(QMainWindow):
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "logo.png" 
+        ruta_logo = "Modulos/FILES/logo_yuno.png" 
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -169,8 +177,8 @@ class MainWindow(QMainWindow):
 
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Agendar", "Modificar"])
-        self.setup_accordion_group("Mascotas", ["Modificar"])
+        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"]) # Sin Visualizar
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
@@ -198,7 +206,7 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
@@ -222,7 +230,11 @@ class MainWindow(QMainWindow):
                     self.ventana = Agendar_cita()
                     self.ventana.show()
                     self.close()
-
+                elif opcion == "Visualizar":
+                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+                    self.ventana = Visualizar_cita()
+                    self.ventana.show()
+                    self.close()
                 elif opcion == "Modificar":
                     from UI_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
@@ -233,7 +245,7 @@ class MainWindow(QMainWindow):
                 if opcion == "Registrar":
                     pass # Ya estamos aquí
                 elif opcion == "Modificar":
-                    from UI_Revisar_Mascota import MainWindow as Modificar_mascota
+                    from UI_Modificar_Mascota import MainWindow as Modificar_mascota
                     self.ventana = Modificar_mascota()
                     self.ventana.show()
                     self.close()
@@ -245,7 +257,7 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+                    from UI_Modificar_cliente import MainWindow as Modficiar_dueno
                     self.ventana = Modficiar_dueno()
                     self.ventana.show()
                     self.close()
@@ -313,14 +325,14 @@ class MainWindow(QMainWindow):
         self.inp_peso.setPlaceholderText("Ej: 12.5")
         self.inp_peso.setStyleSheet(input_style)
 
-        # 5. Especie (Reincorporado)
+        # 5. Especie
         lbl_especie = QLabel("Especie:")
         lbl_especie.setStyleSheet(label_style)
         self.inp_especie = QComboBox()
         self.inp_especie.addItems(["Perro", "Gato", "Ave", "Roedor", "Otro"])
         self.inp_especie.setStyleSheet(input_style)
 
-        # 6. Raza (Reincorporado)
+        # 6. Raza
         lbl_raza = QLabel("Raza:")
         lbl_raza.setStyleSheet(label_style)
         self.inp_raza = QLineEdit()
@@ -411,15 +423,22 @@ class MainWindow(QMainWindow):
         self.lbl_prev_nombre = QLabel("Nombre Mascota")
         self.lbl_prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_nombre.setWordWrap(True)
-        self.lbl_prev_nombre.setStyleSheet("font-size: 24px; font-weight: bold; color: #333; margin-top: 10px;")
+        self.lbl_prev_nombre.setStyleSheet("font-size: 24px; font-weight: bold; color: #333; margin-bottom: 15px;")
 
         self.lbl_prev_dueno = QLabel("Dueño ID: --")
         self.lbl_prev_dueno.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_prev_dueno.setStyleSheet("font-size: 16px; color: #555;")
+        self.lbl_prev_dueno.setStyleSheet("""
+            font-size: 18px; 
+            color: #2c3e50; 
+            font-weight: bold; 
+            background-color: #ecf0f1; 
+            padding: 10px; 
+            border-radius: 5px;
+        """)
 
         self.lbl_prev_detalles = QLabel("Especie - Raza")
         self.lbl_prev_detalles.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.lbl_prev_detalles.setStyleSheet("font-size: 16px; color: #555; margin-top: 10px;")
+        self.lbl_prev_detalles.setStyleSheet("font-size: 16px; color: #555; margin-top: 15px;")
 
         self.lbl_prev_stats = QLabel("Edad: -- | Peso: --")
         self.lbl_prev_stats.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -436,30 +455,6 @@ class MainWindow(QMainWindow):
         board_layout.addWidget(content_frame)
 
         parent_layout.addWidget(board_container, stretch=1)
-
-    # --- ACTUALIZACIÓN DE VISTA PREVIA ---
-    def update_preview(self):
-        id_cliente = self.inp_cliente.text().strip()
-        nombre = self.inp_nombre.text().strip()
-        edad = self.inp_edad.text().strip()
-        peso = self.inp_peso.text().strip()
-        especie = self.inp_especie.currentText()
-        raza = self.inp_raza.text().strip()
-
-        # Nombre
-        self.lbl_prev_nombre.setText(nombre if nombre else "Nombre Mascota")
-        
-        # Dueño
-        self.lbl_prev_dueno.setText(f"Dueño ID: {id_cliente}" if id_cliente else "Dueño ID: --")
-        
-        # Detalles
-        raza_txt = raza if raza else "Raza"
-        self.lbl_prev_detalles.setText(f"{especie} - {raza_txt}")
-
-        # Stats
-        edad_txt = f"{edad} años" if edad else "Edad: --"
-        peso_txt = f"{peso} kg" if peso else "Peso: --"
-        self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
 
     def setup_save_button(self):
         btn_save = QPushButton("Guardar")
@@ -490,6 +485,23 @@ class MainWindow(QMainWindow):
         
         self.white_layout.addLayout(btn_container)
 
+    # --- ACTUALIZACIÓN PREVIEW ---
+    def update_preview(self):
+        nombre = self.inp_nombre.text().strip()
+        id_cliente = self.inp_cliente.text().strip()
+        especie = self.inp_especie.currentText()
+        raza = self.inp_raza.text().strip()
+        edad = self.inp_edad.text().strip()
+        peso = self.inp_peso.text().strip()
+
+        self.lbl_prev_nombre.setText(nombre if nombre else "Nombre Mascota")
+        self.lbl_prev_dueno.setText(f"Dueño ID: {id_cliente}" if id_cliente else "Dueño ID: --")
+        self.lbl_prev_detalles.setText(f"{especie} - {raza}")
+        
+        edad_txt = f"{edad} años" if edad else "Edad: --"
+        peso_txt = f"{peso} kg" if peso else "Peso: --"
+        self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
+
     # --- LÓGICA DE GUARDADO ---
     def guardar_datos(self):
         # 1. Obtener datos
@@ -514,10 +526,10 @@ class MainWindow(QMainWindow):
             return
 
         # 3. Insertar en BD
-        datos = (nombre, edad, peso, id_cliente, especie, raza)
-        columnas = ('nombre', 'edad', 'peso', 'fk_cliente', 'especie', 'raza')
+        # Campos: nombre, edad, peso, especie, raza, fk_cliente
+        datos = (nombre, edad, peso, especie, raza, id_cliente)
+        columnas = ('nombre', 'edad', 'peso', 'especie', 'raza', 'fk_cliente')
         table = 'mascota'
-
 
         try:
             nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)

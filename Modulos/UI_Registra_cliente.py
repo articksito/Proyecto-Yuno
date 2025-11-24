@@ -46,56 +46,59 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            QLabel#Logo {
-                color: white; 
-                font-size: 36px; 
-                font-weight: bold; 
-                margin-bottom: 30px;
-            }
+            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                color: #E0E0E0;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
-                border: none;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
-                background-color: transparent;
-                height: 30px;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
         """)
 
+        # --- 1. BARRA LATERAL (Izquierda) ---
         self.setup_sidebar()
 
+        # --- 2. PANEL BLANCO (Derecha - Registro Cliente) ---
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 30, 50, 40)
 
-        # Header
+        # Header con Título y Botón Cerrar
         header_layout = QHBoxLayout()
+        
         lbl_header = QLabel("Registrar cliente")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
@@ -122,20 +125,34 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(20)
+        
+        # --- ESPACIADOR SUPERIOR (Centrado) ---
+        self.white_layout.addStretch(1)
 
-        # Contenedor Formulario
+        # Contenedor Horizontal para Formulario + Panel Info
         content_container = QWidget()
         content_layout = QHBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
 
+        # --- A. FORMULARIO DE REGISTRO (Izquierda) ---
         self.setup_register_form(content_layout)
+
+        # --- B. PANEL DE INFORMACIÓN (Derecha) ---
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
         
+        # Espacio entre form y botón
+        self.white_layout.addSpacing(30)
+        
+        # Botón Guardar
         self.setup_save_button()
+
+        # --- ESPACIADOR INFERIOR (Centrado) ---
+        self.white_layout.addStretch(2)
+
+        # Agregar al layout principal
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
@@ -147,8 +164,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
-        # --- LOGO ---
-        lbl_logo = QLabel()
+        lbl_logo = QLabel("YUNO VET")
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
@@ -159,15 +175,15 @@ class MainWindow(QMainWindow):
                 scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
-                lbl_logo.setText("YUNO VET") 
+                lbl_logo.setText("YUNO VET")
         else:
-            lbl_logo.setText("YUNO VET") 
+            lbl_logo.setText("YUNO VET")
 
         self.sidebar_layout.addWidget(lbl_logo)
         
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
-        self.setup_accordion_group("Clientes", ["Modificar"])
+        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -194,16 +210,14 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            
-            # CONEXIÓN DE BOTONES
+            # Conexión de botones
             btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
-            
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
@@ -244,9 +258,11 @@ class MainWindow(QMainWindow):
                     self.close()
 
             elif categoria == "Clientes":
-                if opcion == "Modificar":
-                    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
-                    self.ventana = Modficiar_dueno()
+                if opcion == "Registrar":
+                    pass # Ya estamos aquí
+                elif opcion == "Modificar":
+                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()
                     
@@ -366,9 +382,8 @@ class MainWindow(QMainWindow):
         self.inp_telefono = QLineEdit()
         self.inp_telefono.setPlaceholderText("Ej: 6641234567")
         self.inp_telefono.setStyleSheet(input_style)
-        # Validador Double para permitir números grandes (BigInt) sin formato científico en la UI, 
-        # aunque QLineEdit es texto, el validador ayuda a restringir caracteres.
-        # Usamos Notación Standard para evitar exponentes.
+        
+        # Validador Double para permitir números grandes
         validator = QDoubleValidator() 
         validator.setNotation(QDoubleValidator.Notation.StandardNotation)
         validator.setDecimals(0) # Sin decimales
@@ -389,35 +404,27 @@ class MainWindow(QMainWindow):
         self.inp_ciudad.textChanged.connect(self.update_preview)
 
         # Añadir al Grid
-        # Fila 0: Nombre
         grid_layout.addWidget(lbl_nombre, 0, 0)
         grid_layout.addWidget(self.inp_nombre, 0, 1)
 
-        # Fila 1: Apellido
         grid_layout.addWidget(lbl_apellido, 1, 0)
         grid_layout.addWidget(self.inp_apellido, 1, 1)
 
-        # Fila 2: Correo
         grid_layout.addWidget(lbl_correo, 2, 0)
         grid_layout.addWidget(self.inp_correo, 2, 1)
 
-        # Fila 3: Calle
         grid_layout.addWidget(lbl_calle, 3, 0)
         grid_layout.addWidget(self.inp_calle, 3, 1)
 
-        # Fila 4: Num Ext / Int
         grid_layout.addWidget(lbl_numeros, 4, 0)
         grid_layout.addWidget(num_container, 4, 1)
 
-        # Fila 5: Colonia / CP
         grid_layout.addWidget(lbl_colonia_cp, 5, 0)
         grid_layout.addWidget(col_cp_container, 5, 1)
 
-        # Fila 6: Ciudad
         grid_layout.addWidget(lbl_ciudad, 6, 0)
         grid_layout.addWidget(self.inp_ciudad, 6, 1)
 
-        # Fila 7: Teléfono
         grid_layout.addWidget(lbl_telefono, 7, 0)
         grid_layout.addWidget(self.inp_telefono, 7, 1)
 

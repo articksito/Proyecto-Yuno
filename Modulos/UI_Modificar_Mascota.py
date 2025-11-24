@@ -28,7 +28,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES ---
+        # --- ESTILOS ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -46,44 +46,43 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Estilos del Sidebar */
-            QLabel#Logo {
-                color: white; 
-                font-size: 36px; 
-                font-weight: bold; 
-                margin-bottom: 30px;
-            }
+            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                color: #E0E0E0;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
-                border: none;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
-                background-color: transparent;
-                height: 30px;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
         """)
@@ -126,7 +125,9 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(btn_back)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(20)
+        
+        # Espaciador superior para centrar
+        self.white_layout.addStretch(1)
 
         # Contenedor Formulario
         content_container = QWidget()
@@ -139,8 +140,14 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(content_container)
         
+        # Espacio entre form y botón
+        self.white_layout.addSpacing(30)
+        
         # Botón Guardar
         self.setup_save_button()
+
+        # Espaciador inferior para centrar
+        self.white_layout.addStretch(2)
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
@@ -158,7 +165,7 @@ class MainWindow(QMainWindow):
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
+        ruta_logo = "logo.png" 
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -166,12 +173,14 @@ class MainWindow(QMainWindow):
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
                 lbl_logo.setText("YUNO VET")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
         else:
             lbl_logo.setText("YUNO VET")
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
 
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Agendar", "Modificar"])
+        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
@@ -200,7 +209,7 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
@@ -224,7 +233,11 @@ class MainWindow(QMainWindow):
                     self.ventana = Agendar_cita()
                     self.ventana.show()
                     self.close()
-
+                elif opcion == "Visualizar":
+                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+                    self.ventana = Visualizar_cita()
+                    self.ventana.show()
+                    self.close()
                 elif opcion == "Modificar":
                     from UI_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
@@ -245,8 +258,8 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
-                    self.ventana = Modficiar_dueno()
+                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()
                     
@@ -446,10 +459,16 @@ class MainWindow(QMainWindow):
         self.lbl_prev_detalles.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_detalles.setStyleSheet("font-size: 16px; color: #555; margin-top: 15px;")
 
+        # Stats
+        self.lbl_prev_stats = QLabel("Edad: -- | Peso: --")
+        self.lbl_prev_stats.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_prev_stats.setStyleSheet("font-size: 14px; color: #888; margin-top: 5px;")
+
         content_layout.addWidget(lbl_preview)
         content_layout.addWidget(self.lbl_prev_nombre)
         content_layout.addWidget(self.lbl_prev_dueno)
         content_layout.addWidget(self.lbl_prev_detalles)
+        content_layout.addWidget(self.lbl_prev_stats)
         content_layout.addStretch()
         
         board_layout.addWidget(header_frame)
@@ -492,10 +511,16 @@ class MainWindow(QMainWindow):
         id_cliente = self.inp_cliente.text().strip()
         especie = self.inp_especie.currentText()
         raza = self.inp_raza.text().strip()
+        edad = self.inp_edad.text().strip()
+        peso = self.inp_peso.text().strip()
 
         self.lbl_prev_nombre.setText(nombre if nombre else "Nombre Mascota")
         self.lbl_prev_dueno.setText(f"Dueño ID: {id_cliente}" if id_cliente else "Dueño ID: --")
         self.lbl_prev_detalles.setText(f"{especie} - {raza}")
+        
+        edad_txt = f"{edad} años" if edad else "Edad: --"
+        peso_txt = f"{peso} kg" if peso else "Peso: --"
+        self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
 
     # --- FUNCIÓN: BUSCAR MASCOTA ---
     def buscar_mascota(self):
@@ -567,7 +592,7 @@ class MainWindow(QMainWindow):
 
         try:
             # Asegúrate de que tu PK sea 'id_mascota'
-            exito = self.conexion1.update_registro(id_mascota, datos, 'mascota', 'id_mascota')
+            exito = self.conexion1.editar_registro(id_mascota, datos, 'mascota', 'id_mascota')
             if exito:
                 QMessageBox.information(self, "Éxito", "Mascota actualizada correctamente.")
             else:

@@ -1,27 +1,25 @@
 import sys
+import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QDialog)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QDialog, QMessageBox)
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPixmap
 
 from db_connection import Conexion
 
-from UI_Crear_cita import MainWindow as AgendarCita
-from UI_Revisar_Cita import MainWindow as Visualizar
-
 class MainWindow(QMainWindow):
-    def __init__(self, nombre):
+    def __init__(self, nombre="Recepcionista"):
         self.nombre = nombre
         super().__init__()
 
         self.setWindowTitle("Sistema Veterinario Yuno - Recepción")
         self.resize(1280, 720)
 
-        # Datos simulados (Aquí conectarías tu BD)
+        # Datos simulados
         self.user_data = {
             "nombre": f"{self.nombre}",
-            "puesto": "Recepcionista Senior",
+            "puesto": "Recepcionista",
             "id": "REC-001"
         }
 
@@ -51,32 +49,43 @@ class MainWindow(QMainWindow):
             QLabel {
                 font-family: 'Segoe UI', sans-serif;
             }
-            QPushButton {
+            /* Estilo Botones Menú Principal */
+            QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
-            }
-            QPushButton:hover {
-                color: #E0E0E0;
                 background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                height: 50px;
+                margin-bottom: 5px;
             }
+            QPushButton.menu-btn:hover {
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
+            }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
+                text-align: left;
+                font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
         """)
@@ -89,25 +98,44 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
-        # Logo
-        lbl_logo = QLabel("YUNO VET")
-        lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+        # --- LOGO ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                # Escalar logo para que se vea bien en el sidebar
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+        else:
+            lbl_logo.setText("YUNO VET")
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+
         self.sidebar_layout.addWidget(lbl_logo)
         
-        # Menús Desplegables (Configurados igual que antes)
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
+        # Menús Desplegables (Solo opciones existentes)
+        self.setup_accordion_group("Citas", ["Agendar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
+        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
         # Botón Cerrar Sesión
         btn_logout = QPushButton("Cerrar Sesión")
         btn_logout.setStyleSheet("""
-            text-align: center; border: 2px solid white; 
-            border-radius: 15px; padding: 10px; margin-top: 20px;
-            font-size: 14px;
+            QPushButton {
+                text-align: center; border: 2px solid white; 
+                border-radius: 15px; padding: 10px; margin-top: 20px;
+                font-size: 14px; color: white; font-weight: bold;
+                background-color: transparent;
+            }
+            QPushButton:hover { background-color: rgba(255,255,255,0.2); }
         """)
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
@@ -131,19 +159,20 @@ class MainWindow(QMainWindow):
     def setup_accordion_group(self, title, options):
         """Crea un grupo de botones tipo acordeón"""
         btn_main = QPushButton(title)
+        btn_main.setProperty("class", "menu-btn") # Para aplicar estilo CSS
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
         self.sidebar_layout.addWidget(btn_main)
 
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5) # Un poco de espacio entre sub-botones
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
-            btn_sub.setProperty("class", "sub-btn")
+            btn_sub.setProperty("class", "sub-btn") # Para aplicar estilo CSS
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            # Aquí conectamos al enrutador
+            # Conexión al enrutador
             btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.router_ventanas(t, o))
             layout_options.addWidget(btn_sub)
 
@@ -163,7 +192,7 @@ class MainWindow(QMainWindow):
         info_layout.setSpacing(15)
         info_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        lbl_title = QLabel("Recepcionista")
+        lbl_title = QLabel("Bienvenid@")
         lbl_title.setStyleSheet("color: #888; font-size: 24px; letter-spacing: 2px;")
         lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
@@ -210,90 +239,53 @@ class MainWindow(QMainWindow):
     # =========================================================================
 
     def router_ventanas(self, categoria, opcion):
-        """
-        Esta función recibe el clic y decide qué función específica ejecutar
-        basándose en la categoría y la opción seleccionada.
-        """
-        print(f"Abriendo: {categoria} -> {opcion}") # Para depuración en consola
+        print(f"Abriendo: {categoria} -> {opcion}") 
 
-        # --- RUTA: CITAS ---
-        if categoria == "Citas":
-            if opcion == "Agendar": self.abrir_citas_agendar()
-            elif opcion == "Visualizar": self.abrir_citas_visualizar()
-            elif opcion == "Modificar": self.abrir_citas_modificar()
-            elif opcion == "Eliminar": self.abrir_citas_eliminar()
+        try:
+            # --- RUTA: CITAS ---
+            if categoria == "Citas":
+                if opcion == "Agendar":
+                    from UI_Crear_cita import MainWindow as AgendarCita
+                    self.ventana = AgendarCita()
+                    self.ventana.show()
+                    self.close()
 
-        # --- RUTA: MASCOTAS ---
-        elif categoria == "Mascotas":
-            if opcion == "Registrar": self.abrir_mascotas_registrar()
-            elif opcion == "Visualizar": self.abrir_mascotas_visualizar()
-            elif opcion == "Modificar": self.abrir_mascotas_modificar()
-            elif opcion == "Eliminar": self.abrir_mascotas_eliminar()
+                elif opcion == "Modificar":
+                    from UI_Modificar_cita import MainWindow as ModificarCita
+                    self.ventana = ModificarCita()
+                    self.ventana.show()
+                    self.close()
 
-        # --- RUTA: CLIENTES ---
-        elif categoria == "Clientes":
-            if opcion == "Registrar": self.abrir_clientes_registrar()
-            elif opcion == "Visualizar": self.abrir_clientes_visualizar()
-            elif opcion == "Modificar": self.abrir_clientes_modificar()
-            elif opcion == "Eliminar": self.abrir_clientes_eliminar()
+            # --- RUTA: MASCOTAS ---
+            elif categoria == "Mascotas":
+                if opcion == "Registrar":
+                    from UI_Registrar_mascota import MainWindow as RegistrarMascota
+                    self.ventana = RegistrarMascota()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_Revisar_Mascota import MainWindow as ModificarMascota
+                    self.ventana = ModificarMascota()
+                    self.ventana.show()
+                    self.close()
 
-    def placeholder_temporal(self, titulo):
-        """BORRA ESTA FUNCION CUANDO TENGAS TUS VENTANAS LISTAS"""
-        d = QDialog(self)
-        d.setWindowTitle(titulo)
-        l = QLabel(f"Aquí iría la ventana de:\n{titulo}", d)
-        l.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        d.resize(300, 200)
-        d.exec()
-
-    # ---------------------------------------------------------
-    # BOTONES PARA ABRIR VENTANAS
-    # ---------------------------------------------------------
-
-    # --- SECCIÓN CITAS ---
-    def abrir_citas_agendar(self):
-        self.agendar = AgendarCita()
-        self.agendar.show()
-        self.close()
-
-    def abrir_citas_visualizar(self):
-        self.visualizar = Visualizar()
-        self.visualizar.show()
-        self.close()
-
-    def abrir_citas_modificar(self):
-        self.placeholder_temporal("Modificar Cita") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_citas_eliminar(self):
-        self.placeholder_temporal("Eliminar Cita") # <-- AQUI CONECTAS TU VENTANA
-
-
-    # --- SECCIÓN MASCOTAS ---
-    def abrir_mascotas_registrar(self):
-        self.placeholder_temporal("Registrar Mascota") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_mascotas_visualizar(self):
-        self.placeholder_temporal("Visualizar Mascotas") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_mascotas_modificar(self):
-        self.placeholder_temporal("Modificar Mascota") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_mascotas_eliminar(self):
-        self.placeholder_temporal("Eliminar Mascota") # <-- AQUI CONECTAS TU VENTANA
-
-
-    # --- SECCIÓN CLIENTES ---
-    def abrir_clientes_registrar(self):
-        self.placeholder_temporal("Registrar Cliente") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_clientes_visualizar(self):
-        self.placeholder_temporal("Visualizar Clientes") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_clientes_modificar(self):
-        self.placeholder_temporal("Modificar Cliente") # <-- AQUI CONECTAS TU VENTANA
-
-    def abrir_clientes_eliminar(self):
-        self.placeholder_temporal("Eliminar Cliente") # <-- AQUI CONECTAS TU VENTANA
+            # --- RUTA: CLIENTES ---
+            elif categoria == "Clientes":
+                if opcion == "Registrar":
+                    from UI_Registra_cliente import MainWindow as RegistrarCliente
+                    self.ventana = RegistrarCliente()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_Modificar_cliente import MainWindow as ModificarCliente
+                    self.ventana = ModificarCliente()
+                    self.ventana.show()
+                    self.close()
+                    
+        except ImportError as e:
+            QMessageBox.warning(self, "Error de Archivo", f"No se encuentra el archivo de la ventana:\n{e.name}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo abrir la ventana: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

@@ -46,43 +46,43 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            QLabel#Logo {
-                color: white; 
-                font-size: 36px; 
-                font-weight: bold; 
-                margin-bottom: 30px;
-            }
+            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                color: #E0E0E0;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
-                border: none;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
-                background-color: transparent;
-                height: 30px;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
         """)
@@ -122,7 +122,9 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(20)
+        
+        # --- ESPACIADOR SUPERIOR (Centrado) ---
+        self.white_layout.addStretch(1)
 
         # Contenedor Formulario
         content_container = QWidget()
@@ -135,7 +137,15 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(content_container)
         
+        # Espacio entre form y botón
+        self.white_layout.addSpacing(30)
+        
+        # Botón Guardar
         self.setup_save_button()
+
+        # --- ESPACIADOR INFERIOR (Centrado) ---
+        self.white_layout.addStretch(2)
+
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
@@ -153,9 +163,9 @@ class MainWindow(QMainWindow):
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         # ---------------------------------------------------------
-        # LA RUTA DEL LOGO
+        # AQUÍ PONES LA RUTA DE TU LOGO
         # ---------------------------------------------------------
-        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/logo_yuno.png" 
+        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
         
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
@@ -199,7 +209,7 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
@@ -257,8 +267,8 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
-                    self.ventana = Modficiar_dueno()
+                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()
                     
@@ -397,6 +407,7 @@ class MainWindow(QMainWindow):
         board_layout.setContentsMargins(0, 0, 0, 0)
         board_layout.setSpacing(0)
 
+        # Header degradado
         header_frame = QFrame()
         header_frame.setFixedHeight(60)
         header_frame.setStyleSheet("""
@@ -411,11 +422,13 @@ class MainWindow(QMainWindow):
         lbl_info_title.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_info_title)
 
+        # Contenido
         content_frame = QFrame()
         content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
         
+        # Label para mostrar info extra tras la búsqueda
         self.lbl_info_extra = QLabel("Ingresa un ID y presiona 'Buscar' para cargar los datos.")
         self.lbl_info_extra.setWordWrap(True)
         self.lbl_info_extra.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)

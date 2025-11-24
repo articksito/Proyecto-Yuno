@@ -46,44 +46,43 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Estilos del Sidebar */
-            QLabel#Logo {
-                color: white; 
-                font-size: 36px; 
-                font-weight: bold; 
-                margin-bottom: 30px;
-            }
+            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
-                border: none;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
                 color: white;
                 font-family: 'Segoe UI', sans-serif;
                 font-weight: bold;
                 font-size: 18px;
-                background-color: transparent;
-                height: 40px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                color: #E0E0E0;
-                background-color: rgba(255, 255, 255, 0.1);
-                border-top-right-radius: 20px;
-                border-bottom-right-radius: 20px;
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
+            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
-                border: none;
                 font-family: 'Segoe UI', sans-serif;
                 font-size: 16px;
                 font-weight: normal;
-                padding-left: 50px;
+                padding-left: 40px;
+                border-radius: 10px;
                 color: #F0F0F0;
-                background-color: transparent;
-                height: 30px;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: #333;
-                background-color: rgba(255, 255, 255, 0.2);
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
         """)
@@ -127,7 +126,9 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(btn_back)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(20)
+        
+        # --- ESPACIADOR SUPERIOR (Centrado) ---
+        self.white_layout.addStretch(1)
 
         # Contenedor Horizontal para Formulario + Panel Info
         content_container = QWidget()
@@ -138,13 +139,19 @@ class MainWindow(QMainWindow):
         # --- A. FORMULARIO DE EDICIÓN (Izquierda) ---
         self.setup_edit_form(content_layout)
 
-        # --- B. PANEL DE INFORMACIÓN Y FOTO (Derecha) ---
+        # --- B. PANEL DE INFORMACIÓN (Derecha) ---
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
         
+        # Espacio entre form y botón
+        self.white_layout.addSpacing(30)
+        
         # Botón Guardar
         self.setup_save_button()
+
+        # --- ESPACIADOR INFERIOR (Centrado) ---
+        self.white_layout.addStretch(2)
 
         # Agregar al layout principal
         self.main_layout.addWidget(self.sidebar)
@@ -176,7 +183,7 @@ class MainWindow(QMainWindow):
 
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Agendar", "Modificar"])
+        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
@@ -192,7 +199,6 @@ class MainWindow(QMainWindow):
             }
             QPushButton:hover { background-color: rgba(255,255,255,0.2); }
         """)
-
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
         self.sidebar_layout.addWidget(btn_logout)
@@ -206,7 +212,7 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2)
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
@@ -228,6 +234,11 @@ class MainWindow(QMainWindow):
                 if opcion == "Agendar":
                     from UI_Crear_cita import MainWindow as Agendar_cita
                     self.ventana = Agendar_cita()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+                    self.ventana = Visualizar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
@@ -254,6 +265,8 @@ class MainWindow(QMainWindow):
                     self.ventana = Regsitrar_dueno()
                     self.ventana.show()
                     self.close()
+                elif opcion == "Modificar":
+                    pass # Ya estamos aquí
                     
         except ImportError as e:
             QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
@@ -285,7 +298,6 @@ class MainWindow(QMainWindow):
                 height: 45px;
             }
         """
-        
         label_style = "font-size: 24px; color: black; font-weight: 400;"
 
         # --- Campos ---
@@ -527,7 +539,8 @@ class MainWindow(QMainWindow):
         }
 
         try:
-            exito = self.conexion1.update_registro(id_cliente, datos, 'cliente', 'id_cliente')
+            # Aseguramos usar editar_registro
+            exito = self.conexion1.editar_registro(id_cliente, datos, 'cliente', 'id_cliente')
             if exito:
                 QMessageBox.information(self, "Éxito", "Cliente actualizado correctamente.")
             else:
