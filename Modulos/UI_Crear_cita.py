@@ -1,25 +1,17 @@
-import sys
-import os
-from datetime import datetime
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
-                             QGridLayout, QDateEdit, QTimeEdit, QComboBox, QMessageBox)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap
-
-# Asumimos que el archivo db_connection.py existe en el mismo directorio
-from db_connection import Conexion
-
-# --- IMPORTACIONES DE OTRAS VENTANAS (Navegación) ---
-# Nota: Asegúrate de que estos archivos existan en tu carpeta de proyecto
-# para evitar errores de "ModuleNotFoundError".
 try:
-    from UI_Revisar_Cita import MainWindow as Visualizar_cita
-    from UI_Modificar_cita import MainWindow as Modificar_cita
-    from UI_Registrar_mascota import MainWindow as Registrar_mascota
-    from UI_Revisar_Mascota import MainWindow as Modificar_mascota 
-    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
-    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+
+    import sys
+    import os
+    from datetime import datetime
+    from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                                QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
+                                QGridLayout, QDateEdit, QTimeEdit, QComboBox, QMessageBox)
+    from PyQt6.QtCore import Qt
+    from PyQt6.QtGui import QFont, QPixmap
+
+    # Asumimos que el archivo db_connection.py existe en el mismo directorio
+    from db_connection import Conexion
+    
 except ImportError:
     print("Advertencia: No se encontraron algunos archivos de interfaz (UI_*.py). La navegación fallará si se intenta abrir esas ventanas.")
 
@@ -30,7 +22,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Crear Cita")
+        self.setWindowTitle("Sistema Veterinario Yuno - Agendar Cita")
         self.resize(1280, 720)
 
         # Widget central
@@ -113,7 +105,7 @@ class MainWindow(QMainWindow):
         self.white_layout.setContentsMargins(50, 40, 50, 40)
 
         # Título del Panel "Crear cita"
-        lbl_header = QLabel("Crear cita")
+        lbl_header = QLabel("Agendar cita")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333; margin-bottom: 20px;")
         self.white_layout.addWidget(lbl_header)
 
@@ -167,7 +159,7 @@ class MainWindow(QMainWindow):
 
         self.sidebar_layout.addWidget(lbl_logo)
         
-        self.setup_accordion_group("Citas", ["Visualizar", "Modificar"])
+        self.setup_accordion_group("Citas", ["Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
@@ -215,6 +207,12 @@ class MainWindow(QMainWindow):
 
     # --- NUEVA FUNCIÓN: GESTOR DE VENTANAS ---
     def abrir_ventana(self, categoria, opcion):
+        from UI_Modificar_cita import MainWindow as Modificar_cita
+        from UI_Registrar_mascota import MainWindow as Registrar_mascota
+        from UI_Revisar_Mascota import MainWindow as Modificar_mascota 
+        from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+        from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+
         """
         Esta función recibe qué botón se presionó y ejecuta la lógica correspondiente.
         Instancia las ventanas importadas arriba.
@@ -223,15 +221,7 @@ class MainWindow(QMainWindow):
 
         # Lógica para CITAS
         if categoria == "Citas":
-            if opcion == "Visualizar":
-                try:
-                    self.visualizarC = Visualizar_cita()
-                    self.visualizarC.show()
-                    self.close()
-                except NameError:
-                    QMessageBox.warning(self, "Error", "La ventana 'Visualizar Cita' no ha sido importada correctamente.")
-
-            elif opcion == "Modificar":
+            if opcion == "Modificar":
                 try:
                     self.modificarC = Modificar_cita()
                     self.modificarC.show()

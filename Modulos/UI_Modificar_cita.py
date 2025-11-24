@@ -9,11 +9,6 @@ from PyQt6.QtGui import QFont, QPixmap
 import os
 
 from db_connection import Conexion
-from UI_Crear_cita import MainWindow as Agendar_cita
-from UI_Registrar_mascota import MainWindow as Registrar_mascota
-from UI_Revisar_Mascota import MainWindow as Modificar_mascota
-from UI_Registra_cliente import MainWindow as Regsitrar_dueno
-from UI_Revisar_cliente import MainWindow as Modficiar_dueno
 
 class MainWindow(QMainWindow):
     conexion1 = Conexion()
@@ -170,7 +165,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         
         # Agregamos "Agendar" para poder regresar a la pantalla de crear
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar"])
+        self.setup_accordion_group("Citas", ["Agendar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
         
@@ -217,6 +212,12 @@ class MainWindow(QMainWindow):
 
     # --- NUEVA FUNCIÓN: GESTOR DE VENTANAS ---
     def abrir_ventana(self, categoria, opcion):
+        from UI_Crear_cita import MainWindow as Agendar_cita
+        from UI_Registrar_mascota import MainWindow as Registrar_mascota
+        from UI_Revisar_Mascota import MainWindow as Modificar_mascota
+        from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+        from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+        
         """
         Navegación entre ventanas. Importamos dentro de la función para evitar
         errores de importación circular.
