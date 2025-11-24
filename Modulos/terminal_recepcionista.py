@@ -34,6 +34,8 @@ class Recepcionista:
                     
             except Exception as a:
                 print(f'Error en menu de recepcionista: {a}')
+                input('Dale Enter')
+                
             finally:
                 self.conexion.limpiar_terminal()
 

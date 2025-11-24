@@ -17,6 +17,8 @@ class receta:
 
             if devolver:
                 self.agregar_medicamentos(devolver)
+                input('Dale Enter')
+            input('Dale Enter')
             
             ruta_expediente='/home/owner_jose/Proyecto-Yuno/diagnostico.txt'
             comando_expediente=f'{datos}'
@@ -27,6 +29,8 @@ class receta:
 
         except Exception as a:
             print(f'Error en receta:{a}')
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
         
@@ -42,9 +46,12 @@ class receta:
                 datos_intermedios = (id_receta, id_medicamento, cantidad)
                 columnas_intermedias = ('fk_receta', 'fk_medicamento', 'cantidad')
                 self.conexion.insertar_datos('receta_medicamento',datos_intermedios,columnas_intermedias)
+                input('Dale Enter')
 
             except Exception as a:
                 print(f'Error al agregar medicamentos {a}')
+                input('Dale Enter')
+                
             finally:
                 self.conexion.limpiar_terminal()
         

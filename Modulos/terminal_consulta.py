@@ -23,8 +23,11 @@ class consulta():
             table='consulta'
                 
             self.conexion.insertar_datos(table,datos,clumnas)
+            input('Dale Enter')
                 
         except Exception as Error:
             print(f"Error en cliente: {Error}")
+            input('Dale Enter')
+            
         finally:
             self.conexion.limpiar_terminal()

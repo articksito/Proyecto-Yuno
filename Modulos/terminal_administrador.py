@@ -46,8 +46,12 @@ Elige:'''))
                         break
                     case __:
                         print('Pon un numero correcto.')
+                        input('Dale Enter')
+
             except Exception as a:
                 print(f'Error en el menu de admin: {a}')
+                input('Dale Enter')
+
             finally:
                 self.conexion.limpiar_terminal()
 
@@ -89,17 +93,18 @@ Elige:'''))
                         break
                     case __:
                             print('Pon numero valido')
+                            input('Dale Enter')
 
                 self.conexion.truncase(tabla)
 
             except Exception as a:
                 print(f'Fallo desde administrador:{a}')
+                input('Dale Enter')
+
             finally:
                 self.conexion.limpiar_terminal()
         
     def agregar_tipo_animal(self):
-        self.conexion.limpiar_terminal()
-
         try:
             especie=input('Especie del animal:')
             raza=input('Raza del animal:')
@@ -111,9 +116,12 @@ Elige:'''))
             table='tipo_animal'
 
             self.conexion.insertar_datos(table,datos,columnas)
+            input('Dale Enter')
 
         except Exception as a:
              print(f'Error al agregar tipo del animal: {a}')
+             input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
 
@@ -123,9 +131,11 @@ Elige:'''))
             columnas=self.conexion.Select_users(table='tipo_animal')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
-            input()
+            input('Dale Enter')
 
         except Exception as a:
             print (f'Error al consultar tipos de animales: {a}')
+            input('Dale Enter')
+            
         finally:
             self.conexion.limpiar_terminal()

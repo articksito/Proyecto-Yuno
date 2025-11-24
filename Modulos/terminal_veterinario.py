@@ -24,6 +24,7 @@ class Veterinario:
                         break
             except ValueError:
                     print("Error: Debe ingresar un número válido")
+                    input('Dale Enter')
             finally:
                 self.conexion1.limpiar_terminal()
                 
@@ -32,10 +33,12 @@ class Veterinario:
             columnas=self.conexion1.Select_users(table='veterinario')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
-            input()
+            input('Dale Enter')
 
         except Exception as a:
             print (f'Error al consultar veterinarios: {a}')
+            input('Dale Enter')
+            
         finally:
             self.conexion1.limpiar_terminal()
         

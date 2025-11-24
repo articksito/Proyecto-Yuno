@@ -22,6 +22,8 @@ class Mascota:
                         break
             except ValueError:
                 print("Error: Debe ingresar un número válido")
+                input('Dale Enter')
+
             finally:
                 self.conexion1.limpiar_terminal()
                 
@@ -38,6 +40,7 @@ class Mascota:
             table='mascota'
 
             self.conexion1.insertar_datos(table,datos,columnas)
+            input('Dale Enter')
 
             ruta_expediente='/home/owner_jose/Proyecto-Yuno/expediente.txt'
             comando_expediente=f'{datos}'
@@ -46,6 +49,8 @@ class Mascota:
 
         except Exception as a:
             print(f'Error al añadir mascota: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
 
@@ -54,10 +59,12 @@ class Mascota:
             columnas=self.conexion1.Select_users(table='mascota')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
-            input()
+            input('Dale Enter')
 
         except Exception as a:
             print (f'Error al consultar mascotas: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
 
@@ -77,9 +84,12 @@ class Mascota:
                     break 
 
             self.conexion1.editar_registro(id,datos,tabla='mascota',id_columna='id_mascota')
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al modificar mascota: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
 
@@ -87,8 +97,11 @@ class Mascota:
             try:
                 id=int(input('Id de la mascota a eliminar:'))
                 self.conexion1.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')
+                input('Dale Enter')
 
             except Exception as a:
                 print(f'Error al eliminar mascota: {a}')
+                input('Dale Enter')
+
             finally:
                 self.conexion1.limpiar_terminal()

@@ -28,8 +28,12 @@ Elige:'''))
                         break
                     case __:
                         print(f'Pon un numero correcto')
+                        input('Dale Enter')
+
             except Exception as a:
                 print(f'Error en el menu de usuario: {a}')
+                input('Dale Enter')
+
             finally:
                 self.conexion.limpiar_terminal()
     
@@ -70,12 +74,14 @@ Elige:'''))
             datos=(nombre,apellido,correo,telefono,contraseña,status,rol)
             columnas=('nombre','apellido','correo','telefono','contraseña','status','rol')
             table='usuario'
-            print(datos)
 
             self.conexion.insertar_datos(table,datos,columnas)
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al crear usuario: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
 
@@ -85,10 +91,12 @@ Elige:'''))
             columnas=self.conexion.Select_users(table='usuario')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
-            input()
+            input('Dale Enter')
 
         except Exception as a:
             print (f'Error al consultar tablas de usuario: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
     
@@ -108,9 +116,12 @@ Elige:'''))
                     break 
 
             self.conexion.editar_registro(id,datos,tabla='usuario',id_columna='id_usuario')
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al modificar usuario: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
 
@@ -119,9 +130,12 @@ Elige:'''))
         try:
             id=int(input('Id del usuario a eliminar:'))
             self.conexion.eliminar_registro(id,tabla='usuario',id_columna='id_usuario')
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al eliminar usuario desde usuario: {a}')
+            input('Dale Enter')
+            
         finally:
             self.conexion.limpiar_terminal()
               

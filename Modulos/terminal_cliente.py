@@ -23,8 +23,12 @@ class cliente():
                         break
                     case __:
                         print("Equivocado")
+                        input('Dale Enter')
+                        
         except Exception as a:
              print(f'Error en la seleccion: {a}')
+             input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()        
 
@@ -40,10 +44,14 @@ class cliente():
             clumnas=('nombre','apellido','direccion','correo','telefono')
             table='cliente'
             
-            self.conexion.insertar_datos(table,datos,clumnas)
+            a=self.conexion.insertar_datos(table,datos,clumnas)
+            print(f'Id generado: {a}')
+            input('Dale Enter')
             
         except Exception as Error:
             print(f"Error en cliente: {Error}")
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
 
@@ -54,10 +62,12 @@ class cliente():
             
             for row in registro:
                 print('\t'.join(map(str, row)))
-            input()
+            input('Dale Enter')
                 
         except:
              print("Error")
+             input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
             
@@ -77,8 +87,12 @@ class cliente():
                     break 
 
             self.conexion.editar_registro(id,datos,tabla='cliente',id_columna='id_cliente')
+            input('Dale Enter')
+
         except Exception as a:
              print(f"Error en editar: {a}")
+             input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
         
@@ -86,9 +100,14 @@ class cliente():
         try:
             id=int(input('Id de la cliente a eliminar:'))
             self.conexion.eliminar_registro(id,tabla='cliente',id_columna='id_cliente')
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al eliminar cliente: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
  
+a=cliente()
+a.manu_cliente()

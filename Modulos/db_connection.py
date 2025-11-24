@@ -58,23 +58,18 @@ class Conexion:
             lugares=[sql.SQL('%s')]*len(datos)
 
             #devolver_id=int(input('Queires devolver el id?\n1.Para si\nElige:'))
-            if table=='receta':
-                pk_columna = 'id_' + table
+            
+            pk_columna = 'id_' + table
 
-                comando=sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares)
-                    ,sql.Identifier(pk_columna))
-                
-                self.cursor_uno.execute(comando,datos)
-                id_generado = self.cursor_uno.fetchone()[0]
-                print("Correcto")
-
-                return id_generado
-            else:
-                comando=sql.SQL('INSERT INTO {}({}) VALUES ({})').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares))
-                self.cursor_uno.execute(comando,datos)
-                print('Correcto')
-
+            comando=sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(sql.Identifier(table),sql.SQL(', ').join(columas_safe), sql.SQL(', ').join(lugares)
+                ,sql.Identifier(pk_columna))
+            
+            self.cursor_uno.execute(comando,datos)
+            id_generado = self.cursor_uno.fetchone()[0]
+            print("Correcto")
+            
             self.conexion1.commit() 
+            return id_generado
             
         except psycopg2.Error as error:
             print(f"Error en insertar_datos: {error}")
@@ -252,7 +247,7 @@ class Conexion:
 class main:
     def __init__(self):
         con = Conexion()
-        con.Validacion_Perfil(1)
+        #con.Validacion_Perfil(1)
 
 if __name__ == "__main__":
     main()

@@ -26,6 +26,8 @@ class citas:
                             break
             except ValueError:
                     print("Error: Debe ingresar un número válido")
+                    input('Dale Enter')
+
             finally:
                 self.conexion1.limpiar_terminal()
                      
@@ -44,9 +46,12 @@ class citas:
             table='cita'
 
             self.conexion1.insertar_datos(table,datos,columnas)
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al crear cita: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
 
@@ -66,8 +71,12 @@ class citas:
                     break 
 
             self.conexion1.editar_registro(id,datos,tabla='cita',id_columna='id_cita')
+            input('Dale Enter')
+
         except Exception as a:
             print(f'Error al modificar cita: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
     
@@ -75,9 +84,12 @@ class citas:
         try:
             id=int(input('Id de la cita a eliminar:'))
             self.conexion1.eliminar_registro(id,tabla='cita',id_columna='id_cita')
+            input('Dale Enter')
 
         except Exception as a:
             print(f'Error al eliminar cita: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
                 
@@ -86,10 +98,12 @@ class citas:
             columnas=self.conexion1.Select_users(table='cita')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
-            input()
+            input('Dale Enter')
 
         except Exception as a:
             print (f'Error al consultar citas: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion1.limpiar_terminal()
             
@@ -136,10 +150,16 @@ class citas:
                     input()
                 else:
                     print(" No se encontro ninguna cita con ese valor")
+                input('Dale Enter')
+
             except ValueError:
                 print ("Error: Ingresar solo numeros")
+                input('Dale Enter')
+
             except Exception as e:
                 print(f" Error con el buscador: {e}")
+                input('Dale Enter')
+                
             finally:
                 self.conexion1.limpiar_terminal()
                 

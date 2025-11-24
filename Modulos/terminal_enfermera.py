@@ -34,9 +34,11 @@ class Enfermera:
                             break
                         case __:
                               print('Pon el numero correcto.')
+                              input('Dale Enter')
                       
                 except Exception as a:
                     print(f'Error en el menu de enfermera/o')
+                    input('Dale Enter')
                 finally:
                     self.conexion.limpiar_terminal()
     
@@ -53,6 +55,7 @@ class Enfermera:
         comando_expediente=input('Agrega algo:')
         with open(ruta_expediente, 'a') as f:
             f.write(comando_expediente)
+        input('Dale Enter')
 
     def agregar_medicina(self):
         try:
@@ -67,9 +70,12 @@ class Enfermera:
             table='medicamento'
 
             self.conexion.insertar_datos(table,datos,columnas)
+            input('Dale Enter')
 
         except Exception as a:
              print(f'Error al agregar medicina: {a}')
+             input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
     
@@ -78,10 +84,12 @@ class Enfermera:
             columnas=self.conexion.Select_users(table='medicamento')
             for colum in columnas:
                 print('\t'.join(map(str,colum)))
-            input()
+            input('Dale Enter')
 
         except Exception as a:
             print (f'Error al consultar medicamentos en repertorio: {a}')
+            input('Dale Enter')
+
         finally:
             self.conexion.limpiar_terminal()
         
@@ -95,8 +103,11 @@ class Enfermera:
                 table='hospitalizacion'
                 
                 self.conexion.insertar_datos(table,datos,columnas)
-                input()
+                input('Dale Enter')
+
             except Exception as a:
                 print(f'Error al internar:{a}')
+                input('Dale Enter')
+                
             finally:
                 self.conexion.limpiar_terminal()

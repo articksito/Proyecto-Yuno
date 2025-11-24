@@ -33,18 +33,23 @@ def main():
                         veterinario.menu_veterinario()
                     case __:
                         print('Rol no existeX2 ')
+                        input('Dale Enter')
+
             else:
                 print('Contraseña incorrecta')
+                input('Dale Enter')
+
         except Exception as a:
             print(f'Error en menu main:{a}')
+            input('Dale Enter')
+
         finally:
             connetion_main.limpiar_terminal()
         
-        salir=input('Quieres salir?')
-
-        if salir=='si':
-            connetion_main.cerrar_conexion()
-            break
+            salir=input('Quieres salir?')
+            if salir=='si':
+                connetion_main.cerrar_conexion()
+                break
             
     
 main()
