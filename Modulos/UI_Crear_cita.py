@@ -10,13 +10,18 @@ from PyQt6.QtGui import QFont, QPixmap
 # Asumimos que el archivo db_connection.py existe en el mismo directorio
 from db_connection import Conexion
 
-#Conexiones de botones
-from UI_Revisar_Cita import MainWindow as Visualizar_cita
-from UI_Modificar_cita import MainWindow as Modificar_cita
-from UI_Registrar_mascota import MainWindow as Registrar_mascota
-from UI_Revisar_Mascota import MainWindow as Modificar_mascota 
-from UI_Registra_cliente import MainWindow as Regsitrar_dueno
-from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+# --- IMPORTACIONES DE OTRAS VENTANAS (Navegación) ---
+# Nota: Asegúrate de que estos archivos existan en tu carpeta de proyecto
+# para evitar errores de "ModuleNotFoundError".
+try:
+    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+    from UI_Modificar_cita import MainWindow as Modificar_cita
+    from UI_Registrar_mascota import MainWindow as Registrar_mascota
+    from UI_Revisar_Mascota import MainWindow as Modificar_mascota 
+    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+    from UI_Revisar_cliente import MainWindow as Modficiar_dueno
+except ImportError:
+    print("Advertencia: No se encontraron algunos archivos de interfaz (UI_*.py). La navegación fallará si se intenta abrir esas ventanas.")
 
 class MainWindow(QMainWindow):
     # Instancia de conexión
@@ -212,45 +217,63 @@ class MainWindow(QMainWindow):
     def abrir_ventana(self, categoria, opcion):
         """
         Esta función recibe qué botón se presionó y ejecuta la lógica correspondiente.
-        Aquí es donde debes agregar la instanciación de tus nuevas ventanas.
+        Instancia las ventanas importadas arriba.
         """
         print(f"Navegando a: {categoria} -> {opcion}")
 
         # Lógica para CITAS
         if categoria == "Citas":
             if opcion == "Visualizar":
-                self.visualizarC = Visualizar_cita()
-                self.visualizarC.show()
-                self.close()
+                try:
+                    self.visualizarC = Visualizar_cita()
+                    self.visualizarC.show()
+                    self.close()
+                except NameError:
+                    QMessageBox.warning(self, "Error", "La ventana 'Visualizar Cita' no ha sido importada correctamente.")
 
             elif opcion == "Modificar":
-                self.modificarC = Modificar_cita()
-                self.modificarC.show()
-                self.close()
+                try:
+                    self.modificarC = Modificar_cita()
+                    self.modificarC.show()
+                    self.close()
+                except NameError:
+                    QMessageBox.warning(self, "Error", "La ventana 'Modificar Cita' no ha sido importada correctamente.")
 
         # Lógica para MASCOTAS
         elif categoria == "Mascotas":
             if opcion == "Registrar":
-                self.registrarM = Registrar_mascota()
-                self.registrarM.show()
-                self.close()
+                try:
+                    self.registrarM = Registrar_mascota()
+                    self.registrarM.show()
+                    self.close()
+                except NameError:
+                    QMessageBox.warning(self, "Error", "La ventana 'Registrar Mascota' no ha sido importada correctamente.")
 
             elif opcion == "Modificar":
-                self.modificarM = Modificar_mascota()
-                self.modificarM.show()
-                self.close()
+                try:
+                    self.modificarM = Modificar_mascota()
+                    self.modificarM.show()
+                    self.close()
+                except NameError:
+                    QMessageBox.warning(self, "Error", "La ventana 'Modificar Mascota' no ha sido importada correctamente.")
 
         # Lógica para CLIENTES
         elif categoria == "Clientes":
             if opcion == "Registrar":
-                self.registrarD = Regsitrar_dueno()
-                self.registrarD.show()
-                self.close()
+                try:
+                    self.registrarD = Regsitrar_dueno()
+                    self.registrarD.show()
+                    self.close()
+                except NameError:
+                    QMessageBox.warning(self, "Error", "La ventana 'Registrar Dueño' no ha sido importada correctamente.")
                 
             elif opcion == "Modificar":
-                self.modificarD = Modficiar_dueno()
-                self.modificarD.show()
-                self.close()
+                try:
+                    self.modificarD = Modficiar_dueno()
+                    self.modificarD.show()
+                    self.close()
+                except NameError:
+                    QMessageBox.warning(self, "Error", "La ventana 'Modificar Dueño' no ha sido importada correctamente.")
 
     def toggle_menu(self, frame):
         if frame.isVisible():
