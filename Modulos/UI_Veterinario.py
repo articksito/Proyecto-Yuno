@@ -5,8 +5,8 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QMessageBox)
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
-
-# Asegúrate de tener tu archivo db_connection.py
+from UI_Realizar_consulta import *
+from UI_Revisar_consulta import *
 from db_connection import Conexion 
 
 class VeterinarioMenu(QMainWindow):
@@ -171,15 +171,15 @@ class VeterinarioMenu(QMainWindow):
         # --- LÓGICA DE CONSULTAS ---
         if categoria == "Consultas":
             if opcion == "Crear Consulta":
-                # self.ventana = ClaseCrearConsulta()
-                # self.ventana.show()
-                # self.close()
+                self.ventana = VentanaConsulta()
+                self.ventana.show()
+                self.close()
                 QMessageBox.information(self, "Sistema", "Abriendo: Crear Consulta")
                 
             elif opcion == "Ver Registro":
-                # self.ventana = ClaseVerRegistroConsultas()
-                # self.ventana.show()
-                # self.close()
+                self.ventana = VentanaRevisarConsulta()
+                self.ventana.show()
+                self.close()
                 QMessageBox.information(self, "Sistema", "Abriendo: Historial de Consultas")
 
         # --- LÓGICA DE RECETAS ---

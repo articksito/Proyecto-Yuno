@@ -125,7 +125,7 @@ class LoginWindow(QWidget):
                 print("Perfil Admin")
 
             elif rol == "VET":
-                self.vet = VeterinarioMenu("Isaid")
+                self.vet = VeterinarioMenu(f"{conexion.Nombre_Usuario(username)}")
                 self.vet.show()
                 self.close()
             elif rol == "REP":
