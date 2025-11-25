@@ -179,7 +179,7 @@ class VentanaConsulta(QMainWindow):
                     QMessageBox.information(self, "Sistema", "Ya te encuentras en 'Crear Consulta'.")
                 
                 elif opcion == "Ver Registro":
-                    self.ventana = VentanaRevisarConsulta()
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
                     QMessageBox.information(self, "Navegación", "Ir a: Ver Registro de Consultas")

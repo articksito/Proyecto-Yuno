@@ -152,7 +152,10 @@ class VentanaRevisarConsulta(QMainWindow):
                     self.close()
                 
                 elif opcion == "Ver Registro":
-                    QMessageBox.information(self, "Sistema", "Ya estás visualizando el Historial.")
+                    from UI_Revisar_consulta import VentanaRevisarConsulta
+                    self.v = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.v.show()
+                    self.close()
 
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
