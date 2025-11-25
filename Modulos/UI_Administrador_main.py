@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
         # ----------------------------------------------
         #  RUTA DEL LOGO (Ajustar si es necesario)
         # ----------------------------------------------
-        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
+        ruta_logo = "Modulos/FILES/logo_yuno.png" 
         
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
@@ -310,6 +310,8 @@ class MainWindow(QMainWindow):
         # --- SECCIONES NUEVAS ---
         self.setup_accordion_group("Administrar", ["Pacientes", "Clientes", "Citas"])
         self.setup_accordion_group("Usuarios", ["Crear", "Modificar", "Consultar"])
+        # --- NUEVA SECCIÓN MEDICAMENTOS ---
+        self.setup_accordion_group("Medicamentos", ["Agregar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -410,6 +412,13 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(board_container)
 
+    # --- UTILERÍAS BD ---
+    def obtener_nombre_real(self):
+        """Obtiene el nombre del admin desde la BD"""
+        try:
+            return self.conexion.obtener_nombre(self.nombre_usuario)
+        except Exception:
+            return "Administrador"
 
     # ##########################################################
     # ### --- PARA MOVER A DB_CONNECTION.PY --- ###
@@ -481,6 +490,15 @@ class MainWindow(QMainWindow):
                     pass
                 elif opcion == "Consultar":
                     # self.abrir_consultar_usuario()
+                    pass
+
+            # --- MEDICAMENTOS (NUEVO) ---
+            elif categoria == "Medicamentos":
+                if opcion == "Agregar":
+                    # self.abrir_agregar_medicamento()
+                    pass
+                elif opcion == "Modificar":
+                    # self.abrir_modificar_medicamento()
                     pass
 
         except ImportError as e:

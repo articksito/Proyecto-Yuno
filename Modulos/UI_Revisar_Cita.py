@@ -165,7 +165,7 @@ class MainWindow(QMainWindow):
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
+        ruta_logo = "Modulos/FILES/logo_yuno.png" 
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
