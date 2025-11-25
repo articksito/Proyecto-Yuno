@@ -186,17 +186,17 @@ class VentanaConsulta(QMainWindow):
 
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
-                    # from UI_Crear_Receta import VentanaReceta
-                    # self.ventana = VentanaReceta()
-                    # self.ventana.show()
-                    # self.close()
+                    from UI_Registrar_receta import VentanaReceta
+                    self.ventana = VentanaReceta()
+                    self.ventana.show()
+                    self.close()
                     QMessageBox.information(self, "Navegación", "Ir a: Crear Receta")
                 
                 elif opcion == "Ver Registro":
-                    # from UI_Registro_Recetas import VentanaHistorialRecetas
-                    # self.ventana = VentanaHistorialRecetas()
-                    # self.ventana.show()
-                    # self.close()
+                    from UI_Revisar_recetas import VentanaRevisarReceta
+                    self.ventana = VentanaRevisarReceta()
+                    self.ventana.show()
+                    self.close()
                     QMessageBox.information(self, "Navegación", "Ir a: Ver Registro de Recetas")
         
         except Exception as e:
