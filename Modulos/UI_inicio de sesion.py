@@ -122,7 +122,10 @@ class LoginWindow(QWidget):
             rol = conexion.Validacion_Perfil(username)
             
             if rol == "ADMIN":
-                print("Perfil Admin")
+                from UI_Administrador_main import MainWindow as UI_Administrador_main
+                self.admin = UI_Administrador_main(f"{conexion.Nombre_Usuario(username)}")
+                self.admin.show()
+                self.close()
 
             elif rol == "VET":
                 self.vet = VeterinarioMenu(f"{conexion.Nombre_Usuario(username)}")

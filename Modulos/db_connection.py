@@ -321,6 +321,31 @@ class Conexion:
 
         else:
             _ = os.system('clear')
+
+    #GRAFICA
+    # Esta función realiza una consulta directa. Lo ideal es moverla
+    # a tu archivo db_connection.py para centralizar el SQL.
+    #
+    def obtener_stats_citas(self):
+        """Consulta la BD para contar citas por estado"""
+        try:
+            query = "SELECT estado, COUNT(*) FROM cita GROUP BY estado"
+            self.conexion.cursor_uno.execute(query)
+            resultados = self.conexion.cursor_uno.fetchall()
+            
+            # Convertir a diccionario
+            stats = {row[0]: row[1] for row in resultados}
+            
+            # Asegurar claves por defecto
+            defaults = ["Confirmada", "Completada", "Cancelada", "Pendiente"]
+            for d in defaults:
+                if d not in stats:
+                    stats[d] = 0
+            return stats
+        except Exception as e:
+            print(f"Error obteniendo estadísticas: {e}")
+            return {"Confirmada": 0, "Completada": 0, "Cancelada": 0, "Pendiente": 0}
+    # ##########################################################
     
 
 class main:
