@@ -290,7 +290,7 @@ class MainWindow(QMainWindow):
         # ----------------------------------------------
         #  RUTA DEL LOGO (Ajustar si es necesario)
         # ----------------------------------------------
-        ruta_logo = "logo.png" 
+        ruta_logo = "/home/mick/Yuno/Proyecto-Yuno/Modulos/FILES/logo_yuno.png" 
         
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
