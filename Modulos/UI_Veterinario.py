@@ -12,8 +12,6 @@ from db_connection import Conexion
 class VeterinarioMenu(QMainWindow):
     def __init__(self, nombre_usuario):
         super().__init__()
-        
-        # 1. Base de Datos
         try:
             self.conexion = Conexion()
         except Exception as e:
@@ -171,13 +169,13 @@ class VeterinarioMenu(QMainWindow):
         # --- LÓGICA DE CONSULTAS ---
         if categoria == "Consultas":
             if opcion == "Crear Consulta":
-                self.ventana = VentanaConsulta()
+                self.ventana = VentanaConsulta(self.nombre_usuario)
                 self.ventana.show()
                 self.close()
                 QMessageBox.information(self, "Sistema", "Abriendo: Crear Consulta")
                 
             elif opcion == "Ver Registro":
-                self.ventana = VentanaRevisarConsulta()
+                self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                 self.ventana.show()
                 self.close()
                 QMessageBox.information(self, "Sistema", "Abriendo: Historial de Consultas")
