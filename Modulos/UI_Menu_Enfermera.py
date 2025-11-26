@@ -6,9 +6,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPixmap
 
-# Importar conexión (si se necesita verificar usuario/sesión)
-from db_connection import Conexion
-
+# --- CLASE PRINCIPAL ---
 class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Enfermero"):
         self.nombre = nombre_usuario
@@ -33,7 +31,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES (Idéntico a Admin/Recepción) ---
+        # --- ESTILOS GENERALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -139,7 +137,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENÚS DESPLEGABLES (Según requerimiento) ---
+        # --- MENÚS DESPLEGABLES ---
         self.setup_accordion_group("Citas", ["Visualizar"])
         self.setup_accordion_group("Mascotas", ["Visualizar"])
         self.setup_accordion_group("Inventario", ["Farmacia", "Hospitalización"])
@@ -239,25 +237,26 @@ class MainWindow(QMainWindow):
         current_time = datetime.now().strftime("%H:%M:%S")
         self.lbl_time.setText(current_time)
 
-    # --- GESTOR DE VENTANAS ---
+    # --- AQUÍ ESTABA LO QUE FALTABA: EL GESTOR DE VENTANAS ---
     def abrir_ventana(self, categoria, opcion):
-        print(f"Navegando a: {categoria} -> {opcion}")
+        print(f"Intentando abrir: {categoria} -> {opcion}")
+        
         try:
-            if categoria == "Citas":
-                if opcion == "Visualizar":
-                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
-                    self.ventana = Visualizar_cita()
-                    self.ventana.show()
-                    self.close()
+            # 1. VISUALIZAR CITA (Exclusivo Enfermera)
+            if categoria == "Citas" and opcion == "Visualizar":
+                from UI_Cita_Enfermera import MainWindow as Visualizar_cita
+                self.ventana = Visualizar_cita()
+                self.ventana.show()
+                self.close()
 
-            elif categoria == "Mascotas":
-                if opcion == "Visualizar":
-                    # Puedes usar UI_Revisar_Mascota (sirve para ver/editar)
-                    from UI_Revisar_Mascota import MainWindow as Visualizar_mascota
-                    self.ventana = Visualizar_mascota()
-                    self.ventana.show()
-                    self.close()
+            # 2. MASCOTAS
+            elif categoria == "Mascotas" and opcion == "Visualizar":
+                from UI_Revisar_Mascota import MainWindow as Visualizar_mascota
+                self.ventana = Visualizar_mascota()
+                self.ventana.show()
+                self.close()
 
+            # 3. INVENTARIO
             elif categoria == "Inventario":
                 if opcion == "Farmacia":
                     from UI_Farmacia import MainWindow as VentanaFarmacia
@@ -270,22 +269,35 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
 
-            elif categoria == "Expediente":
-                if opcion == "Diagnóstico":
-                    from UI_Diagnostico import MainWindow as VentanaDiagnostico
-                    self.ventana = VentanaDiagnostico()
-                    self.ventana.show()
-                    self.close()
-                    
-        except ImportError as e:
-            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Ocurrió un error al intentar abrir la ventana: {e}")
+            # 4. EXPEDIENTE
+            elif categoria == "Expediente" and opcion == "Diagnóstico":
+                from UI_Diagnostico import MainWindow as VentanaDiagnostico
+                self.ventana = VentanaDiagnostico()
+                self.ventana.show()
+                self.close()
 
+        except ImportError as e:
+            # Esto captura si falta un archivo .py
+            mensaje = f"Error Crítico:\nNo se encuentra el archivo necesario para abrir esta opción.\n\nDetalle: {e}"
+            QMessageBox.critical(self, "Archivo Faltante", mensaje)
+        except Exception as e:
+            # Captura cualquier otro error
+            QMessageBox.critical(self, "Error", f"Ocurrió un error inesperado:\n{e}")
+
+# --- BLOQUE DE EJECUCIÓN (Esto es lo que hace que corra) ---
 if __name__ == "__main__":
-    app = QApplication(sys.argv)
-    font = QFont("Segoe UI", 10)
-    app.setFont(font)
-    window = MainWindow()
-    window.show()
-    sys.exit(app.exec())
+    try:
+        app = QApplication(sys.argv)
+        font = QFont("Segoe UI", 10)
+        app.setFont(font)
+        
+        window = MainWindow()
+        window.show()
+        
+        sys.exit(app.exec())
+    except Exception as e:
+        print("************************************************")
+        print("EL PROGRAMA NO PUEDE INICIAR POR ESTE ERROR:")
+        print(e)
+        print("************************************************")
+        input("Presiona ENTER para salir...")

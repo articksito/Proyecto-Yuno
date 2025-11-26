@@ -2,8 +2,8 @@ import sys
 import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
-                             QGridLayout, QTextEdit, QMessageBox)
+                            QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
+                            QGridLayout, QTextEdit, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon, QPixmap
 
