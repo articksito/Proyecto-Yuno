@@ -7,7 +7,7 @@ from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont
 from UI_Realizar_consulta import *
 from UI_Revisar_consulta import *
-from db_connection import Conexion 
+from db_connection import Conexion
 
 class VeterinarioMenu(QMainWindow):
     def __init__(self, nombre_usuario):
@@ -183,15 +183,17 @@ class VeterinarioMenu(QMainWindow):
         # --- LÓGICA DE RECETAS ---
         elif categoria == "Recetas":
             if opcion == "Crear Receta":
-                # self.ventana = ClaseCrearReceta()
-                # self.ventana.show()
-                # self.close()
+                from UI_Registrar_receta import VentanaReceta
+                self.ventana = VentanaReceta()
+                self.ventana.show()
+                self.close()
                 QMessageBox.information(self, "Sistema", "Abriendo: Crear Receta")
                 
             elif opcion == "Ver Registro":
-                # self.ventana = ClaseVerRegistroRecetas()
-                # self.ventana.show()
-                # self.close()
+                from UI_Revisar_recetas import VentanaRevisarReceta
+                self.ventana = VentanaRevisarReceta()
+                self.ventana.show()
+                self.close()
                 QMessageBox.information(self, "Sistema", "Abriendo: Historial de Recetas")
 
     # ============================================================
