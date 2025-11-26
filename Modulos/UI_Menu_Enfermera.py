@@ -251,7 +251,7 @@ class MainWindow(QMainWindow):
 
             # 2. MASCOTAS
             elif categoria == "Mascotas" and opcion == "Visualizar":
-                from UI_Revisar_Mascota import MainWindow as Visualizar_mascota
+                from UI_Revisar_Mascota_Enfermera import MainWindow as Visualizar_mascota
                 self.ventana = Visualizar_mascota()
                 self.ventana.show()
                 self.close()
