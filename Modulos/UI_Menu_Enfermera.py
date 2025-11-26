@@ -122,6 +122,17 @@ class MainWindow(QMainWindow):
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         ruta_logo = "logo.png" 
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # 1. Obtener la ruta donde está guardado ESTE archivo .py
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        
+        # 2. Construir la ruta exacta a la carpeta FILES -> logo_yuno.png
+        ruta_logo = os.path.join(directorio_actual, "FILES", "logo_yuno.png")
+
+        # 3. Cargar imagen
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -129,11 +140,11 @@ class MainWindow(QMainWindow):
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
                 lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
+            print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
-
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 

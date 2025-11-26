@@ -7,7 +7,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-# Intentamos importar la conexión, si falla no crashea la UI visualmente
+# Intentamos importar la conexión
 try:
     from db_connection import Conexion
     DB_AVAILABLE = True
@@ -93,7 +93,7 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # --- 1. BARRA LATERAL (Adaptada a Enfermería) ---
+        # --- 1. BARRA LATERAL ---
         self.setup_sidebar()
 
         # --- 2. PANEL BLANCO ---
@@ -116,7 +116,7 @@ class MainWindow(QMainWindow):
             }
             QPushButton:hover { background-color: #ffcccc; color: #cc0000; }
         """)
-        # CONEXIÓN IMPORTANTE: Regresar al menú en lugar de cerrar app
+        # CONEXIÓN IMPORTANTE: Regresar al menú
         btn_close_view.clicked.connect(self.regresar_menu)
 
         header_layout.addWidget(lbl_header)
@@ -161,7 +161,18 @@ class MainWindow(QMainWindow):
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "logo.png"  # Ajusta ruta si es necesario (ej: Modulos/FILES/logo.png)
+        ruta_logo = "logo.png"
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # 1. Obtener la ruta donde está guardado ESTE archivo .py
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        
+        # 2. Construir la ruta exacta a la carpeta FILES -> logo_yuno.png
+        ruta_logo = os.path.join(directorio_actual, "FILES", "logo_yuno.png")
+
+        # 3. Cargar imagen
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -169,15 +180,15 @@ class MainWindow(QMainWindow):
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
                 lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
+            print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
-
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
         
-        # --- MENÚ DE ENFERMERÍA (Coincide con tu Menu Principal) ---
+        # --- MENÚ DE ENFERMERÍA ---
         self.setup_accordion_group("Citas", ["Visualizar"])
         self.setup_accordion_group("Mascotas", ["Visualizar"])
         self.setup_accordion_group("Inventario", ["Farmacia", "Hospitalización"])
@@ -214,7 +225,10 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            # Si quisieras navegar desde aquí, conectas self.regresar_menu o abres otra
+            
+            # --- CONEXIÓN DE NAVEGACIÓN DIRECTA (Aquí estaba el fallo antes) ---
+            btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.abrir_ventana(t, o))
+            
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
@@ -352,7 +366,6 @@ class MainWindow(QMainWindow):
 
         print(f"Consultando cita ID: {id_cita}")
         try:
-            # Columnas a consultar
             columnas = [
                 "cita.fecha", "cita.hora", "cita.motivo", "cita.estado",
                 "mascota.nombre", "cliente.nombre", "cliente.apellido",
@@ -405,7 +418,6 @@ class MainWindow(QMainWindow):
         self.inp_vet.setText("---")
         self.lbl_motivo_text.setText("---")
 
-    # --- FUNCIÓN CLAVE PARA VOLVER AL MENÚ ---
     def regresar_menu(self):
         try:
             from UI_Menu_Enfermera import MainWindow as MenuEnfermera
@@ -414,6 +426,42 @@ class MainWindow(QMainWindow):
             self.close()
         except ImportError:
             QMessageBox.warning(self, "Error", "No se encuentra el archivo del Menú Enfermera.")
+
+    # --- FUNCION DE NAVEGACIÓN DIRECTA (ROUTER) ---
+    def abrir_ventana(self, categoria, opcion):
+        try:
+            target_window = None
+
+            # 1. ENRUTAMIENTO
+            if categoria == "Citas" and opcion == "Visualizar":
+                pass # Ya estamos aquí
+            
+            elif categoria == "Mascotas" and opcion == "Visualizar":
+                from UI_Revisar_Mascota_Enfermera import MainWindow as Win
+                target_window = Win()
+            
+            elif categoria == "Inventario":
+                if opcion == "Farmacia":
+                    from UI_Farmacia import MainWindow as Win
+                    target_window = Win()
+                elif opcion == "Hospitalización":
+                    from UI_Hospitalizacion import MainWindow as Win
+                    target_window = Win()
+            
+            elif categoria == "Expediente" and opcion == "Diagnóstico":
+                from UI_Diagnostico import MainWindow as Win
+                target_window = Win()
+
+            # 2. EJECUCIÓN
+            if target_window:
+                self.ventana = target_window
+                self.ventana.show()
+                self.close() 
+            
+        except ImportError as e:
+            QMessageBox.warning(self, "Error", f"No se encuentra el archivo de destino.\n{e}")
+        except Exception as e:
+            print(f"Error navegando: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

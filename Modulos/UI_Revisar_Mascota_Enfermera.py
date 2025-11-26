@@ -129,16 +129,29 @@ class MainWindow(QMainWindow):
         lbl_logo = QLabel()
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         ruta_logo = "logo.png"
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # 1. Obtener la ruta donde está guardado ESTE archivo .py
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        
+        # 2. Construir la ruta exacta a la carpeta FILES -> logo_yuno.png
+        ruta_logo = os.path.join(directorio_actual, "FILES", "logo_yuno.png")
+
+        # 3. Cargar imagen
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
-                lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
             else:
                 lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
+            print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
@@ -180,6 +193,10 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            
+            # --- CONEXIÓN DE NAVEGACIÓN DIRECTA ---
+            btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.abrir_ventana(t, o))
+            
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
@@ -230,7 +247,6 @@ class MainWindow(QMainWindow):
         self.white_layout.addWidget(search_container)
 
     def setup_pet_form(self, parent_layout):
-        # Usamos Grid Layout y LineEdits readonly en lugar de Labels fijos
         form_widget = QWidget()
         grid_layout = QGridLayout(form_widget)
         grid_layout.setVerticalSpacing(20)
@@ -249,10 +265,10 @@ class MainWindow(QMainWindow):
             lbl = QLabel(label_text)
             lbl.setStyleSheet(label_style)
             inp = QLineEdit()
-            inp.setReadOnly(True) # Solo lectura
+            inp.setReadOnly(True)
             inp.setText("---")
             inp.setStyleSheet(readonly_style)
-            setattr(self, attr_name, inp) # Crea variable self.inp_nombre, etc.
+            setattr(self, attr_name, inp)
             grid_layout.addWidget(lbl, row, 0)
             grid_layout.addWidget(inp, row, 1)
 
@@ -317,7 +333,6 @@ class MainWindow(QMainWindow):
             return
 
         try:
-            # Ejemplo de columnas, ajusta según tu tabla real
             columnas = [
                 "mascota.nombre", "mascota.especie", "mascota.raza", 
                 "mascota.sexo", "mascota.edad", "mascota.peso",
@@ -325,7 +340,6 @@ class MainWindow(QMainWindow):
             ]
             joins = "JOIN cliente ON mascota.fk_cliente = cliente.id_cliente"
             
-            # Consultar (asumiendo que id es numerico)
             registro = self.conexion1.consultar_registro(
                 tabla='mascota', 
                 id_columna='id_mascota', 
@@ -342,8 +356,7 @@ class MainWindow(QMainWindow):
                 self.inp_edad.setText(str(registro[4]))
                 self.inp_peso.setText(str(registro[5]) + " kg")
                 self.inp_dueno.setText(f"{registro[6]} {registro[7]}")
-                
-                self.txt_notas.setText("Información cargada exitosamente.\n\nSin notas adicionales registradas.")
+                self.txt_notas.setText("Información cargada exitosamente.")
             else:
                 self.limpiar_datos()
                 QMessageBox.warning(self, "No encontrado", "No existe mascota con ese ID.")
@@ -369,6 +382,42 @@ class MainWindow(QMainWindow):
             self.close()
         except ImportError:
             QMessageBox.warning(self, "Error", "No se encuentra el menú de enfermera.")
+
+    # --- FUNCION DE NAVEGACIÓN DIRECTA (ROUTER) ---
+    def abrir_ventana(self, categoria, opcion):
+        try:
+            target_window = None
+
+            # 1. ENRUTAMIENTO
+            if categoria == "Citas" and opcion == "Visualizar":
+                from UI_Cita_Enfermera import MainWindow as Win
+                target_window = Win()
+            
+            elif categoria == "Mascotas" and opcion == "Visualizar":
+                pass # Ya estamos aquí
+            
+            elif categoria == "Inventario":
+                if opcion == "Farmacia":
+                    from UI_Farmacia import MainWindow as Win
+                    target_window = Win()
+                elif opcion == "Hospitalización":
+                    from UI_Hospitalizacion import MainWindow as Win
+                    target_window = Win()
+            
+            elif categoria == "Expediente" and opcion == "Diagnóstico":
+                from UI_Diagnostico import MainWindow as Win
+                target_window = Win()
+
+            # 2. EJECUCIÓN
+            if target_window:
+                self.ventana = target_window
+                self.ventana.show()
+                self.close() 
+            
+        except ImportError as e:
+            QMessageBox.warning(self, "Error", f"No se encuentra el archivo de destino.\n{e}")
+        except Exception as e:
+            print(f"Error navegando: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
