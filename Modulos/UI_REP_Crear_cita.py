@@ -235,36 +235,36 @@ class MainWindow(QMainWindow):
                 if opcion == "Agendar":
                     pass # Ya estamos aquí
                 elif opcion == "Visualizar":
-                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+                    from UI_REP_Revisar_Cita import MainWindow as Visualizar_cita
                     self.ventana = Visualizar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Modificar_cita import MainWindow as Modificar_cita
+                    from UI_REP_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
                     self.ventana.show()
                     self.close()
 
             elif categoria == "Mascotas":
                 if opcion == "Registrar":
-                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
+                    from UI_REP_Modificar_Mascota import MainWindow as Registrar_mascota
                     self.ventana = Registrar_mascota()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Revisar_Mascota import MainWindow as Modificar_mascota
+                    from UI_REP_Modificar_Mascota import MainWindow as Modificar_mascota
                     self.ventana = Modificar_mascota()
                     self.ventana.show()
                     self.close()
 
             elif categoria == "Clientes":
                 if opcion == "Registrar":
-                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+                    from UI_REP_Registra_cliente import MainWindow as Regsitrar_dueno
                     self.ventana = Regsitrar_dueno()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    from UI_REP_Modificar_cliente import MainWindow as Modificar_cliente
                     self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()

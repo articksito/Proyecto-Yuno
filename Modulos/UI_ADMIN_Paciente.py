@@ -14,7 +14,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Listado de Pacientes")
+        self.setWindowTitle("Sistema Veterinario Yuno - Gestión de Pacientes (Admin)")
         self.resize(1280, 720)
 
         # Widget central
@@ -84,20 +84,20 @@ class MainWindow(QMainWindow):
                 font-weight: bold;
             }
             
-            /* --- ESTILO TABLA MEJORADO --- */
+            /* --- ESTILO TABLA --- */
             QTableWidget {
                 background-color: white;
                 border: 1px solid #E0E0E0;
                 border-radius: 15px;
-                gridline-color: transparent; /* Ocultar grid lines duras */
+                gridline-color: transparent; 
                 font-size: 14px;
-                selection-background-color: #E1BEE7; /* Lila suave selección */
+                selection-background-color: #E1BEE7; 
                 selection-color: #333;
-                alternate-background-color: #FAFAFA; /* Color alterno fila */
+                alternate-background-color: #FAFAFA; 
                 outline: 0;
             }
             QHeaderView::section {
-                background-color: #7CEBFC; /* Cian del tema */
+                background-color: #7CEBFC; 
                 color: #444;
                 font-weight: bold;
                 border: none;
@@ -105,20 +105,14 @@ class MainWindow(QMainWindow):
                 font-size: 15px;
                 font-family: 'Segoe UI';
             }
-            /* Redondear esquinas del header */
-            QHeaderView::section:first {
-                border-top-left-radius: 15px;
-            }
-            QHeaderView::section:last {
-                border-top-right-radius: 15px;
-            }
+            QHeaderView::section:first { border-top-left-radius: 15px; }
+            QHeaderView::section:last { border-top-right-radius: 15px; }
             
             QTableWidget::item {
                 padding: 5px 10px;
-                border-bottom: 1px solid #F0F0F0; /* Línea sutil entre filas */
+                border-bottom: 1px solid #F0F0F0; 
             }
             
-            /* Scrollbar personalizado */
             QScrollBar:vertical {
                 border: none;
                 background: #F5F5F5;
@@ -130,9 +124,7 @@ class MainWindow(QMainWindow):
                 min-height: 20px;
                 border-radius: 5px;
             }
-            QScrollBar::handle:vertical:hover {
-                background: #BBB;
-            }
+            QScrollBar::handle:vertical:hover { background: #BBB; }
         """)
 
         # --- 1. BARRA LATERAL ---
@@ -210,9 +202,10 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENU ---
+        # --- MENU (Específico de Admin) ---
         self.setup_accordion_group("Administrar", ["Pacientes", "Clientes", "Citas"])
         self.setup_accordion_group("Usuarios", ["Crear", "Modificar", "Consultar"])
+        self.setup_accordion_group("Medicamentos", ["Agregar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -245,7 +238,7 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            # btn_sub.clicked.connect(...) # Conectar según necesidad
+            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
@@ -258,6 +251,30 @@ class MainWindow(QMainWindow):
         else:
             frame.show()
 
+    # --- GESTOR DE VENTANAS ---
+    def abrir_ventana(self, categoria, opcion):
+        print(f"Navegando a: {categoria} -> {opcion}")
+        try:
+            # --- ADMINISTRAR ---
+            if categoria == "Administrar":
+                if opcion == "Pacientes":
+                    pass # Ya estamos aquí
+                elif opcion == "Clientes":
+                    from UI_Modificar_cliente import MainWindow as ClientesWindow
+                    self.ventana = ClientesWindow()
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Citas":
+                    from UI_Revisar_Cita import MainWindow as CitasWindow
+                    self.ventana = CitasWindow()
+                    self.ventana.show()
+                    self.close()
+            
+            # Puedes agregar el resto de la lógica de navegación aquí
+            
+        except ImportError as e:
+            QMessageBox.warning(self, "Error", f"No se encontró la ventana: {e.name}")
+
     def setup_table(self):
         # Columnas: ID, Nombre, Especie, Raza, Observaciones, Acciones
         self.table = QTableWidget()
@@ -265,16 +282,19 @@ class MainWindow(QMainWindow):
         self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Especie", "Raza", "Observaciones", "Acciones"])
         
         # Configuración visual
-        self.table.setShowGrid(False) # Quitamos grid lines default
-        self.table.setAlternatingRowColors(True) # Filas alternas
-        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus) # Quitar borde de foco azul
+        self.table.setShowGrid(False) 
+        self.table.setAlternatingRowColors(True) 
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus) 
         
         # Ajuste de cabeceras
         header = self.table.horizontalHeader()
         header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed) # ID fijo
-        self.table.setColumnWidth(0, 80) # Aumentado el ancho para ver ID completo
+        self.table.setColumnWidth(0, 80)
         
-        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch) # Nombre flexible
+        # CAMBIO: Nombre fijo y más pequeño para dar espacio a Observaciones
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed) 
+        self.table.setColumnWidth(1, 150) 
+        
         header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents)
         header.setSectionResizeMode(4, QHeaderView.ResizeMode.Stretch) # Obs flexible
@@ -294,24 +314,24 @@ class MainWindow(QMainWindow):
 
     def cargar_datos_tabla(self):
         """Obtiene datos de la BD y rellena la tabla"""
-        # 1. Limpiar tabla
         self.table.setRowCount(0)
-
-        # 2. Obtener datos
+        
         pacientes = self.conexion1.obtener_todos_pacientes()
 
-        # 3. Llenar filas
         for row_idx, data in enumerate(pacientes):
             self.table.insertRow(row_idx)
             
-            # data = (id_mascota, nombre, especie, raza, observaciones/padecimientos)
+            # data = (id_mascota, nombre, especie, raza, padecimientos)
             
-            # Crear items y alinear
+            # Insertar textos centrados
             item_id = QTableWidgetItem(str(data[0]))
             item_id.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row_idx, 0, item_id)
             
-            self.table.setItem(row_idx, 1, QTableWidgetItem(str(data[1])))
+            # CAMBIO: Nombre centrado
+            item_nombre = QTableWidgetItem(str(data[1]))
+            item_nombre.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.table.setItem(row_idx, 1, item_nombre)
             
             item_esp = QTableWidgetItem(str(data[2]))
             item_esp.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -321,11 +341,11 @@ class MainWindow(QMainWindow):
             item_raza.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
             self.table.setItem(row_idx, 3, item_raza)
             
-            # Observaciones (Puede ser None)
-            obs = str(data[4]) if len(data) > 4 and data[4] else ""
-            item_obs = QTableWidgetItem(obs)
-            item_obs.setToolTip(obs) # Tooltip si es muy largo
-            self.table.setItem(row_idx, 4, item_obs)
+            # Observaciones (No agregado todavia)
+            # obs = str(data[4]) if data[4] else ""
+            # item_obs = QTableWidgetItem(obs)
+            # item_obs.setToolTip(obs)
+            # self.table.setItem(row_idx, 4, item_obs)
 
             # Insertar Botón Editar
             btn_edit = QPushButton("Editar")
@@ -342,10 +362,10 @@ class MainWindow(QMainWindow):
                 QPushButton:hover { background-color: #BA68C8; }
             """)
             
-            # Conectamos usando el ID específico de esta fila
+            # Conectamos el botón
             btn_edit.clicked.connect(lambda checked=False, id_mascota=data[0]: self.abrir_modificar_mascota(id_mascota))
             
-            # Contenedor para centrar el botón en la celda
+            # Contenedor para centrar el botón
             cell_widget = QWidget()
             layout_cell = QHBoxLayout(cell_widget)
             layout_cell.setContentsMargins(5, 5, 5, 5)
@@ -357,12 +377,16 @@ class MainWindow(QMainWindow):
 
     def abrir_modificar_mascota(self, id_mascota):
         print(f"Abriendo modificar mascota para ID: {id_mascota}")
-        # --- AQUÍ CONECTAS TU PANTALLA ---
-        # from UI_Revisar_Mascota import MainWindow as ModificarMascota
-        # self.ventana = ModificarMascota(id_mascota) 
-        # self.ventana.show()
-        # self.close()
-        QMessageBox.information(self, "Navegación", f"Listo para abrir 'Modificar Mascota' con ID: {id_mascota}")
+        try:
+            from UI_Revisar_Mascota import MainWindow as ModificarMascota
+            self.ventana = ModificarMascota() 
+            self.ventana.inp_id.setText(str(id_mascota)) # Prellenar el campo ID
+            self.ventana.buscar_mascota() # Ejecutar búsqueda automática
+            self.ventana.show()
+            self.close()
+            
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo abrir la ventana de modificación: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

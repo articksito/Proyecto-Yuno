@@ -462,11 +462,11 @@ class MainWindow(QMainWindow):
             # --- ADMINISTRAR ---
             if categoria == "Administrar":
                 if opcion == "Pacientes":
-                    # from UI_Revisar_Mascota import MainWindow as PacientesWindow
-                    # self.ventana = PacientesWindow()
-                    # self.ventana.show()
-                    # self.close()
-                    pass
+                   from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
+                   self.apaciente = UI_ADMIN_Paciente()
+                   self.apaciente.show()
+                   self.close()
+                   
                 elif opcion == "Clientes":
                     # from UI_Modificar_cliente import MainWindow as ClientesWindow
                     # self.ventana = ClientesWindow()
