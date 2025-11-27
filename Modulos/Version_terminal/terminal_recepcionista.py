@@ -1,8 +1,14 @@
-from terminal_cliente import *
+from Modulos.Version_terminal.terminal_cliente import *
 from terminal_cita import *
 from terminal_mascota import *
 from terminal_veterinario import *
 from db_connection import *
+import sys
+import os
+carpeta_actual = os.path.dirname(os.path.abspath(__file__))
+carpeta_padre = os.path.dirname(carpeta_actual)
+sys.path.append(carpeta_padre)
+
 
 class Recepcionista:
     def __init__(self):

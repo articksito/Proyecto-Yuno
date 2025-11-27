@@ -1,4 +1,10 @@
 from db_connection import *
+import sys
+import os
+carpeta_actual = os.path.dirname(os.path.abspath(__file__))
+carpeta_padre = os.path.dirname(carpeta_actual)
+sys.path.append(carpeta_padre)
+
 
 class Mascota:
     def __init__(self):

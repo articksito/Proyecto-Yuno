@@ -1,9 +1,15 @@
 from terminal_recepcionista import *
 from db_connection import *
 from terminal_administrador import *
-from terminal_enfermera import *
+from Modulos.Version_terminal.terminal_enfermera import *
 from terminal_veterinario import *
 connetion_main=Conexion()
+import sys
+import os
+carpeta_actual = os.path.dirname(os.path.abspath(__file__))
+carpeta_padre = os.path.dirname(carpeta_actual)
+sys.path.append(carpeta_padre)
+
 
 def main():
     recepcion=Recepcionista()

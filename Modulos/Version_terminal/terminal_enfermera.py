@@ -1,6 +1,11 @@
 from terminal_cita import *
 from db_connection import *
 from terminal_mascota import *
+import sys
+import os
+carpeta_actual = os.path.dirname(os.path.abspath(__file__))
+carpeta_padre = os.path.dirname(carpeta_actual)
+sys.path.append(carpeta_padre)
 
 
 class Enfermera:

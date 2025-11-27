@@ -7,7 +7,6 @@ import sys
 
 from db_connection import Conexion
 
-from UI_Veterinario import VeterinarioMenu
 from UI_Recepcionista import MainWindow as Recepcionista
 
 
@@ -128,6 +127,7 @@ class LoginWindow(QWidget):
                 self.close()
 
             elif rol == "VET":
+                from Veterinaro.UI_Veterinario import VeterinarioMenu
                 self.vet = VeterinarioMenu(f"{conexion.Nombre_Usuario(username)}")
                 self.vet.show()
                 self.close()

@@ -1,5 +1,11 @@
 import sys
 import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+sys.path.append(project_root)
+sys.path.append(current_dir)
+
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
@@ -159,17 +165,17 @@ class VentanaRevisarConsulta(QMainWindow):
 
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
-                    # from UI_Crear_Receta import VentanaCrearReceta
-                    # self.v = VentanaCrearReceta(self.nombre_usuario)
-                    # self.v.show()
-                    # self.close()
+                    from UI_Registrar_receta import VentanaReceta
+                    self.v = VentanaReceta(self.nombre_usuario)
+                    self.v.show()
+                    self.close()
                     QMessageBox.information(self, "Navegación", "Ir a: Crear Receta")
                 
                 elif opcion == "Ver Registro":
-                    # from UI_Historial_Receta import VentanaVerReceta
-                    # self.v = VentanaVerReceta(self.nombre_usuario)
-                    # self.v.show()
-                    # self.close()
+                    from UI_Revisar_recetas import VentanaRevisarReceta
+                    self.v = VentanaRevisarReceta(self.nombre_usuario)
+                    self.v.show()
+                    self.close()
                     QMessageBox.information(self, "Navegación", "Ir a: Historial Recetas")
 
         except ImportError as e:

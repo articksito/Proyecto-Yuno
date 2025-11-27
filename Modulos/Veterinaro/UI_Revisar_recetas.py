@@ -1,10 +1,14 @@
 import sys
+import os
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
                              QMessageBox, QGridLayout, QTextEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
+carpeta_actual = os.path.dirname(os.path.abspath(__file__))
+carpeta_padre = os.path.dirname(carpeta_actual)
+sys.path.append(carpeta_padre)
 
 from db_connection import Conexion
 
