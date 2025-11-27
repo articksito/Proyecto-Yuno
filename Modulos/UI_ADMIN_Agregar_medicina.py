@@ -405,22 +405,6 @@ class MainWindow(QMainWindow):
         lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_preview.setStyleSheet("color: #888; font-size: 14px; font-weight: bold; margin-bottom: 10px;")
 
-        # Icono
-        self.img_placeholder = QLabel("💊")
-        self.img_placeholder.setFixedSize(100, 100)
-        self.img_placeholder.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.img_placeholder.setStyleSheet("""
-            background-color: #F5F5F5;
-            border: 2px dashed #CCC;
-            border-radius: 50px;
-            font-size: 50px;
-            color: #CCC;
-        """)
-        img_container = QHBoxLayout()
-        img_container.addStretch()
-        img_container.addWidget(self.img_placeholder)
-        img_container.addStretch()
-
         # Nombre
         self.lbl_prev_nombre = QLabel("Nombre Medicina")
         self.lbl_prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -438,7 +422,6 @@ class MainWindow(QMainWindow):
         self.lbl_prev_uso.setStyleSheet("font-size: 14px; color: #888; margin-top: 5px;")
 
         content_layout.addWidget(lbl_preview)
-        content_layout.addLayout(img_container)
         content_layout.addWidget(self.lbl_prev_nombre)
         content_layout.addWidget(self.lbl_prev_detalles)
         content_layout.addWidget(self.lbl_prev_uso)
@@ -496,8 +479,8 @@ class MainWindow(QMainWindow):
         nombre = self.inp_nombre.text().strip()
         tipo = self.inp_tipo.currentText()
         composicion = self.inp_comp.text().strip()
-        dosis_recomendada = self.inp_dosis.text().strip()
-        via_administracion = self.inp_via.currentText()
+        dosis = self.inp_dosis.text().strip()
+        via = self.inp_via.currentText()
 
         # 2. Validaciones
         if not nombre:
@@ -505,7 +488,8 @@ class MainWindow(QMainWindow):
             return
 
         # 3. Insertar en BD
-        datos = (nombre, tipo, composicion, dosis_recomendada, via_administracion)
+        datos = (nombre, tipo, composicion, dosis, via)
+        # Asumiendo tabla 'medicamento' con estas columnas
         columnas = ('nombre', 'tipo', 'composicion', 'dosis_recomendada', 'via_administracion')
         table = 'medicamento'
 
@@ -521,7 +505,7 @@ class MainWindow(QMainWindow):
             self.inp_via.setCurrentIndex(0)
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No seaa pudo registrar el medicamento.\nError: {e}")
+            QMessageBox.critical(self, "Error", f"No se pudo registrar el medicamento.\nError: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
