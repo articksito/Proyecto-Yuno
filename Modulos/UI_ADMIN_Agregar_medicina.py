@@ -496,8 +496,8 @@ class MainWindow(QMainWindow):
         nombre = self.inp_nombre.text().strip()
         tipo = self.inp_tipo.currentText()
         composicion = self.inp_comp.text().strip()
-        dosis = self.inp_dosis.text().strip()
-        via = self.inp_via.currentText()
+        dosis_recomendada = self.inp_dosis.text().strip()
+        via_administracion = self.inp_via.currentText()
 
         # 2. Validaciones
         if not nombre:
@@ -505,9 +505,8 @@ class MainWindow(QMainWindow):
             return
 
         # 3. Insertar en BD
-        datos = (nombre, tipo, composicion, dosis, via)
-        # Asumiendo tabla 'medicamento' con estas columnas
-        columnas = ('nombre', 'tipo', 'composicion', 'dosis', 'via_administracion')
+        datos = (nombre, tipo, composicion, dosis_recomendada, via_administracion)
+        columnas = ('nombre', 'tipo', 'composicion', 'dosis_recomendada', 'via_administracion')
         table = 'medicamento'
 
         try:
@@ -522,7 +521,7 @@ class MainWindow(QMainWindow):
             self.inp_via.setCurrentIndex(0)
 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo registrar el medicamento.\nError: {e}")
+            QMessageBox.critical(self, "Error", f"No seaa pudo registrar el medicamento.\nError: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
