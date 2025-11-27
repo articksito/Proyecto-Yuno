@@ -1,31 +1,44 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
+import traceback
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QMessageBox)
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPixmap
 
-# --- CLASE PRINCIPAL ---
-class EnfermeroMain(QMainWindow):
-    def __init__(self, nombre_usuario="Enfermero"):
-        self.nombre = nombre_usuario
-        super().__init__()
+# --- 1. ARREGLO DE RUTAS (Para que funcione desde Login y directo) ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir) # Carpeta 'Modulos'
+if current_dir not in sys.path: sys.path.append(current_dir)
+if parent_dir not in sys.path: sys.path.append(parent_dir)
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Panel de Enfermería")
+# Intentar importar conexión
+try:
+    from db_connection import Conexion
+    DB_AVAILABLE = True
+except ImportError:
+    # Intento secundario si estamos en la carpeta raíz
+    try:
+        sys.path.append(os.path.join(parent_dir, '..'))
+        from db_connection import Conexion
+        DB_AVAILABLE = True
+    except:
+        DB_AVAILABLE = False
+
+class EnfermeroMain(QMainWindow):
+    # --- 2. RECIBIMOS EL NOMBRE DEL USUARIO ---
+    def __init__(self, nombre_completo="Enfermero"):
+        super().__init__()
+        
+        self.nombre_usuario = nombre_completo
+        
+        self.setWindowTitle(f"Sistema Veterinario Yuno - Panel de Enfermería ({self.nombre_usuario})")
         self.resize(1280, 720)
 
-        # Datos simulados
+        # Datos simulados (Actualizados con el nombre real)
         self.user_data = {
-            "nombre": f"{self.nombre}",
+            "nombre": self.nombre_usuario,
             "puesto": "Enfermería",
             "id": "ENF-001"
         }
@@ -34,74 +47,26 @@ class EnfermeroMain(QMainWindow):
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Layout principal (Horizontal)
+        # Layout principal
         self.main_layout = QHBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES ---
+        # --- ESTILOS ---
         self.setStyleSheet("""
-            QMainWindow {
-                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
-            }
-            QWidget#Sidebar {
-                background-color: transparent;
-            }
-            QWidget#WhitePanel {
-                background-color: white;
-                border-top-left-radius: 30px;
-                border-bottom-left-radius: 30px;
-                margin: 20px 20px 20px 0px; 
-            }
-            QLabel {
-                font-family: 'Segoe UI', sans-serif;
-                color: #333;
-            }
-            /* Estilo Botones Menú Principal */
-            QPushButton.menu-btn {
-                text-align: left;
-                padding-left: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 15px;
-                color: white;
-                font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
-                font-size: 18px;
-                background-color: rgba(255, 255, 255, 0.1);
-                height: 50px;
-                margin-bottom: 5px;
-            }
-            QPushButton.menu-btn:hover {
-                background-color: rgba(255, 255, 255, 0.25);
-                border: 1px solid white;
-                color: #FFF;
-            }
-            /* Estilo Sub-botones */
-            QPushButton.sub-btn {
-                text-align: left;
-                font-family: 'Segoe UI', sans-serif;
-                font-size: 16px;
-                font-weight: normal;
-                padding-left: 40px;
-                border-radius: 10px;
-                color: #F0F0F0;
-                background-color: rgba(0, 0, 0, 0.05);
-                height: 35px;
-                margin-bottom: 2px;
-                margin-left: 10px;
-                margin-right: 10px;
-            }
-            QPushButton.sub-btn:hover {
-                color: white;
-                background-color: rgba(255, 255, 255, 0.3);
-                font-weight: bold;
-            }
+            QMainWindow { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC); }
+            QWidget#Sidebar { background-color: transparent; }
+            QWidget#WhitePanel { background-color: white; border-top-left-radius: 30px; border-bottom-left-radius: 30px; margin: 20px 20px 20px 0px; }
+            QLabel { font-family: 'Segoe UI', sans-serif; color: #333; }
+            QPushButton.menu-btn { text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; color: white; font-family: 'Segoe UI', sans-serif; font-weight: bold; font-size: 18px; background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px; }
+            QPushButton.menu-btn:hover { background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF; }
+            QPushButton.sub-btn { text-align: left; font-family: 'Segoe UI', sans-serif; font-size: 16px; font-weight: normal; padding-left: 40px; border-radius: 10px; color: #F0F0F0; background-color: rgba(0, 0, 0, 0.05); height: 35px; margin-bottom: 2px; margin-left: 10px; margin-right: 10px; }
+            QPushButton.sub-btn:hover { color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold; }
         """)
 
-        # --- 1. BARRA LATERAL (Izquierda) ---
+        # --- CONSTRUCCIÓN ---
         self.setup_sidebar()
-
-        # --- 2. PANEL BLANCO (Derecha) ---
+        
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         
@@ -109,10 +74,8 @@ class EnfermeroMain(QMainWindow):
         self.content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.content_layout.setSpacing(20)
 
-        # Información Centralizada
         self.setup_central_info()
 
-        # Agregar a la ventana
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
@@ -124,37 +87,30 @@ class EnfermeroMain(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ---
+        # --- 3. LOGO INTELIGENTE (Busca en ../FILES/logo_yuno.png) ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # 1. Obtener la ruta donde está guardado ESTE archivo .py (Enfermero)
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-
-        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-
-        # 3. Cargar imagen
+        # Ruta robusta: Sube un nivel desde 'Enfermero' hacia 'Modulos' y entra a 'FILES'
+        ruta_logo = os.path.join(parent_dir, "FILES", "logo_yuno.png")
+        
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                lbl_logo.setPixmap(scaled_pixmap)
+                lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             else:
-                # Si la imagen existe pero está corrupta
                 lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
         else:
-            # Si no encuentra la imagen
-            print(f"No se encontró el logo en: {ruta_logo}")
+            # Fallback visual
             lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
-            
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENÚS DESPLEGABLES ---
+        # --- MENÚS ---
         self.setup_accordion_group("Citas", ["Visualizar"])
         self.setup_accordion_group("Mascotas", ["Visualizar"])
         self.setup_accordion_group("Inventario", ["Farmacia", "Hospitalización"])
@@ -165,12 +121,7 @@ class EnfermeroMain(QMainWindow):
         # Botón Cerrar Sesión
         btn_logout = QPushButton("Cerrar Sesión")
         btn_logout.setStyleSheet("""
-            QPushButton {
-                text-align: center; border: 2px solid white; 
-                border-radius: 15px; padding: 10px; margin-top: 20px;
-                font-size: 14px; color: white; font-weight: bold;
-                background-color: transparent;
-            }
+            QPushButton { text-align: center; border: 2px solid white; border-radius: 15px; padding: 10px; margin-top: 20px; font-size: 14px; color: white; font-weight: bold; background-color: transparent; }
             QPushButton:hover { background-color: rgba(255,255,255,0.2); }
         """)
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -192,8 +143,10 @@ class EnfermeroMain(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            # Conexión al enrutador
+            
+            # --- CONEXIÓN AL ROUTER ---
             btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.abrir_ventana(t, o))
+            
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
@@ -201,10 +154,8 @@ class EnfermeroMain(QMainWindow):
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
-        if frame.isVisible():
-            frame.hide()
-        else:
-            frame.show()
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
 
     def setup_central_info(self):
         info_container = QFrame()
@@ -216,6 +167,7 @@ class EnfermeroMain(QMainWindow):
         lbl_title.setStyleSheet("color: #888; font-size: 24px; letter-spacing: 2px;")
         lbl_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
+        # Usamos el nombre guardado en __init__
         lbl_name = QLabel(self.user_data['nombre'])
         lbl_name.setStyleSheet("color: #5f2c82; font-size: 56px; font-weight: bold;")
         lbl_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -254,67 +206,51 @@ class EnfermeroMain(QMainWindow):
         current_time = datetime.now().strftime("%H:%M:%S")
         self.lbl_time.setText(current_time)
 
-    # --- AQUÍ ESTABA LO QUE FALTABA: EL GESTOR DE VENTANAS ---
+    # --- 4. ROUTER DE NAVEGACIÓN (PASA EL NOMBRE) ---
     def abrir_ventana(self, categoria, opcion):
-        print(f"Intentando abrir: {categoria} -> {opcion}")
-        
+        print(f"Navegando a: {categoria} -> {opcion}")
         try:
-            # 1. VISUALIZAR CITA (Exclusivo Enfermera)
+            target_window = None
+
             if categoria == "Citas" and opcion == "Visualizar":
-                from UI_Cita_Enfermera import MainWindow as Visualizar_cita
-                self.ventana = Visualizar_cita()
-                self.ventana.show()
-                self.close()
+                from UI_Cita_Enfermera import MainWindow as Win
+                target_window = Win(self.nombre_usuario)
 
-            # 2. MASCOTAS
             elif categoria == "Mascotas" and opcion == "Visualizar":
-                from UI_Revisar_Mascota_Enfermera import MainWindow as Visualizar_mascota
-                self.ventana = Visualizar_mascota()
-                self.ventana.show()
-                self.close()
+                from UI_Revisar_Mascota_Enfermera import MainWindow as Win
+                target_window = Win(self.nombre_usuario)
 
-            # 3. INVENTARIO
             elif categoria == "Inventario":
                 if opcion == "Farmacia":
-                    from UI_Farmacia import MainWindow as VentanaFarmacia
-                    self.ventana = VentanaFarmacia()
-                    self.ventana.show()
-                    self.close()
+                    from UI_Farmacia import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
                 elif opcion == "Hospitalización":
-                    from UI_Hospitalizacion import MainWindow as VentanaHosp
-                    self.ventana = VentanaHosp()
-                    self.ventana.show()
-                    self.close()
+                    from UI_Hospitalizacion import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
 
-            # 4. EXPEDIENTE
             elif categoria == "Expediente" and opcion == "Diagnóstico":
-                from UI_Diagnostico import MainWindow as VentanaDiagnostico
-                self.ventana = VentanaDiagnostico()
+                from UI_Diagnostico import MainWindow as Win
+                target_window = Win(self.nombre_usuario)
+            
+            if target_window:
+                self.ventana = target_window
                 self.ventana.show()
                 self.close()
 
         except ImportError as e:
-            # Esto captura si falta un archivo .py
-            mensaje = f"Error Crítico:\nNo se encuentra el archivo necesario para abrir esta opción.\n\nDetalle: {e}"
-            QMessageBox.critical(self, "Archivo Faltante", mensaje)
+            QMessageBox.warning(self, "Error de Navegación", f"Falta el archivo: {e.name}\n\nVerifica que esté en la misma carpeta.")
         except Exception as e:
-            # Captura cualquier otro error
             QMessageBox.critical(self, "Error", f"Ocurrió un error inesperado:\n{e}")
+            print(traceback.format_exc())
 
-# --- BLOQUE DE EJECUCIÓN (Esto es lo que hace que corra) ---
 if __name__ == "__main__":
     try:
         app = QApplication(sys.argv)
         font = QFont("Segoe UI", 10)
         app.setFont(font)
         
-        window = EnfermeroMain()
+        window = EnfermeroMain("Usuario Prueba")
         window.show()
-        
         sys.exit(app.exec())
     except Exception as e:
-        print("************************************************")
-        print("EL PROGRAMA NO PUEDE INICIAR POR ESTE ERROR:")
-        print(e)
-        print("************************************************")
-        input("Presiona ENTER para salir...")
+        print("ERROR CRÍTICO:", e)

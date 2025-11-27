@@ -1,18 +1,16 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QLineEdit, QTextEdit, 
                              QMessageBox, QFrame, QTreeWidget, QTreeWidgetItem, QHeaderView)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
+
+# --- AJUSTE DE RUTAS ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir) # Subir un nivel a 'Modulos'
+if current_dir not in sys.path: sys.path.append(current_dir)
+if parent_dir not in sys.path: sys.path.append(parent_dir)
 
 # Intentar importar conexión
 try:
@@ -22,9 +20,14 @@ except ImportError:
     DB_AVAILABLE = False
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    # 1. RECIBIMOS EL NOMBRE
+    def __init__(self, nombre_usuario="Enfermero"):
         super().__init__()
-        self.setWindowTitle("Sistema Veterinario Yuno - Hospitalización")
+        
+        # 2. GUARDAMOS EL NOMBRE
+        self.nombre_usuario = nombre_usuario
+        
+        self.setWindowTitle(f"Sistema Veterinario Yuno - Hospitalización ({self.nombre_usuario})")
         self.resize(1280, 720)
 
         # Inicializar conexión
@@ -167,39 +170,30 @@ class MainWindow(QMainWindow):
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
-        self.sidebar_layout.setSpacing(5)
+        self.sidebar_layout.setSpacing(10)
 
-        # --- LOGO ---
+        # --- LOGO ROBUSTO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # 1. Obtener la ruta donde está guardado ESTE archivo .py (Enfermero)
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-
-        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-
-        # 3. Cargar imagen
+        ruta_logo = os.path.join(parent_dir, "FILES", "logo_yuno.png")
+        
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                lbl_logo.setPixmap(scaled_pixmap)
+                lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             else:
-                # Si la imagen existe pero está corrupta
                 lbl_logo.setText("YUNO VET")
                 lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
-            # Si no encuentra la imagen
-            print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
             lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
-            
+        
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # Menús desplegables (Igual que en Menú Principal)
+        # Menús
         self.setup_accordion_group("Citas", ["Visualizar"])
         self.setup_accordion_group("Mascotas", ["Visualizar"])
         self.setup_accordion_group("Inventario", ["Farmacia", "Hospitalización"])
@@ -255,8 +249,8 @@ class MainWindow(QMainWindow):
     # --- NAVEGACIÓN ---
     def regresar_menu(self):
         try:
-            from UI_Menu_Enfermera import EnfermeroMain as MenuEnfermera
-            self.menu = MenuEnfermera()
+            from UI_Menu_Enfermera import EnfermeroMain
+            self.menu = EnfermeroMain(self.nombre_usuario) # DEVOLVEMOS EL NOMBRE
             self.menu.show()
             self.close()
         except ImportError:
@@ -270,22 +264,22 @@ class MainWindow(QMainWindow):
             # 1. ENRUTAMIENTO
             if categoria == "Citas" and opcion == "Visualizar":
                 from UI_Cita_Enfermera import MainWindow as Win
-                target_window = Win()
+                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
             
             elif categoria == "Mascotas" and opcion == "Visualizar":
                 from UI_Revisar_Mascota_Enfermera import MainWindow as Win
-                target_window = Win()
+                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
             
             elif categoria == "Inventario":
                 if opcion == "Farmacia":
                     from UI_Farmacia import MainWindow as Win
-                    target_window = Win()
+                    target_window = Win(self.nombre_usuario) # PASAR NOMBRE
                 elif opcion == "Hospitalización":
                     pass # Ya estamos aquí
             
             elif categoria == "Expediente" and opcion == "Diagnóstico":
                 from UI_Diagnostico import MainWindow as Win
-                target_window = Win()
+                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
 
             # 2. EJECUCIÓN
             if target_window:
@@ -300,6 +294,6 @@ class MainWindow(QMainWindow):
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow("TEST USER")
     window.show()
     sys.exit(app.exec())

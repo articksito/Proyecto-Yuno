@@ -1,26 +1,29 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir,'..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
+from datetime import datetime  # <--- Agregado para que funcione la fecha
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QTextEdit, QMessageBox, QFrame)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
+# --- AJUSTE DE RUTAS ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+parent_dir = os.path.dirname(current_dir) # Subir un nivel a 'Modulos'
+if current_dir not in sys.path: sys.path.append(current_dir)
+if parent_dir not in sys.path: sys.path.append(parent_dir)
+
 # --- RUTA DEL ARCHIVO TXT ---
-# Asegúrate que esta ruta sea correcta en tu PC
-RUTA_ARCHIVO = 'diagnostico.txt' # Ruta relativa para evitar errores
+RUTA_ARCHIVO = 'diagnostico.txt'
 
 class MainWindow(QMainWindow):
-    def __init__(self):
+    # 1. RECIBIMOS EL NOMBRE
+    def __init__(self, nombre_usuario="Enfermero"):
         super().__init__()
-        self.setWindowTitle("Sistema Veterinario Yuno - Diagnóstico")
+        
+        # 2. GUARDAMOS EL NOMBRE
+        self.nombre_usuario = nombre_usuario
+        
+        self.setWindowTitle(f"Sistema Veterinario Yuno - Diagnóstico ({self.nombre_usuario})")
         self.resize(1280, 720)
 
         self.central_widget = QWidget()
@@ -85,7 +88,7 @@ class MainWindow(QMainWindow):
             }
             QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
-        # CONEXIÓN CORRECTA
+        # CONEXIÓN AL MENU
         btn_back.clicked.connect(self.regresar_menu)
 
         header_layout.addWidget(lbl_title)
@@ -127,14 +130,17 @@ class MainWindow(QMainWindow):
             return
             
         try:
-            texto_formateado = f"\n--- NUEVO DIAGNÓSTICO ---\n{texto}\n"
+            # Incluimos fecha y usuario en el reporte
+            texto_formateado = f"\n--- NUEVO DIAGNÓSTICO ({datetime.now().strftime('%Y-%m-%d %H:%M')}) ---\nUsuario: {self.nombre_usuario}\n{texto}\n"
+            
+            # Intenta crear el archivo si no existe
             with open(RUTA_ARCHIVO, 'a+') as f:
                 f.write(texto_formateado)
                 
             QMessageBox.information(self, "Guardado", "Diagnóstico agregado correctamente.")
             self.txt_diagnostico.clear()
         except FileNotFoundError:
-             QMessageBox.critical(self, "Error de Ruta", f"No se encuentra el archivo:\n{RUTA_ARCHIVO}")
+             QMessageBox.critical(self, "Error de Ruta", f"No se encuentra la carpeta especificada en:\n{RUTA_ARCHIVO}\nPor favor verifica la ruta en el código.")
         except Exception as e:
             QMessageBox.critical(self, "Error de Archivo", f"No se pudo escribir en el archivo:\n{e}")
 
@@ -145,35 +151,26 @@ class MainWindow(QMainWindow):
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
-        self.sidebar_layout.setSpacing(5)
+        self.sidebar_layout.setSpacing(10)
 
-        # --- LOGO ---
+        # --- LOGO ROBUSTO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # 1. Obtener la ruta donde está guardado ESTE archivo .py (Enfermero)
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-
-        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-
-        # 3. Cargar imagen
+        ruta_logo = os.path.join(parent_dir, "FILES", "logo_yuno.png")
+        
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                lbl_logo.setPixmap(scaled_pixmap)
+                lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             else:
-                # Si la imagen existe pero está corrupta
                 lbl_logo.setText("YUNO VET")
                 lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
-            # Si no encuentra la imagen
-            print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
             lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
-            
+        
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
@@ -196,21 +193,8 @@ class MainWindow(QMainWindow):
             QPushButton:hover { background-color: rgba(255,255,255,0.2); }
         """)
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
-        
-        # AQUÍ ESTABA EL ERROR: Esta función no existía
         btn_logout.clicked.connect(self.regresar_menu)
-        
         self.sidebar_layout.addWidget(btn_logout)
-
-    # --- ESTA ES LA FUNCIÓN QUE FALTABA ---
-    def regresar_menu(self):
-        try:
-            from UI_Menu_Enfermera import EnfermeroMain as MenuEnfermera
-            self.menu = MenuEnfermera()
-            self.menu.show()
-            self.close()
-        except ImportError:
-            QMessageBox.warning(self, "Error", "No se encuentra el menú de enfermera.")
 
     def setup_accordion_group(self, title, options):
         btn_main = QPushButton(title)
@@ -228,7 +212,7 @@ class MainWindow(QMainWindow):
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
             
-            # CONEXIÓN AL ROUTER
+            # --- CONEXIÓN DE NAVEGACIÓN DIRECTA ---
             btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.abrir_ventana(t, o))
             
             layout_options.addWidget(btn_sub)
@@ -243,47 +227,54 @@ class MainWindow(QMainWindow):
         else:
             frame.show()
 
-    # --- ROUTER DE NAVEGACIÓN ---
+    # --- NAVEGACIÓN ---
+    def regresar_menu(self):
+        try:
+            from UI_Menu_Enfermera import EnfermeroMain
+            self.menu = EnfermeroMain(self.nombre_usuario) # DEVOLVER NOMBRE
+            self.menu.show()
+            self.close()
+        except ImportError:
+            QMessageBox.warning(self, "Error", "No se encuentra el menú de enfermera.")
+
+    # --- FUNCION DE NAVEGACIÓN DIRECTA (ROUTER) ---
     def abrir_ventana(self, categoria, opcion):
         try:
             target_window = None
 
-            # 1. CITAS
+            # 1. ENRUTAMIENTO
             if categoria == "Citas" and opcion == "Visualizar":
                 from UI_Cita_Enfermera import MainWindow as Win
-                target_window = Win()
+                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
             
-            # 2. MASCOTAS
             elif categoria == "Mascotas" and opcion == "Visualizar":
                 from UI_Revisar_Mascota_Enfermera import MainWindow as Win
-                target_window = Win()
+                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
             
-            # 3. INVENTARIO
             elif categoria == "Inventario":
                 if opcion == "Farmacia":
                     from UI_Farmacia import MainWindow as Win
-                    target_window = Win()
+                    target_window = Win(self.nombre_usuario) # PASAR NOMBRE
                 elif opcion == "Hospitalización":
                     from UI_Hospitalizacion import MainWindow as Win
-                    target_window = Win()
+                    target_window = Win(self.nombre_usuario) # PASAR NOMBRE
             
-            # 4. EXPEDIENTE
             elif categoria == "Expediente" and opcion == "Diagnóstico":
                 pass # Ya estamos aquí
 
-            # 5. EJECUCIÓN
+            # 2. EJECUCIÓN
             if target_window:
                 self.ventana = target_window
                 self.ventana.show()
                 self.close() 
             
         except ImportError as e:
-            QMessageBox.warning(self, "Error", f"No se encuentra el archivo: {e.name}")
+            QMessageBox.warning(self, "Error", f"No se encuentra el archivo de destino.\n{e}")
         except Exception as e:
             print(f"Error navegando: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow("TEST USER")
     window.show()
     sys.exit(app.exec())
