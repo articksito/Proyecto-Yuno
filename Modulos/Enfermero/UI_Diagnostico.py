@@ -205,7 +205,7 @@ class MainWindow(QMainWindow):
     # --- ESTA ES LA FUNCIÓN QUE FALTABA ---
     def regresar_menu(self):
         try:
-            from UI_Menu_Enfermera import MainWindow as MenuEnfermera
+            from UI_Menu_Enfermera import EnfermeroMain as MenuEnfermera
             self.menu = MenuEnfermera()
             self.menu.show()
             self.close()
