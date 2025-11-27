@@ -7,7 +7,7 @@ import sys
 
 from db_connection import Conexion
 
-from UI_Recepcionista import MainWindow as Recepcionista
+from UI_REP_main import MainWindow as Recepcionista
 
 
 # ---------------------------
@@ -121,7 +121,7 @@ class LoginWindow(QWidget):
             rol = conexion.Validacion_Perfil(username)
             
             if rol == "ADMIN":
-                from UI_Administrador_main import MainWindow as UI_Administrador_main
+                from UI_ADMIN_main import MainWindow as UI_Administrador_main
                 self.admin = UI_Administrador_main(f"{conexion.Nombre_Usuario(username)}")
                 self.admin.show()
                 self.close()
@@ -134,6 +134,11 @@ class LoginWindow(QWidget):
             elif rol == "REP":
                 self.rep = Recepcionista(conexion.Nombre_Usuario(username))
                 self.rep.show()
+                self.close()
+            elif rol== "ENF":
+                from Enfermero.UI_Menu_Enfermera import EnfermeroMain
+                self.enf=EnfermeroMain(f'{conexion.Nombre_Usuario(username)}')
+                self.enf.show()
                 self.close()
         else:
             self.status_label.setText("❌ Usuario o contraseña incorrectos")

@@ -1,5 +1,13 @@
 import sys
 import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
@@ -154,23 +162,18 @@ class MainWindow(QMainWindow):
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
-        self.sidebar_layout.setSpacing(10)
+        self.sidebar_layout.setSpacing(5)
 
         # --- LOGO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "logo.png"
-        lbl_logo = QLabel()
-        lbl_logo.setObjectName("Logo")
-        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        # 1. Obtener la ruta donde está guardado ESTE archivo .py
+        # 1. Obtener la ruta donde está guardado ESTE archivo .py (Enfermero)
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        
-        # 2. Construir la ruta exacta a la carpeta FILES -> logo_yuno.png
-        ruta_logo = os.path.join(directorio_actual, "FILES", "logo_yuno.png")
+
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
 
         # 3. Cargar imagen
         if os.path.exists(ruta_logo):
@@ -179,12 +182,15 @@ class MainWindow(QMainWindow):
                 scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
+                # Si la imagen existe pero está corrupta
                 lbl_logo.setText("YUNO VET")
                 lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
+            # Si no encuentra la imagen
             print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
             lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+            
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
         
