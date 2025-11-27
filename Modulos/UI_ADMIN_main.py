@@ -468,17 +468,16 @@ class MainWindow(QMainWindow):
                    self.close()
                    
                 elif opcion == "Clientes":
-                    # from UI_Modificar_cliente import MainWindow as ClientesWindow
-                    # self.ventana = ClientesWindow()
-                    # self.ventana.show()
-                    # self.close()
-                    pass
+                    from UI_ADMIN_Modificar_cliente import MainWindow as UI_Modificar_cliente
+                    self.cliente = UI_Modificar_cliente()
+                    self.cliente.show()
+                    self.close()
+                    
                 elif opcion == "Citas":
-                    # from UI_Revisar_Cita import MainWindow as CitasWindow
-                    # self.ventana = CitasWindow()
-                    # self.ventana.show()
-                    # self.close()
-                    pass
+                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                    self.cita = UI_Revisar_Cita()
+                    self.cita.show()
+                    self.close()
                     
             # --- USUARIOS ---
             elif categoria == "Usuarios":
