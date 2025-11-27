@@ -7,8 +7,6 @@ import sys
 
 from db_connection import Conexion
 
-from UI_REP_main import MainWindow as Recepcionista
-
 
 # ---------------------------
 #     LOGO BASE64 (PENPOT)
@@ -132,7 +130,8 @@ class LoginWindow(QWidget):
                 self.vet.show()
                 self.close()
             elif rol == "REP":
-                self.rep = Recepcionista(conexion.Nombre_Usuario(username))
+                from Recepcionista.UI_REP_main import RecepMenu
+                self.rep = RecepMenu(conexion.Nombre_Usuario(username))
                 self.rep.show()
                 self.close()
             elif rol== "ENF":

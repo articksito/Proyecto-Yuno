@@ -16,7 +16,7 @@ from PyQt6.QtGui import QFont, QPixmap
 
 from db_connection import Conexion
 
-class MainWindow(QMainWindow):
+class RecepMenu(QMainWindow):
     def __init__(self, nombre="Recepcionista"):
         self.nombre = nombre
         super().__init__()
@@ -301,6 +301,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = MainWindow()
+    window = RecepMenu()
     window.show()
     sys.exit(app.exec())

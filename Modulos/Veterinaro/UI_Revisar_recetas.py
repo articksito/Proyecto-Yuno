@@ -1,7 +1,9 @@
 import sys
 import os
 
+# --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
+# Asumiendo que este archivo está en Modulos/Veterinaro/, subimos a Modulos
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
@@ -11,11 +13,9 @@ if current_dir not in sys.path:
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
-                             QMessageBox, QGridLayout, QTextEdit)
+                             QMessageBox, QGridLayout, QTextEdit, QComboBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
-carpeta_actual = os.path.dirname(os.path.abspath(__file__))
-
+from PyQt6.QtGui import QFont, QPixmap
 
 from db_connection import Conexion
 
@@ -38,12 +38,19 @@ class VentanaRevisarReceta(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
+        # --- ESTILOS ---
         self.setStyleSheet("""
             QMainWindow { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC); }
             QWidget#Sidebar { background-color: transparent; }
             QWidget#WhitePanel { background-color: white; border-top-left-radius: 30px; border-bottom-left-radius: 30px; margin: 20px 20px 20px 0px; }
             QLabel { font-family: 'Segoe UI', sans-serif; color: #333; }
-            QLineEdit[readOnly="true"], QTextEdit[readOnly="true"] { background-color: #F0F0F0; border: 1px solid #DDD; border-radius: 10px; padding: 5px 15px; font-size: 16px; color: #555; }
+            
+            QLineEdit, QTextEdit { background-color: rgba(241, 131, 227, 0.35); border: none; border-radius: 10px; padding: 5px 15px; font-size: 16px; color: #333; }
+            
+            /* Estilo solo lectura */
+            QLineEdit[readOnly="true"], QTextEdit[readOnly="true"] { background-color: rgba(200, 200, 200, 0.3); color: #555; }
+
+            /* Botones Sidebar */
             QPushButton.menu-btn { text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; color: white; font-family: 'Segoe UI', sans-serif; font-weight: bold; font-size: 18px; background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px; }
             QPushButton.menu-btn:hover { background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF; }
             QPushButton.sub-btn { text-align: left; padding-left: 40px; border-radius: 10px; color: #F0F0F0; background-color: rgba(0, 0, 0, 0.05); height: 35px; margin-bottom: 2px; margin-left: 10px; margin-right: 10px; }
@@ -53,6 +60,9 @@ class VentanaRevisarReceta(QMainWindow):
         self.setup_sidebar()
         self.setup_content_panel()
 
+    # ============================================================
+    #  SIDEBAR (AHORA SÍ CON LOGO)
+    # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
@@ -61,11 +71,33 @@ class VentanaRevisarReceta(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
-        lbl_logo = QLabel("YUNO VET\nRECETAS")
-        lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        # --- LOGO ROBUSTO ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.sidebar_layout.addWidget(lbl_logo)
 
+        # Lógica para encontrar la imagen subiendo niveles
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # Sube a Modulos -> FILES -> logo_yuno.png
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
+
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET\nRECETAS")
+                lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        else:
+            # print(f"No se encontró el logo en: {ruta_logo}")
+            lbl_logo.setText("YUNO VET\nRECETAS")
+            lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+
+        self.sidebar_layout.addWidget(lbl_logo)
+        
+        # Grupos desplegables
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
 
@@ -120,21 +152,26 @@ class VentanaRevisarReceta(QMainWindow):
                 elif opcion == "Ver Registro":
                     QMessageBox.information(self, "Sistema", "Ya estás en el Historial de Recetas.")
         except ImportError as e:
-            QMessageBox.warning(self, "Error", f"Archivo no encontrado: {e.name}")
+            QMessageBox.warning(self, "Error", f"No se encontró el archivo: {e.name}")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error de navegación: {e}")
+            QMessageBox.critical(self, "Error", f"Ocurrió un error: {e}")
 
+    # ============================================================
+    #  PANEL CENTRAL (BUSCADOR + DATOS)
+    # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 30, 50, 40)
 
+        # Header
         header_layout = QHBoxLayout()
         lbl_header = QLabel("Historial de Recetas")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         btn_close = QPushButton("✕")
         btn_close.setFixedSize(40, 40)
+        btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_close.setStyleSheet("background-color: #f0f0f0; border-radius: 20px; font-size: 20px; color: #666; border: none;")
         btn_close.clicked.connect(self.volver_al_menu)
         header_layout.addWidget(lbl_header)
@@ -142,15 +179,20 @@ class VentanaRevisarReceta(QMainWindow):
         header_layout.addWidget(btn_close)
         self.white_layout.addLayout(header_layout)
 
+        # Barra de Búsqueda
         self.setup_search_bar()
-        self.white_layout.addSpacing(20)
+        self.white_layout.addSpacing(30)
 
+        # Contenedor de Datos
         content_container = QWidget()
         content_layout = QHBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
 
+        # IZQUIERDA: Datos técnicos (Sin fecha)
         self.setup_details_form(content_layout)
+
+        # DERECHA: Indicaciones (Texto grande)
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
@@ -161,20 +203,26 @@ class VentanaRevisarReceta(QMainWindow):
         search_container = QWidget()
         search_layout = QHBoxLayout(search_container)
         search_layout.setContentsMargins(0, 0, 0, 0)
+        
         lbl_search = QLabel("ID Receta:")
         lbl_search.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        
         self.inp_search = QLineEdit()
-        self.inp_search.setPlaceholderText("Ingrese ID...")
+        self.inp_search.setPlaceholderText("Ingrese ID para buscar...")
         self.inp_search.setFixedWidth(300)
-        self.inp_search.setStyleSheet("border: 2px solid #ddd; border-radius: 10px; padding: 8px; font-size: 16px; background-color: white;")
+        self.inp_search.setStyleSheet("background-color: white; border: 2px solid #ddd; border-radius: 10px; padding: 8px; font-size: 16px;")
+        
         btn_search = QPushButton("Buscar")
+        btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_search.setFixedSize(120, 40)
         btn_search.setStyleSheet("background-color: #7CEBFC; color: #333; font-weight: bold; border-radius: 10px; border: 1px solid #5CD0E3;")
         btn_search.clicked.connect(self.buscar_receta)
+        
         search_layout.addWidget(lbl_search)
         search_layout.addWidget(self.inp_search)
         search_layout.addWidget(btn_search)
         search_layout.addStretch()
+        
         self.white_layout.addWidget(search_container)
 
     def setup_details_form(self, parent_layout):
@@ -182,53 +230,49 @@ class VentanaRevisarReceta(QMainWindow):
         grid = QGridLayout(form_widget)
         grid.setVerticalSpacing(20)
         grid.setHorizontalSpacing(30)
-        
-        # --- AQUI ESTA LA CORRECCION ---
-        # Solo mostramos Fecha y Consulta, pues la mascota se infiere de la consulta
-        lbl_fecha = QLabel("Fecha Emisión:")
-        lbl_fecha.setStyleSheet("font-size: 18px; font-weight: 500;")
-        self.inp_fecha = QLineEdit()
-        self.inp_fecha.setReadOnly(True)
-        self.inp_fecha.setText("---")
 
+        lbl_style = "font-size: 20px; color: black; font-weight: 400;"
+        input_height = "height: 45px;"
+
+        # --- MODIFICADO: SIN FECHA ---
+        # 1. ID Consulta (Solo Lectura)
         lbl_consulta = QLabel("ID Consulta Asociada:")
-        lbl_consulta.setStyleSheet("font-size: 18px; font-weight: 500;")
+        lbl_consulta.setStyleSheet(lbl_style)
         self.inp_consulta = QLineEdit()
-        self.inp_consulta.setReadOnly(True)
         self.inp_consulta.setText("---")
+        self.inp_consulta.setReadOnly(True)
+        self.inp_consulta.setStyleSheet(input_height)
 
-        grid.addWidget(lbl_fecha, 0, 0)
-        grid.addWidget(self.inp_fecha, 0, 1)
-        grid.addWidget(lbl_consulta, 1, 0)
-        grid.addWidget(self.inp_consulta, 1, 1)
+        # Lo ponemos en la fila 0
+        grid.addWidget(lbl_consulta, 0, 0)
+        grid.addWidget(self.inp_consulta, 0, 1)
+
+        # Empujar hacia arriba
+        grid.setRowStretch(1, 1)
         
         parent_layout.addWidget(form_widget, stretch=2)
 
     def setup_info_board(self, parent_layout):
-        board_container = QFrame()
-        board_container.setFixedWidth(400)
-        board_container.setStyleSheet("background-color: white; border: 1px solid #DDD; border-radius: 10px;")
-        board_layout = QVBoxLayout(board_container)
-        board_layout.setContentsMargins(0, 0, 0, 0)
+        lbl_indicaciones = QLabel("Indicaciones / Medicamentos:")
+        lbl_indicaciones.setStyleSheet("font-size: 20px; color: black; font-weight: 400;")
+        
+        container = QWidget()
+        v_layout = QVBoxLayout(container)
+        v_layout.setContentsMargins(0,0,0,0)
+        
+        self.txt_indicaciones = QTextEdit()
+        self.txt_indicaciones.setReadOnly(True)
+        self.txt_indicaciones.setText("Ingrese un ID para ver los detalles...")
+        self.txt_indicaciones.setStyleSheet("border-radius: 15px; padding: 15px;")
+        
+        v_layout.addWidget(lbl_indicaciones)
+        v_layout.addWidget(self.txt_indicaciones)
+        
+        parent_layout.addWidget(container, stretch=3)
 
-        header = QFrame()
-        header.setFixedHeight(60)
-        header.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FC7CE2, stop:1 #7CEBFC); border-top-left-radius: 10px; border-top-right-radius: 10px;")
-        hl = QVBoxLayout(header)
-        lbl = QLabel("Indicaciones / Medicamentos")
-        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl.setStyleSheet("color: white; font-size: 18px; font-weight: bold; border: none; background: transparent;")
-        hl.addWidget(lbl)
-
-        self.txt_indicaciones_view = QTextEdit()
-        self.txt_indicaciones_view.setReadOnly(True)
-        self.txt_indicaciones_view.setStyleSheet("border: none; padding: 15px; font-size: 16px; color: #555;")
-        self.txt_indicaciones_view.setText("Ingrese un ID para ver los detalles...")
-
-        board_layout.addWidget(header)
-        board_layout.addWidget(self.txt_indicaciones_view)
-        parent_layout.addWidget(board_container, stretch=1)
-
+    # ============================================================
+    #  LÓGICA DB
+    # ============================================================
     def volver_al_menu(self):
         try:
             from UI_Veterinario import VeterinarioMenu 
@@ -240,36 +284,44 @@ class VentanaRevisarReceta(QMainWindow):
 
     def buscar_receta(self):
         id_receta = self.inp_search.text().strip()
+
         if not id_receta.isdigit():
             QMessageBox.warning(self, "Error", "El ID debe ser un número.")
             return
 
         try:
-            # SELECT corregido: solo columnas de receta
-            sql = f"SELECT fecha, fk_consulta, indicaciones FROM receta WHERE id_receta = {id_receta}"
+            # --- MODIFICADO: QUERY SIN FECHA ---
+            sql = f"SELECT fk_consulta, indicaciones FROM receta WHERE id_receta = {id_receta}"
             
             self.conexion.cursor_uno.execute(sql)
             resultado = self.conexion.cursor_uno.fetchone()
 
             if resultado:
-                # resultado = (fecha, fk_consulta, indicaciones)
-                self.inp_fecha.setText(str(resultado[0]))
-                self.inp_consulta.setText(str(resultado[1]))
-                self.txt_indicaciones_view.setText(str(resultado[2]))
+                # --- MODIFICADO: MAPEO DE DATOS ---
+                # resultado[0] = fk_consulta
+                # resultado[1] = indicaciones
+                
+                consulta_val = resultado[0]
+                self.inp_consulta.setText(str(consulta_val) if consulta_val else "Sin vínculo")
+                
+                self.txt_indicaciones.setText(str(resultado[1]))
+                
                 QMessageBox.information(self, "Encontrado", "Receta cargada correctamente.")
             else:
                 self.limpiar_datos()
                 QMessageBox.warning(self, "No Encontrado", "No existe una receta con ese ID.")
+
         except Exception as e:
             QMessageBox.critical(self, "Error BD", f"Error al buscar:\n{e}")
 
     def limpiar_datos(self):
-        self.inp_fecha.setText("---")
         self.inp_consulta.setText("---")
-        self.txt_indicaciones_view.setText("---")
+        self.txt_indicaciones.setText("---")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
+    font = QFont("Segoe UI", 10)
+    app.setFont(font)
     window = VentanaRevisarReceta()
     window.show()
     sys.exit(app.exec())

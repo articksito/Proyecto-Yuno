@@ -243,24 +243,24 @@ class MainWindow(QMainWindow):
         try:
             if categoria == "Citas":
                 if opcion == "Agendar":
-                    from UI_Crear_cita import MainWindow as Agendar_cita
+                    from UI_REP_Crear_cita import MainWindow as Agendar_cita
                     self.ventana = Agendar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Visualizar":
-                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
+                    from UI_REP_Revisar_Cita import MainWindow as Visualizar_cita
                     self.ventana = Visualizar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Modificar_cita import MainWindow as Modificar_cita
+                    from UI_REP_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
                     self.ventana.show()
                     self.close()
 
             elif categoria == "Mascotas":
                 if opcion == "Registrar":
-                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
+                    from UI_REP_Registrar_mascota import MainWindow as Registrar_mascota
                     self.ventana = Registrar_mascota()
                     self.ventana.show()
                     self.close()
@@ -274,7 +274,7 @@ class MainWindow(QMainWindow):
                 if opcion == "Registrar":
                     pass # Ya estamos aquí
                 elif opcion == "Modificar":
-                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    from UI_REP_Modificar_cliente import MainWindow as Modificar_cliente
                     self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()

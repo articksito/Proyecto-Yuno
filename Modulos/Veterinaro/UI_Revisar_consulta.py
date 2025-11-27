@@ -95,10 +95,30 @@ class VentanaRevisarConsulta(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(10)
 
-        # Logo
-        lbl_logo = QLabel("YUNO VET\nCONSULTAS")
-        lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        # --- LOGO (LOGICA ROBUSTA AGREGADA) ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # Lógica para encontrar la imagen subiendo niveles
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # Sube a Modulos -> FILES -> logo_yuno.png
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
+
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET\nCONSULTAS")
+                lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        else:
+            # print(f"No se encontró el logo en: {ruta_logo}")
+            lbl_logo.setText("YUNO VET\nCONSULTAS")
+            lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+
         self.sidebar_layout.addWidget(lbl_logo)
 
         # --- MENÚS EXCLUSIVOS VETERINARIO ---
@@ -160,10 +180,8 @@ class VentanaRevisarConsulta(QMainWindow):
                     self.close()
                 
                 elif opcion == "Ver Registro":
-                    from UI_Revisar_consulta import VentanaRevisarConsulta
-                    self.v = VentanaRevisarConsulta(self.nombre_usuario)
-                    self.v.show()
-                    self.close()
+                    # Ya estamos aquí
+                    QMessageBox.information(self, "Navegación", "Ya estás en el Historial de Consultas.")
 
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":

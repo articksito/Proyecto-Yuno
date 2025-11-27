@@ -166,14 +166,18 @@ class MainWindow(QMainWindow):
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
-        self.sidebar_layout.setSpacing(10)
+        self.sidebar_layout.setSpacing(5)
 
         # --- LOGO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "Modulos/FILES/logo_yuno.png" 
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
+
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -234,21 +238,21 @@ class MainWindow(QMainWindow):
         try:
             if categoria == "Citas":
                 if opcion == "Agendar":
-                    from UI_Crear_cita import MainWindow as Agendar_cita
+                    from UI_REP_Crear_cita import MainWindow as Agendar_cita
                     self.ventana = Agendar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Visualizar":
                     pass # Ya estamos aquí
                 elif opcion == "Modificar":
-                    from UI_Modificar_cita import MainWindow as Modificar_cita
+                    from UI_REP_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
                     self.ventana.show()
                     self.close()
 
             elif categoria == "Mascotas":
                 if opcion == "Registrar":
-                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
+                    from UI_REP_Registrar_mascota import MainWindow as Registrar_mascota
                     self.ventana = Registrar_mascota()
                     self.ventana.show()
                     self.close()
@@ -260,12 +264,12 @@ class MainWindow(QMainWindow):
 
             elif categoria == "Clientes":
                 if opcion == "Registrar":
-                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
+                    from UI_REP_Registra_cliente import MainWindow as Regsitrar_dueno
                     self.ventana = Regsitrar_dueno()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    from UI_REP_Modificar_cliente import MainWindow as Modificar_cliente
                     self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()

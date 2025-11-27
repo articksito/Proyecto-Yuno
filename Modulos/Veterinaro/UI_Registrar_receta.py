@@ -1,19 +1,24 @@
 import sys
 import os
 
+# --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
+# Ajuste para subir niveles correctamente dependiendo de donde esté el archivo
+if 'Veterinaro' in current_dir:
+    project_root = os.path.abspath(os.path.join(current_dir, '..'))
+else:
+    project_root = os.path.abspath(os.path.join(current_dir, '..'))
+
 if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
     sys.path.append(current_dir)
     
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
-                             QMessageBox, QGridLayout, QTextEdit, QComboBox)
+                             QMessageBox, QGridLayout, QTextEdit)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPixmap
 
 from db_connection import Conexion
 
@@ -38,64 +43,168 @@ class VentanaReceta(QMainWindow):
 
         # --- ESTILOS ---
         self.setStyleSheet("""
-            QMainWindow { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC); }
-            QWidget#Sidebar { background-color: transparent; }
-            QWidget#WhitePanel { background-color: white; border-top-left-radius: 30px; border-bottom-left-radius: 30px; margin: 20px 20px 20px 0px; }
-            QLabel { font-family: 'Segoe UI', sans-serif; color: #333; }
-            QLineEdit, QTextEdit { background-color: rgba(241, 131, 227, 0.35); border: none; border-radius: 10px; padding: 5px 15px; font-size: 16px; color: #333; }
-            QLineEdit:focus, QTextEdit:focus { background-color: rgba(241, 131, 227, 0.5); }
-            QPushButton.menu-btn { text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; color: white; font-family: 'Segoe UI', sans-serif; font-weight: bold; font-size: 18px; background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px; }
-            QPushButton.menu-btn:hover { background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF; }
-            QPushButton.sub-btn { text-align: left; padding-left: 40px; border-radius: 10px; color: #F0F0F0; background-color: rgba(0, 0, 0, 0.05); height: 35px; margin-bottom: 2px; margin-left: 10px; margin-right: 10px; }
-            QPushButton.sub-btn:hover { color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold; }
+            QMainWindow {
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
+            }
+            QWidget#Sidebar {
+                background-color: transparent;
+            }
+            QWidget#WhitePanel {
+                background-color: white;
+                border-top-left-radius: 30px;
+                border-bottom-left-radius: 30px;
+                margin: 20px 20px 20px 0px; 
+            }
+            QLabel {
+                font-family: 'Segoe UI', sans-serif;
+                color: #333;
+            }
+            
+            /* Inputs del Formulario */
+            QLineEdit, QTextEdit {
+                background-color: rgba(241, 131, 227, 0.35); 
+                border: none;
+                border-radius: 10px;
+                padding: 5px 15px;
+                font-size: 16px;
+                color: #333;
+            }
+            QLineEdit:focus, QTextEdit:focus {
+                background-color: rgba(241, 131, 227, 0.5);
+            }
+
+            /* BOTONES MENU PRINCIPAL */
+            QPushButton.menu-btn {
+                text-align: left;
+                padding-left: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
+                color: white;
+                font-family: 'Segoe UI', sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
+            }
+            QPushButton.menu-btn:hover {
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
+            }
+
+            /* SUB-BOTONES */
+            QPushButton.sub-btn {
+                text-align: left;
+                padding-left: 40px;
+                border-radius: 10px;
+                color: #F0F0F0;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 16px;
+                font-weight: normal;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
+                border: none;
+            }
+            QPushButton.sub-btn:hover {
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
+                font-weight: bold;
+            }
+            
+            /* Botón Logout */
+            QPushButton.logout-btn {
+                text-align: center; border: 2px solid white; 
+                border-radius: 15px; padding: 10px; margin-top: 20px;
+                font-size: 14px; color: white; font-weight: bold;
+                background-color: transparent;
+            }
+            QPushButton.logout-btn:hover { background-color: rgba(255,255,255,0.2); }
         """)
 
         self.setup_sidebar()
         self.setup_content_panel()
 
+    # ============================================================
+    #  SIDEBAR
+    # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
-        self.sidebar_layout.setSpacing(10)
+        self.sidebar_layout.setSpacing(5)
 
-        lbl_logo = QLabel("YUNO VET\nMÉDICO")
-        lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        # --- LOGO ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.sidebar_layout.addWidget(lbl_logo)
         
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
+
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+        else:
+            lbl_logo.setText("YUNO VET")
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+
+        self.sidebar_layout.addWidget(lbl_logo)
+        self.sidebar_layout.addSpacing(20)
+        
+        # --- MENÚS DESPLEGABLES ---
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
 
         self.sidebar_layout.addStretch()
+
+        # Botón Logout
         btn_logout = QPushButton("Cerrar Sesión")
-        btn_logout.setStyleSheet("QPushButton { text-align: center; border: 2px solid white; border-radius: 15px; padding: 10px; margin-top: 20px; font-size: 14px; color: white; font-weight: bold; background-color: transparent; } QPushButton:hover { background-color: rgba(255,255,255,0.2); }")
+        btn_logout.setProperty("class", "logout-btn") 
+        btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
         self.sidebar_layout.addWidget(btn_logout)
+
         self.main_layout.addWidget(self.sidebar)
 
     def setup_accordion_group(self, title, options):
         btn_main = QPushButton(title)
         btn_main.setProperty("class", "menu-btn")
+        btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
         self.sidebar_layout.addWidget(btn_main)
+
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(5)
+        layout_options.setSpacing(2) 
+        
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
+            btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
             btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.router_ventanas(cat, opt))
             layout_options.addWidget(btn_sub)
+
         frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
-        if frame.isVisible(): frame.hide()
-        else: frame.show()
+        if frame.isVisible():
+            frame.hide()
+        else:
+            frame.show()
 
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando: {categoria} -> {opcion}")
@@ -124,6 +233,9 @@ class VentanaReceta(QMainWindow):
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error: {e}")
 
+    # ============================================================
+    #  PANEL CENTRAL (SIN FECHA)
+    # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
@@ -133,10 +245,13 @@ class VentanaReceta(QMainWindow):
         header_layout = QHBoxLayout()
         lbl_header = QLabel("Generar Receta Médica")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
+        
         btn_close = QPushButton("✕")
         btn_close.setFixedSize(40, 40)
+        btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_close.setStyleSheet("background-color: #f0f0f0; border-radius: 20px; font-size: 20px; color: #666; border: none;")
         btn_close.clicked.connect(self.volver_al_menu)
+        
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
         header_layout.addWidget(btn_close)
@@ -151,30 +266,24 @@ class VentanaReceta(QMainWindow):
         lbl_style = "font-size: 20px; color: black; font-weight: 400;"
         input_height = "height: 45px;"
 
-        # --- AQUI ESTA LA CORRECCION ---
-        # 1. ID Consulta (Ahora es obligatorio, es el único enlace)
+        # 1. ID Consulta
         lbl_consulta = QLabel("ID Consulta:")
         lbl_consulta.setStyleSheet(lbl_style)
         self.inp_consulta = QLineEdit()
         self.inp_consulta.setPlaceholderText("ID de la Consulta Previa")
         self.inp_consulta.setStyleSheet(input_height)
 
-        # 2. Fecha
-        lbl_fecha = QLabel("Fecha Emisión:")
-        lbl_fecha.setStyleSheet(lbl_style)
-        self.inp_fecha = QLineEdit()
-        self.inp_fecha.setText(datetime.now().strftime("%Y-%m-%d"))
-        self.inp_fecha.setReadOnly(True)
-        self.inp_fecha.setStyleSheet(input_height + "background-color: rgba(200, 200, 200, 0.3);")
-
+        # SOLO AGREGAMOS ID CONSULTA (SIN FECHA)
         grid.addWidget(lbl_consulta, 0, 0)
         grid.addWidget(self.inp_consulta, 0, 1)
-        grid.addWidget(lbl_fecha, 0, 2)
-        grid.addWidget(self.inp_fecha, 0, 3)
+
+        # Empujamos hacia arriba para que no quede flotando
+        grid.setRowStretch(1, 1)
 
         self.white_layout.addWidget(form_widget)
         self.white_layout.addSpacing(20)
 
+        # Indicaciones
         lbl_indicaciones = QLabel("Medicamentos e Indicaciones:")
         lbl_indicaciones.setStyleSheet(lbl_style)
         self.txt_indicaciones = QTextEdit()
@@ -185,9 +294,17 @@ class VentanaReceta(QMainWindow):
         self.white_layout.addWidget(self.txt_indicaciones, stretch=1)
         self.white_layout.addSpacing(20)
 
+        # Botón Guardar
         btn_save = QPushButton("Generar Receta")
+        btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_save.setFixedSize(300, 60)
-        btn_save.setStyleSheet("QPushButton { background-color: #b67cfc; color: white; font-size: 24px; font-weight: bold; border-radius: 30px; } QPushButton:hover { background-color: #a060e8; }")
+        btn_save.setStyleSheet("""
+            QPushButton {
+                background-color: #b67cfc; color: white;
+                font-size: 24px; font-weight: bold; border-radius: 30px;
+            }
+            QPushButton:hover { background-color: #a060e8; }
+        """)
         btn_save.clicked.connect(self.guardar_datos)
         
         btn_container = QHBoxLayout()
@@ -209,7 +326,6 @@ class VentanaReceta(QMainWindow):
     def guardar_datos(self):
         indicaciones = self.txt_indicaciones.toPlainText().strip()
         id_consulta_str = self.inp_consulta.text().strip()
-        fecha_actual = datetime.now().strftime("%Y-%m-%d")
 
         if not indicaciones or not id_consulta_str:
             QMessageBox.warning(self, "Campos Vacíos", "ID Consulta e Indicaciones son obligatorios.")
@@ -221,9 +337,9 @@ class VentanaReceta(QMainWindow):
             QMessageBox.warning(self, "Error", "El ID Consulta debe ser numérico.")
             return
 
-        # INSERTAR EN RECETA (Solo fk_consulta, indicaciones, fecha)
-        campos = ['indicaciones', 'fk_consulta', 'fecha']
-        datos = [indicaciones, fk_consulta, fecha_actual]
+        # INSERTAR EN RECETA (SIN FECHA)
+        campos = ['indicaciones', 'fk_consulta']
+        datos = [indicaciones, fk_consulta]
 
         try:
             self.conexion.insertar_datos('receta', tuple(datos), tuple(campos))

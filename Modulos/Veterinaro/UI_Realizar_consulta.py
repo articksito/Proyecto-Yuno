@@ -1,8 +1,9 @@
 import sys
 import os
 
+# --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..')) #No se por que en este especificamento solo se puede con 1xd
+project_root = os.path.abspath(os.path.join(current_dir, '..')) 
 if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
@@ -13,11 +14,11 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
                              QGridLayout, QComboBox, QTextEdit, QMessageBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont
+from PyQt6.QtGui import QFont, QPixmap
 from db_connection import Conexion
 
 class VentanaConsulta(QMainWindow):
-    def __init__(self, nombre_usuario):
+    def __init__(self, nombre_usuario="Mick"):
         super().__init__()
         
         # 1. Inicializar conexión
@@ -39,7 +40,7 @@ class VentanaConsulta(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS VISUALES ---
+        # --- ESTILOS VISUALES (DISEÑO UNIFICADO) ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -57,13 +58,13 @@ class VentanaConsulta(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Inputs Estilo Yuno (Rosados y translúcidos) */
+            /* Inputs Estilo Yuno */
             QLineEdit, QComboBox, QTextEdit {
                 background-color: rgba(241, 131, 227, 0.35); 
                 border: none;
                 border-radius: 10px;
                 padding: 5px 15px;
-                font-size: 16px;
+                font-size: 18px;
                 color: #333;
             }
             QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
@@ -71,65 +72,103 @@ class VentanaConsulta(QMainWindow):
             }
             QComboBox::drop-down { border: 0px; }
             
-            /* Botones Menú Lateral (Acordeón) */
-            QPushButton[class="menu-btn"] {
-                text-align: left; padding-left: 20px; border: none; color: white;
-                font-family: 'Segoe UI', sans-serif; font-size: 18px; font-weight: bold;
-                background-color: transparent; height: 45px; border-radius: 10px;
+            /* Botones Menú Principal (Estilo Referencia) */
+            QPushButton.menu-btn {
+                text-align: left;
+                padding-left: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
+                color: white;
+                font-family: 'Segoe UI', sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
-            QPushButton[class="menu-btn"]:hover { 
-                background-color: rgba(255, 255, 255, 0.2); 
+            QPushButton.menu-btn:hover {
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
+            }
+            /* Sub-botones */
+            QPushButton.sub-btn {
+                text-align: left;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 16px;
+                font-weight: normal;
+                padding-left: 40px;
+                border-radius: 10px;
+                color: #F0F0F0;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
+            }
+            QPushButton.sub-btn:hover {
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
+                font-weight: bold;
             }
 
-            /* Sub-Botones (Desplegables) */
-            QPushButton[class="sub-btn"] {
-                text-align: left; padding-left: 40px; border: none; color: #EEE;
-                font-family: 'Segoe UI', sans-serif; font-size: 15px;
-                background-color: transparent; height: 35px; border-radius: 10px;
+            /* Botón Cerrar Sesión */
+            QPushButton.logout-btn {
+                text-align: center; border: 2px solid white; 
+                border-radius: 15px; padding: 10px; margin-top: 20px;
+                font-size: 14px; color: white; font-weight: bold;
+                background-color: transparent;
             }
-            QPushButton[class="sub-btn"]:hover { 
-                color: #333; background-color: rgba(255, 255, 255, 0.4); font-weight: bold;
-            }
-
-            /* Botón X */
-            QPushButton#CloseBtn {
-                background-color: #f0f0f0; border-radius: 20px;
-                font-size: 20px; color: #666; border: none;
-            }
-            QPushButton#CloseBtn:hover { background-color: #ffcccc; color: #cc0000; }
+            QPushButton.logout-btn:hover { background-color: rgba(255,255,255,0.2); }
         """)
 
         self.setup_sidebar()
         self.setup_content_panel()
 
     # ============================================================
-    #  BARRA LATERAL CON MENÚ DESPLEGABLE
+    #  BARRA LATERAL (DISEÑO REFERENCIA + LOGO ROBUSTO)
     # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
-        self.sidebar.setFixedWidth(280)
+        self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
-        self.sidebar_layout.setContentsMargins(20, 40, 20, 40)
+        self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        lbl_logo = QLabel("YUNO VET\nMÉDICO")
-        lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        # --- LOGO ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        # Lógica Robusta para encontrar el logo (Sube a Modulos -> FILES)
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
+         
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+        else:
+            lbl_logo.setText("YUNO VET")
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+
         self.sidebar_layout.addWidget(lbl_logo)
+        self.sidebar_layout.addSpacing(20) # Espacio extra bajo el logo
 
         # --- GRUPOS ACORDEÓN ---
-        # Aquí definimos las categorías y sus opciones
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
 
         self.sidebar_layout.addStretch()
 
         btn_logout = QPushButton("Cerrar Sesión")
-        btn_logout.setStyleSheet("""
-            border: 2px solid white; color: white; border-radius: 15px; 
-            padding: 10px; font-weight: bold; background: transparent;
-        """)
+        btn_logout.setProperty("class", "logout-btn") # Aplica estilo CSS
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
         self.sidebar_layout.addWidget(btn_logout)
@@ -137,32 +176,25 @@ class VentanaConsulta(QMainWindow):
         self.main_layout.addWidget(self.sidebar)
 
     def setup_accordion_group(self, title, options):
-        """Crea el botón principal y el área desplegable con sub-botones"""
         btn_main = QPushButton(title)
-        btn_main.setProperty("class", "menu-btn")
+        btn_main.setProperty("class", "menu-btn") # Aplica estilo CSS
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
         self.sidebar_layout.addWidget(btn_main)
 
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2) 
+        layout_options.setSpacing(5)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
-            btn_sub.setProperty("class", "sub-btn")
+            btn_sub.setProperty("class", "sub-btn") # Aplica estilo CSS
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            
-            # CONEXIÓN AL ENRUTADOR (Router)
-            # Usamos lambda para capturar qué botón fue presionado
-            btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.router_ventanas(t, o))
-            
+            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.router_ventanas(cat, opt))
             layout_options.addWidget(btn_sub)
 
-        frame_options.hide() # Por defecto oculto
+        frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
-        
-        # Conectar el clic del botón principal para mostrar/ocultar
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
@@ -172,40 +204,31 @@ class VentanaConsulta(QMainWindow):
             frame.show()
 
     # ============================================================
-    #  ENRUTADOR DE VENTANAS (Navegación)
+    #  ENRUTADOR (Navegación)
     # ============================================================
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando desde Consulta a: {categoria} -> {opcion}")
-        
-        # Lógica de navegación. 
-        # IMPORTANTE: Realiza los imports DENTRO de los if para evitar errores circulares.
-        
         try:
             if categoria == "Consultas":
                 if opcion == "Crear Consulta":
                     QMessageBox.information(self, "Sistema", "Ya te encuentras en 'Crear Consulta'.")
-                
                 elif opcion == "Ver Registro":
                     from UI_Revisar_consulta import VentanaRevisarConsulta
                     self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-                    QMessageBox.information(self, "Navegación", "Ir a: Ver Registro de Consultas")
 
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
                     from UI_Registrar_receta import VentanaReceta
-                    self.ventana = VentanaReceta()
+                    self.ventana = VentanaReceta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-                    QMessageBox.information(self, "Navegación", "Ir a: Crear Receta")
-                
                 elif opcion == "Ver Registro":
                     from UI_Revisar_recetas import VentanaRevisarReceta
-                    self.ventana = VentanaRevisarReceta()
+                    self.ventana = VentanaRevisarReceta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-                    QMessageBox.information(self, "Navegación", "Ir a: Ver Registro de Recetas")
         
         except Exception as e:
             QMessageBox.critical(self, "Error de Navegación", f"No se pudo abrir la ventana: {e}")
@@ -219,20 +242,33 @@ class VentanaConsulta(QMainWindow):
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 30, 50, 40)
 
-        # --- HEADER ---
+        # --- HEADER (ESTILO REFERENCIA) ---
         header_layout = QHBoxLayout()
         lbl_header = QLabel("Realizar Consulta")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_close = QPushButton("✕")
-        btn_close.setObjectName("CloseBtn")
-        btn_close.setFixedSize(40, 40)
-        btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_close.clicked.connect(self.volver_al_menu)
+        btn_close_view = QPushButton("✕")
+        btn_close_view.setFixedSize(40, 40)
+        btn_close_view.setCursor(Qt.CursorShape.PointingHandCursor)
+        # Estilo específico del botón cerrar de la referencia
+        btn_close_view.setStyleSheet("""
+            QPushButton {
+                background-color: #f0f0f0;
+                border-radius: 20px;
+                font-size: 20px;
+                color: #666;
+                border: none;
+            }
+            QPushButton:hover {
+                background-color: #ffcccc;
+                color: #cc0000;
+            }
+        """)
+        btn_close_view.clicked.connect(self.volver_al_menu)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_close)
+        header_layout.addWidget(btn_close_view)
         self.white_layout.addLayout(header_layout)
 
         # Espaciador
@@ -361,7 +397,7 @@ class VentanaConsulta(QMainWindow):
             self.menu.show()
             self.close()
         except ImportError:
-            print("UI_Veterinario_Menu no encontrado, cerrando ventana.")
+            print("UI_Veterinario no encontrado, cerrando ventana.")
             self.close()
 
     def guardar_datos(self):
