@@ -2,7 +2,7 @@ import sys
 import os
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+project_root = os.path.abspath(os.path.join(current_dir, '..')) #No se por que en este especificamento solo se puede con 1xd
 if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
@@ -14,7 +14,6 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGridLayout, QComboBox, QTextEdit, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont
-from UI_Revisar_consulta import *
 from db_connection import Conexion
 
 class VentanaConsulta(QMainWindow):
@@ -187,6 +186,7 @@ class VentanaConsulta(QMainWindow):
                     QMessageBox.information(self, "Sistema", "Ya te encuentras en 'Crear Consulta'.")
                 
                 elif opcion == "Ver Registro":
+                    from UI_Revisar_consulta import VentanaRevisarConsulta
                     self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()

@@ -1,26 +1,32 @@
 import sys
 import os
 
+# --- 1. CONFIGURACIÓN DE RUTAS (Vital para evitar errores) ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..', '..'))
+# Subimos un nivel para encontrar db_connection (si está en Modulos)
+# O dos niveles si está en la raíz. Ajustado a tu estructura actual:
+project_root = os.path.abspath(os.path.join(current_dir, '..')) 
+
 if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
     sys.path.append(current_dir)
-    
+
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QListWidget, 
                              QMessageBox)
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont
-from UI_Realizar_consulta import VentanaConsulta
-from UI_Revisar_consulta import VentanaRevisarConsulta
+from PyQt6.QtGui import QFont, QPixmap
+
+# Importar conexión
 from db_connection import Conexion
 
 class VeterinarioMenu(QMainWindow):
-    def __init__(self, nombre_usuario):
+    def __init__(self, nombre_usuario="Veterinario"):
         super().__init__()
+        
+        # 1. Base de Datos
         try:
             self.conexion = Conexion()
         except Exception as e:
@@ -35,7 +41,7 @@ class VeterinarioMenu(QMainWindow):
         }
 
         self.setWindowTitle("Sistema Veterinario Yuno - Panel Médico")
-        self.resize(1366, 768)
+        self.resize(1280, 720)
 
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
@@ -43,7 +49,7 @@ class VeterinarioMenu(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS ACTUALIZADOS ---
+        # --- ESTILOS (Diseño idéntico al Enfermero) ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -60,31 +66,54 @@ class VeterinarioMenu(QMainWindow):
             QLabel { font-family: 'Segoe UI', sans-serif; }
             
             /* ESTILO BOTÓN PRINCIPAL (ACORDEÓN) */
-            QPushButton[class="menu-btn"] {
-                text-align: left; padding-left: 20px; border: none; color: white;
-                font-family: 'Segoe UI', sans-serif; font-size: 18px; font-weight: bold;
-                background-color: transparent; height: 45px; border-radius: 10px;
+            QPushButton.menu-btn {
+                text-align: left;
+                padding-left: 20px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px;
+                color: white;
+                font-family: 'Segoe UI', sans-serif;
+                font-weight: bold;
+                font-size: 18px;
+                background-color: rgba(255, 255, 255, 0.1);
+                height: 50px;
+                margin-bottom: 5px;
             }
-            QPushButton[class="menu-btn"]:hover { 
-                background-color: rgba(255, 255, 255, 0.2); 
+            QPushButton.menu-btn:hover { 
+                background-color: rgba(255, 255, 255, 0.25);
+                border: 1px solid white;
+                color: #FFF;
             }
 
             /* ESTILO SUB-BOTONES (DESPLEGABLES) */
-            QPushButton[class="sub-btn"] {
-                text-align: left; padding-left: 40px; border: none; color: #EEE;
-                font-family: 'Segoe UI', sans-serif; font-size: 15px;
-                background-color: transparent; height: 35px; border-radius: 10px;
+            QPushButton.sub-btn {
+                text-align: left;
+                padding-left: 40px;
+                border-radius: 10px;
+                color: #F0F0F0;
+                font-family: 'Segoe UI', sans-serif;
+                font-size: 16px;
+                font-weight: normal;
+                background-color: rgba(0, 0, 0, 0.05);
+                height: 35px;
+                margin-bottom: 2px;
+                margin-left: 10px;
+                margin-right: 10px;
             }
-            QPushButton[class="sub-btn"]:hover { 
-                color: #333; background-color: rgba(255, 255, 255, 0.4); font-weight: bold;
+            QPushButton.sub-btn:hover { 
+                color: white;
+                background-color: rgba(255, 255, 255, 0.3);
+                font-weight: bold;
             }
             
             /* Botón Logout */
             QPushButton.logout-btn {
-                border: 2px solid white; color: white; border-radius: 15px;
-                padding: 10px; font-weight: bold; background: transparent;
+                text-align: center; border: 2px solid white; 
+                border-radius: 15px; padding: 10px; margin-top: 20px;
+                font-size: 14px; color: white; font-weight: bold;
+                background-color: transparent;
             }
-            QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.1); }
+            QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
             
             /* Lista */
             QListWidget {
@@ -97,27 +126,45 @@ class VeterinarioMenu(QMainWindow):
         self.setup_content_panel()
 
     # ============================================================
-    #  BARRA LATERAL CON ACORDEÓN
+    #  BARRA LATERAL CON LOGO FUNCIONAL
     # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
-        self.sidebar.setFixedWidth(280)
+        self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
-        self.sidebar_layout.setContentsMargins(20, 40, 20, 40)
+        self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        lbl_logo = QLabel("YUNO VET\nMÉDICO")
-        lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
+        # --- LOGO (Lógica Robusta copiada de Enfermero) ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.sidebar_layout.addWidget(lbl_logo)
+        
+        # 1. Ruta actual
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        # 2. Ruta relativa a FILES (Subir a Modulos -> FILES)
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
 
-        # --- AQUI CREAMOS LOS GRUPOS DESPLEGABLES ---
-        
-        # Grupo 1: Consultas
+        if os.path.exists(ruta_logo):
+            pixmap = QPixmap(ruta_logo)
+            if not pixmap.isNull():
+                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+                lbl_logo.setPixmap(scaled_pixmap)
+            else:
+                lbl_logo.setText("YUNO VET")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+        else:
+            print(f"No se encontró el logo en: {ruta_logo}")
+            lbl_logo.setText("YUNO VET")
+            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+
+        self.sidebar_layout.addWidget(lbl_logo)
+        self.sidebar_layout.addSpacing(20)
+
+        # --- GRUPOS DESPLEGABLES ---
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
-        
-        # Grupo 2: Recetas
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
 
         self.sidebar_layout.addStretch()
@@ -131,9 +178,8 @@ class VeterinarioMenu(QMainWindow):
         self.main_layout.addWidget(self.sidebar)
 
     def setup_accordion_group(self, title, options):
-        """Crea un grupo de botones tipo acordeón"""
         btn_main = QPushButton(title)
-        btn_main.setProperty("class", "menu-btn") # Estilo CSS
+        btn_main.setProperty("class", "menu-btn") # Aplica Estilo
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
         self.sidebar_layout.addWidget(btn_main)
 
@@ -144,16 +190,15 @@ class VeterinarioMenu(QMainWindow):
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
-            btn_sub.setProperty("class", "sub-btn") # Estilo CSS
+            btn_sub.setProperty("class", "sub-btn") # Aplica Estilo
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
             
             # CONEXIÓN AL ENRUTADOR
-            # Usamos lambda para pasar los argumentos específicos
             btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.router_ventanas(t, o))
             
             layout_options.addWidget(btn_sub)
 
-        frame_options.hide() # Empiezan ocultos
+        frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
         
         # Lógica de mostrar/ocultar
@@ -169,44 +214,48 @@ class VeterinarioMenu(QMainWindow):
     #  ENRUTADOR (ROUTER) DE VENTANAS
     # ============================================================
     def router_ventanas(self, categoria, opcion):
-        """
-        Recibe la categoría (Consultas/Recetas) y la opción seleccionada.
-        Aquí es donde abres tus clases nuevas.
-        """
         print(f"Navegando a: {categoria} -> {opcion}")
 
-        # --- LÓGICA DE CONSULTAS ---
-        if categoria == "Consultas":
-            if opcion == "Crear Consulta":
-                self.ventana = VentanaConsulta(self.nombre_usuario)
-                self.ventana.show()
-                self.close()
-                QMessageBox.information(self, "Sistema", "Abriendo: Crear Consulta")
-                
-            elif opcion == "Ver Registro":
-                self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
-                self.ventana.show()
-                self.close()
-                QMessageBox.information(self, "Sistema", "Abriendo: Historial de Consultas")
+        try:
+            # --- LÓGICA DE CONSULTAS ---
+            if categoria == "Consultas":
+                if opcion == "Crear Consulta":
+                    # IMPORT DENTRO PARA EVITAR ERROR CIRCULAR
+                    from UI_Realizar_consulta import VentanaConsulta
+                    self.ventana = VentanaConsulta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                    
+                elif opcion == "Ver Registro":
+                    # IMPORT DENTRO PARA EVITAR ERROR CIRCULAR
+                    from UI_Revisar_consulta import VentanaRevisarConsulta
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
 
-        # --- LÓGICA DE RECETAS ---
-        elif categoria == "Recetas":
-            if opcion == "Crear Receta":
-                from UI_Registrar_receta import VentanaReceta
-                self.ventana = VentanaReceta()
-                self.ventana.show()
-                self.close()
-                QMessageBox.information(self, "Sistema", "Abriendo: Crear Receta")
-                
-            elif opcion == "Ver Registro":
-                from UI_Revisar_recetas import VentanaRevisarReceta
-                self.ventana = VentanaRevisarReceta()
-                self.ventana.show()
-                self.close()
-                QMessageBox.information(self, "Sistema", "Abriendo: Historial de Recetas")
+            # --- LÓGICA DE RECETAS ---
+            elif categoria == "Recetas":
+                if opcion == "Crear Receta":
+                    # Asegúrate de que el nombre del archivo coincida (UI_Crear_Receta vs UI_Registrar_receta)
+                    # Usaré UI_Crear_Receta basado en nuestra conversación anterior
+                    from UI_Registrar_receta import VentanaReceta 
+                    self.ventana = VentanaReceta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                    
+                elif opcion == "Ver Registro":
+                    from UI_Revisar_recetas import VentanaRevisarReceta
+                    self.ventana = VentanaRevisarReceta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+        except ImportError as e:
+            QMessageBox.warning(self, "Archivo Faltante", f"No se encontró el archivo: {e.name}\nVerifica el nombre en la carpeta.")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error al abrir ventana:\n{e}")
 
     # ============================================================
-    #  PANEL CENTRAL (RELOJ + DB) - SIN CAMBIOS
+    #  PANEL CENTRAL (RELOJ + DB)
     # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
@@ -275,6 +324,7 @@ class VeterinarioMenu(QMainWindow):
                 citas_recientes = datos_citas[::-1][:15]
 
                 for fila in citas_recientes:
+                    # Ajusta los índices [1], [2], [3] según tu tabla real
                     paciente = fila[1]  
                     motivo = fila[2]    
                     hora = fila[3]      
@@ -300,6 +350,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = VeterinarioMenu("jose")
+    window = VeterinarioMenu("Mick")
     window.show()
     sys.exit(app.exec())

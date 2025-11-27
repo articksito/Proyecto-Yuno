@@ -1,11 +1,19 @@
 import sys
 import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                            QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
-                            QGridLayout, QTextEdit, QMessageBox)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
+                             QGridLayout, QMessageBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QIcon, QPixmap
+from PyQt6.QtGui import QFont, QIcon, QPixmap, QIntValidator, QDoubleValidator
 
 # Importar conexión
 from db_connection import Conexion
@@ -16,7 +24,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Modificar Cliente")
+        self.setWindowTitle("Sistema Veterinario Yuno - Registrar Cliente")
         self.resize(1280, 720)
 
         # Widget central
@@ -90,40 +98,39 @@ class MainWindow(QMainWindow):
         # --- 1. BARRA LATERAL (Izquierda) ---
         self.setup_sidebar()
 
-        # --- 2. PANEL BLANCO (Derecha - Modificar Cliente) ---
+        # --- 2. PANEL BLANCO (Derecha - Registro Cliente) ---
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 30, 50, 40)
 
-        # Header con Título y Botón Volver
+        # Header con Título y Botón Cerrar
         header_layout = QHBoxLayout()
         
-        lbl_header = QLabel("Modificar cliente")
+        lbl_header = QLabel("Registrar cliente")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("↶ Volver")
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_back.setStyleSheet("""
+        btn_close_view = QPushButton("✕")
+        btn_close_view.setFixedSize(40, 40)
+        btn_close_view.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_close_view.setStyleSheet("""
             QPushButton {
-                background-color: #F0F0F0;
-                color: #555;
+                background-color: #f0f0f0;
                 border-radius: 20px;
-                padding: 10px 20px;
-                font-size: 16px;
-                font-weight: bold;
+                font-size: 20px;
+                color: #666;
                 border: none;
             }
             QPushButton:hover {
-                background-color: #E0E0E0;
-                color: #333;
+                background-color: #ffcccc;
+                color: #cc0000;
             }
         """)
-        btn_back.clicked.connect(self.close)
+        btn_close_view.clicked.connect(self.close)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_back)
+        header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
         
@@ -136,8 +143,8 @@ class MainWindow(QMainWindow):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
 
-        # --- A. FORMULARIO DE EDICIÓN (Izquierda) ---
-        self.setup_edit_form(content_layout)
+        # --- A. FORMULARIO DE REGISTRO (Izquierda) ---
+        self.setup_register_form(content_layout)
 
         # --- B. PANEL DE INFORMACIÓN (Derecha) ---
         self.setup_info_board(content_layout)
@@ -163,14 +170,18 @@ class MainWindow(QMainWindow):
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
-        self.sidebar_layout.setSpacing(10)
+        self.sidebar_layout.setSpacing(5)
 
         # --- LOGO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        ruta_logo = "Modulos/FILES/logo_yuno.png" 
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
+         
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -261,12 +272,12 @@ class MainWindow(QMainWindow):
 
             elif categoria == "Clientes":
                 if opcion == "Registrar":
-                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
-                    self.ventana = Regsitrar_dueno()
+                    pass # Ya estamos aquí
+                elif opcion == "Modificar":
+                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
+                    self.ventana = Modificar_cliente()
                     self.ventana.show()
                     self.close()
-                elif opcion == "Modificar":
-                    pass # Ya estamos aquí
                     
         except ImportError as e:
             QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
@@ -279,14 +290,13 @@ class MainWindow(QMainWindow):
         else:
             frame.show()
 
-    def setup_edit_form(self, parent_layout):
+    def setup_register_form(self, parent_layout):
         form_widget = QWidget()
         grid_layout = QGridLayout(form_widget)
         grid_layout.setVerticalSpacing(20)
         grid_layout.setHorizontalSpacing(30)
         grid_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Estilo de Inputs Editables
         input_style = """
             QLineEdit {
                 background-color: rgba(241, 131, 227, 0.35); 
@@ -302,83 +312,140 @@ class MainWindow(QMainWindow):
 
         # --- Campos ---
         
-        # 1. ID Cliente (Campo de Búsqueda)
-        lbl_id = QLabel("Id cliente:")
-        lbl_id.setStyleSheet(label_style)
-        self.inp_id = QLineEdit()
-        self.inp_id.setPlaceholderText("Buscar ID...")
-        self.inp_id.setStyleSheet(input_style)
-        
-        btn_buscar = QPushButton("Buscar")
-        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_buscar.setFixedSize(100, 45)
-        btn_buscar.setStyleSheet("""
-            QPushButton {
-                background-color: #7CEBFC;
-                color: #333;
-                font-weight: bold;
-                border-radius: 10px;
-                border: 1px solid #5CD0E3;
-            }
-            QPushButton:hover { background-color: #5CD0E3; }
-        """)
-        btn_buscar.clicked.connect(self.buscar_cliente)
-
-        # 2. Nombre
+        # 1. Nombre
         lbl_nombre = QLabel("Nombre:")
         lbl_nombre.setStyleSheet(label_style)
         self.inp_nombre = QLineEdit()
+        self.inp_nombre.setPlaceholderText("Ej: Juan")
         self.inp_nombre.setStyleSheet(input_style)
 
-        # 3. Apellido
+        # 2. Apellido
         lbl_apellido = QLabel("Apellido:")
         lbl_apellido.setStyleSheet(label_style)
         self.inp_apellido = QLineEdit()
+        self.inp_apellido.setPlaceholderText("Ej: Pérez")
         self.inp_apellido.setStyleSheet(input_style)
 
-        # 4. Correo
+        # 3. Correo
         lbl_correo = QLabel("Correo:")
         lbl_correo.setStyleSheet(label_style)
         self.inp_correo = QLineEdit()
+        self.inp_correo.setPlaceholderText("Ej: juan.perez@email.com")
         self.inp_correo.setStyleSheet(input_style)
 
-        # 5. Dirección
-        lbl_direccion = QLabel("Dirección:")
-        lbl_direccion.setStyleSheet(label_style)
-        self.inp_direccion = QLineEdit()
-        self.inp_direccion.setStyleSheet(input_style)
+        # --- SUBDIVISIÓN DE DIRECCIÓN ---
+        # A. Calle
+        lbl_calle = QLabel("Calle:")
+        lbl_calle.setStyleSheet(label_style)
+        self.inp_calle = QLineEdit()
+        self.inp_calle.setPlaceholderText("Calle Principal")
+        self.inp_calle.setStyleSheet(input_style)
 
-        # 6. Teléfono
+        # B. Números (Exterior e Interior)
+        lbl_numeros = QLabel("Num Ext / Int:")
+        lbl_numeros.setStyleSheet(label_style)
+        
+        num_container = QWidget()
+        num_layout = QHBoxLayout(num_container)
+        num_layout.setContentsMargins(0,0,0,0)
+        num_layout.setSpacing(10)
+        
+        self.inp_no_ext = QLineEdit()
+        self.inp_no_ext.setPlaceholderText("Ext. #")
+        self.inp_no_ext.setStyleSheet(input_style)
+        
+        self.inp_no_int = QLineEdit()
+        self.inp_no_int.setPlaceholderText("Int. # (Opc)")
+        self.inp_no_int.setStyleSheet(input_style)
+        
+        num_layout.addWidget(self.inp_no_ext)
+        num_layout.addWidget(self.inp_no_int)
+
+        # C. Colonia y CP
+        lbl_colonia_cp = QLabel("Colonia / CP:")
+        lbl_colonia_cp.setStyleSheet(label_style)
+        
+        col_cp_container = QWidget()
+        col_cp_layout = QHBoxLayout(col_cp_container)
+        col_cp_layout.setContentsMargins(0,0,0,0)
+        col_cp_layout.setSpacing(10)
+        
+        self.inp_colonia = QLineEdit()
+        self.inp_colonia.setPlaceholderText("Colonia")
+        self.inp_colonia.setStyleSheet(input_style)
+        
+        self.inp_cp = QLineEdit()
+        self.inp_cp.setPlaceholderText("C.P.")
+        self.inp_cp.setFixedWidth(120) # CP más pequeño
+        self.inp_cp.setStyleSheet(input_style)
+        
+        col_cp_layout.addWidget(self.inp_colonia)
+        col_cp_layout.addWidget(self.inp_cp)
+
+        # D. Ciudad
+        lbl_ciudad = QLabel("Ciudad:")
+        lbl_ciudad.setStyleSheet(label_style)
+        self.inp_ciudad = QLineEdit()
+        self.inp_ciudad.setText("Tijuana") # Valor por defecto
+        self.inp_ciudad.setStyleSheet(input_style)
+
+        # --- TELÉFONO ---
         lbl_telefono = QLabel("Teléfono:")
         lbl_telefono.setStyleSheet(label_style)
         self.inp_telefono = QLineEdit()
+        self.inp_telefono.setPlaceholderText("Ej: 6641234567")
         self.inp_telefono.setStyleSheet(input_style)
+        
+        # Validador Double para permitir números grandes
+        validator = QDoubleValidator() 
+        validator.setNotation(QDoubleValidator.Notation.StandardNotation)
+        validator.setDecimals(0) # Sin decimales
+        self.inp_telefono.setValidator(validator)
+
+        # --- CONEXIÓN DE SEÑALES PARA PREVIEW ---
+        self.inp_nombre.textChanged.connect(self.update_preview)
+        self.inp_apellido.textChanged.connect(self.update_preview)
+        self.inp_correo.textChanged.connect(self.update_preview)
+        self.inp_telefono.textChanged.connect(self.update_preview)
+        
+        # Conectar campos de dirección
+        self.inp_calle.textChanged.connect(self.update_preview)
+        self.inp_no_ext.textChanged.connect(self.update_preview)
+        self.inp_no_int.textChanged.connect(self.update_preview)
+        self.inp_colonia.textChanged.connect(self.update_preview)
+        self.inp_cp.textChanged.connect(self.update_preview)
+        self.inp_ciudad.textChanged.connect(self.update_preview)
 
         # Añadir al Grid
-        grid_layout.addWidget(lbl_id, 0, 0)
-        grid_layout.addWidget(self.inp_id, 0, 1)
-        grid_layout.addWidget(btn_buscar, 0, 2)
-        
-        grid_layout.addWidget(lbl_nombre, 1, 0)
-        grid_layout.addWidget(self.inp_nombre, 1, 1)
+        grid_layout.addWidget(lbl_nombre, 0, 0)
+        grid_layout.addWidget(self.inp_nombre, 0, 1)
 
-        grid_layout.addWidget(lbl_apellido, 2, 0)
-        grid_layout.addWidget(self.inp_apellido, 2, 1)
+        grid_layout.addWidget(lbl_apellido, 1, 0)
+        grid_layout.addWidget(self.inp_apellido, 1, 1)
 
-        grid_layout.addWidget(lbl_correo, 3, 0)
-        grid_layout.addWidget(self.inp_correo, 3, 1)
+        grid_layout.addWidget(lbl_correo, 2, 0)
+        grid_layout.addWidget(self.inp_correo, 2, 1)
 
-        grid_layout.addWidget(lbl_direccion, 4, 0)
-        grid_layout.addWidget(self.inp_direccion, 4, 1)
+        grid_layout.addWidget(lbl_calle, 3, 0)
+        grid_layout.addWidget(self.inp_calle, 3, 1)
 
-        grid_layout.addWidget(lbl_telefono, 5, 0)
-        grid_layout.addWidget(self.inp_telefono, 5, 1)
+        grid_layout.addWidget(lbl_numeros, 4, 0)
+        grid_layout.addWidget(num_container, 4, 1)
 
-        grid_layout.setRowStretch(6, 1)
+        grid_layout.addWidget(lbl_colonia_cp, 5, 0)
+        grid_layout.addWidget(col_cp_container, 5, 1)
+
+        grid_layout.addWidget(lbl_ciudad, 6, 0)
+        grid_layout.addWidget(self.inp_ciudad, 6, 1)
+
+        grid_layout.addWidget(lbl_telefono, 7, 0)
+        grid_layout.addWidget(self.inp_telefono, 7, 1)
+
+        grid_layout.setRowStretch(8, 1)
         parent_layout.addWidget(form_widget, stretch=3)
 
     def setup_info_board(self, parent_layout):
-        # Panel derecho para INFORMACIÓN EXTRA
+        # Panel derecho para información / vista previa
         board_container = QFrame()
         board_container.setFixedWidth(350)
         board_container.setStyleSheet("""
@@ -408,28 +475,41 @@ class MainWindow(QMainWindow):
         lbl_info_title.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_info_title)
 
-        # Contenido (SOLO NOTAS - VISUAL)
+        # Contenido (Vista Previa en Tiempo Real)
         content_frame = QFrame()
         content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
-        lbl_notas = QLabel("Observaciones / Historial:")
-        lbl_notas.setStyleSheet("font-weight: bold; font-size: 16px; color: #333; margin-bottom: 5px;")
-        
-        self.txt_notas = QTextEdit()
-        self.txt_notas.setPlaceholderText("Espacio para notas locales (No se guardan en BD)...")
-        self.txt_notas.setStyleSheet("""
-            border: 1px solid #DDD; 
-            border-radius: 5px; 
-            background-color: #FAFAFA; 
-            font-size: 14px;
-            padding: 10px;
-        """)
+        # Título de la sección
+        lbl_preview = QLabel("Vista Previa")
+        lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        lbl_preview.setStyleSheet("color: #888; font-size: 14px; font-weight: bold; margin-bottom: 10px;")
 
-        content_layout.addWidget(lbl_notas)
-        content_layout.addWidget(self.txt_notas)
+        # Nombre Grande
+        self.lbl_prev_nombre = QLabel("Nombre del Cliente")
+        self.lbl_prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_prev_nombre.setWordWrap(True)
+        self.lbl_prev_nombre.setStyleSheet("font-size: 24px; font-weight: bold; color: #333; margin-bottom: 15px;")
+
+        # Detalles
+        self.lbl_prev_contacto = QLabel("📞 ---")
+        self.lbl_prev_contacto.setStyleSheet("font-size: 16px; color: #555; margin: 2px;")
+        
+        self.lbl_prev_email = QLabel("✉️ ---")
+        self.lbl_prev_email.setStyleSheet("font-size: 16px; color: #555; margin: 2px;")
+        
+        self.lbl_prev_direccion = QLabel("🏠 ---")
+        self.lbl_prev_direccion.setWordWrap(True)
+        self.lbl_prev_direccion.setStyleSheet("font-size: 16px; color: #555; margin: 2px;")
+
+        content_layout.addWidget(lbl_preview)
+        content_layout.addWidget(self.lbl_prev_nombre)
+        content_layout.addWidget(self.lbl_prev_contacto)
+        content_layout.addWidget(self.lbl_prev_email)
+        content_layout.addWidget(self.lbl_prev_direccion)
+        content_layout.addStretch()
         
         board_layout.addWidget(header_frame)
         board_layout.addWidget(content_frame)
@@ -437,7 +517,7 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(board_container, stretch=1)
 
     def setup_save_button(self):
-        btn_save = QPushButton("Guardar Cambios")
+        btn_save = QPushButton("Guardar")
         btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_save.setFixedSize(250, 60)
         btn_save.setStyleSheet("""
@@ -456,8 +536,8 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        btn_save.clicked.connect(self.guardar_cambios)
-        
+        btn_save.clicked.connect(self.guardar_datos)
+
         btn_container = QHBoxLayout()
         btn_container.addStretch()
         btn_container.addWidget(btn_save)
@@ -465,88 +545,109 @@ class MainWindow(QMainWindow):
         
         self.white_layout.addLayout(btn_container)
 
-    # --- FUNCIÓN: BUSCAR CLIENTE ---
-    def buscar_cliente(self):
-        id_cliente = self.inp_id.text().strip()
-        
-        if not id_cliente:
-            QMessageBox.warning(self, "Aviso", "Ingresa un ID de cliente para buscar.")
-            return
-        
-        if not id_cliente.isdigit():
-            QMessageBox.warning(self, "Error", "El ID debe ser numérico.")
-            return
-
-        print(f"Buscando cliente ID: {id_cliente}")
-        try:
-            # Columnas a traer de la BD (Sin 'notas')
-            columnas = ['nombre', 'apellido', 'correo', 'direccion', 'telefono']
-            
-            registro = self.conexion1.consultar_registro('cliente', 'id_cliente', id_cliente, columnas)
-            
-            if registro:
-                self.inp_nombre.setText(str(registro[0]))
-                self.inp_apellido.setText(str(registro[1]))
-                self.inp_correo.setText(str(registro[2]))
-                self.inp_direccion.setText(str(registro[3]))
-                self.inp_telefono.setText(str(registro[4]))
-                
-                # Limpiamos notas ya que no vienen de BD
-                self.txt_notas.clear()
-                
-                QMessageBox.information(self, "Encontrado", "Datos del cliente cargados correctamente.")
-            else:
-                QMessageBox.warning(self, "No encontrado", "No existe un cliente con ese ID.")
-                
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al buscar: {e}")
-
-    # --- FUNCIÓN: GUARDAR CAMBIOS ---
-    def guardar_cambios(self):
-        id_cliente = self.inp_id.text().strip()
-        
-        if not id_cliente:
-            QMessageBox.warning(self, "Error", "Primero busca un cliente por ID para modificar.")
-            return
-
-        # Recolectar datos
+    # --- FUNCIÓN DE ACTUALIZACIÓN EN TIEMPO REAL ---
+    def update_preview(self):
         nombre = self.inp_nombre.text().strip()
         apellido = self.inp_apellido.text().strip()
         correo = self.inp_correo.text().strip()
-        direccion = self.inp_direccion.text().strip()
-        telefono_str = self.inp_telefono.text().strip()
+        telefono = self.inp_telefono.text().strip()
         
-        # Notas no se guarda en BD
+        # Construir dirección completa
+        calle = self.inp_calle.text().strip()
+        ext = self.inp_no_ext.text().strip()
+        inte = self.inp_no_int.text().strip()
+        col = self.inp_colonia.text().strip()
+        cp = self.inp_cp.text().strip()
+        ciudad = self.inp_ciudad.text().strip()
+        
+        direccion_parts = []
+        if calle: direccion_parts.append(calle)
+        if ext: direccion_parts.append(f"#{ext}")
+        if inte: direccion_parts.append(f"Int {inte}")
+        if col: direccion_parts.append(f"Col. {col}")
+        if cp: direccion_parts.append(f"CP {cp}")
+        if ciudad: direccion_parts.append(ciudad)
+        
+        direccion_full = ", ".join(direccion_parts)
 
-        if not nombre or not apellido:
-             QMessageBox.warning(self, "Aviso", "El nombre y apellido son obligatorios.")
-             return
+        # Actualizar Labels
+        if nombre or apellido:
+            self.lbl_prev_nombre.setText(f"{nombre} {apellido}")
+        else:
+            self.lbl_prev_nombre.setText("Nombre del Cliente")
 
-        # Convertir teléfono a entero (BigInt) si es necesario
-        try:
-            telefono_num = int(telefono_str) if telefono_str else None
-        except ValueError:
-            QMessageBox.warning(self, "Error", "El teléfono debe ser numérico.")
+        if telefono:
+            self.lbl_prev_contacto.setText(f"📞 {telefono}")
+        else:
+            self.lbl_prev_contacto.setText("📞 ---")
+
+        if correo:
+            self.lbl_prev_email.setText(f"✉️ {correo}")
+        else:
+            self.lbl_prev_email.setText("✉️ ---")
+
+        if direccion_full:
+            self.lbl_prev_direccion.setText(f"🏠 {direccion_full}")
+        else:
+            self.lbl_prev_direccion.setText("🏠 ---")
+
+    # --- LÓGICA DE GUARDADO ---
+    def guardar_datos(self):
+        # 1. Obtener datos
+        nombre = self.inp_nombre.text().strip()
+        apellido = self.inp_apellido.text().strip()
+        correo = self.inp_correo.text().strip()
+        telefono_str = self.inp_telefono.text().strip() # Se guarda como string temp
+        
+        # Construir dirección
+        calle = self.inp_calle.text().strip()
+        ext = self.inp_no_ext.text().strip()
+        inte = self.inp_no_int.text().strip()
+        col = self.inp_colonia.text().strip()
+        cp = self.inp_cp.text().strip()
+        ciudad = self.inp_ciudad.text().strip()
+        
+        # Unir dirección en una sola cadena para la BD (campo unico 'direccion')
+        direccion_full = f"{calle} #{ext}"
+        if inte: direccion_full += f" Int {inte}"
+        direccion_full += f", Col. {col}, CP {cp}, {ciudad}"
+
+        # 2. Validaciones
+        if not nombre or not apellido or not telefono_str or not calle or not ext:
+            QMessageBox.warning(self, "Campos vacíos", "Nombre, Apellido, Teléfono, Calle y Número Ext. son obligatorios.")
             return
 
-        # Diccionario de datos a actualizar (SIN 'notas')
-        datos = {
-            "nombre": nombre,
-            "apellido": apellido,
-            "correo": correo,
-            "direccion": direccion,
-            "telefono": telefono_num
-        }
+        # 3. Conversión de Teléfono (BigInt)
+        try:
+            # Removemos posibles espacios o guiones si se colaron
+            telefono_limpio = telefono_str.replace("-", "").replace(" ", "")
+            telefono_num = int(telefono_limpio) # Convertir a INT para BigInt en BD
+        except ValueError:
+            QMessageBox.warning(self, "Error Teléfono", "El teléfono debe contener solo números.")
+            return
+
+        # 4. Insertar en BD
+        datos = (nombre, apellido, direccion_full, correo, telefono_num)
+        columnas = ('nombre', 'apellido', 'direccion', 'correo', 'telefono')
+        table = 'cliente'
 
         try:
-            # Aseguramos usar editar_registro
-            exito = self.conexion1.editar_registro(id_cliente, datos, 'cliente', 'id_cliente')
-            if exito:
-                QMessageBox.information(self, "Éxito", "Cliente actualizado correctamente.")
-            else:
-                QMessageBox.warning(self, "Error", "No se pudo actualizar el registro.")
+            nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)
+            QMessageBox.information(self, "Éxito", f"Cliente registrado correctamente.\nID Generado: {nuevo_id}")
+            
+            # Limpiar campos
+            self.inp_nombre.clear()
+            self.inp_apellido.clear()
+            self.inp_correo.clear()
+            self.inp_calle.clear()
+            self.inp_no_ext.clear()
+            self.inp_no_int.clear()
+            self.inp_colonia.clear()
+            self.inp_cp.clear()
+            self.inp_telefono.clear()
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Fallo al guardar: {e}")
+            QMessageBox.critical(self, "Error", f"No se pudo registrar el cliente.\nError: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

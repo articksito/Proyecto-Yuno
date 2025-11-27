@@ -1,9 +1,17 @@
 import sys
 import os
+
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
-                             QGridLayout, QSpinBox, QDoubleSpinBox, QComboBox, QMessageBox)
+                             QGridLayout, QComboBox, QMessageBox)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon, QPixmap
 
@@ -16,7 +24,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Modificar Mascota")
+        self.setWindowTitle("Sistema Veterinario Yuno - Registrar Mascota")
         self.resize(1280, 720)
 
         # Widget central
@@ -28,7 +36,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS ---
+        # --- ESTILOS GENERALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -98,35 +106,34 @@ class MainWindow(QMainWindow):
 
         # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Modificar mascota")
+        lbl_header = QLabel("Registro Mascota")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("↶ Volver")
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_back.setStyleSheet("""
+        btn_close_view = QPushButton("✕")
+        btn_close_view.setFixedSize(40, 40)
+        btn_close_view.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_close_view.setStyleSheet("""
             QPushButton {
-                background-color: #F0F0F0;
-                color: #555;
+                background-color: #f0f0f0;
                 border-radius: 20px;
-                padding: 10px 20px;
-                font-size: 16px;
-                font-weight: bold;
+                font-size: 20px;
+                color: #666;
                 border: none;
             }
             QPushButton:hover {
-                background-color: #E0E0E0;
-                color: #333;
+                background-color: #ffcccc;
+                color: #cc0000;
             }
         """)
-        btn_back.clicked.connect(self.close)
+        btn_close_view.clicked.connect(self.close)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_back)
+        header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
         
-        # Espaciador superior para centrar
+        # --- ESPACIADOR SUPERIOR (Centrado) ---
         self.white_layout.addStretch(1)
 
         # Contenedor Formulario
@@ -135,7 +142,7 @@ class MainWindow(QMainWindow):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
 
-        self.setup_edit_form(content_layout)
+        self.setup_register_form(content_layout)
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
@@ -146,7 +153,7 @@ class MainWindow(QMainWindow):
         # Botón Guardar
         self.setup_save_button()
 
-        # Espaciador inferior para centrar
+        # --- ESPACIADOR INFERIOR (Centrado) ---
         self.white_layout.addStretch(2)
 
         self.main_layout.addWidget(self.sidebar)
@@ -172,16 +179,14 @@ class MainWindow(QMainWindow):
                 scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
-                lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+                lbl_logo.setText("YUNO VET") 
         else:
-            lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+            lbl_logo.setText("YUNO VET") 
 
         self.sidebar_layout.addWidget(lbl_logo)
         
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"]) # Sin Visualizar
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
 
         self.sidebar_layout.addStretch()
@@ -246,8 +251,10 @@ class MainWindow(QMainWindow):
 
             elif categoria == "Mascotas":
                 if opcion == "Registrar":
-                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
-                    self.ventana = Registrar_mascota()
+                    pass # Ya estamos aquí
+                elif opcion == "Modificar":
+                    from UI_Modificar_Mascota import MainWindow as Modificar_mascota
+                    self.ventana = Modificar_mascota()
                     self.ventana.show()
                     self.close()
 
@@ -258,8 +265,8 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    from UI_Modificar_cliente import MainWindow as Modificar_cliente
-                    self.ventana = Modificar_cliente()
+                    from UI_Modificar_cliente import MainWindow as Modficiar_dueno
+                    self.ventana = Modficiar_dueno()
                     self.ventana.show()
                     self.close()
                     
@@ -274,7 +281,7 @@ class MainWindow(QMainWindow):
         else:
             frame.show()
 
-    def setup_edit_form(self, parent_layout):
+    def setup_register_form(self, parent_layout):
         form_widget = QWidget()
         grid_layout = QGridLayout(form_widget)
         grid_layout.setVerticalSpacing(20)
@@ -283,7 +290,7 @@ class MainWindow(QMainWindow):
 
         # Estilo de Inputs
         input_style = """
-            QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+            QLineEdit, QComboBox {
                 background-color: rgba(241, 131, 227, 0.35); 
                 border: none;
                 border-radius: 10px;
@@ -298,32 +305,18 @@ class MainWindow(QMainWindow):
 
         # --- Campos ---
         
-        # 1. ID Mascota (Búsqueda)
-        lbl_id = QLabel("Id mascota:")
-        lbl_id.setStyleSheet(label_style)
-        self.inp_id = QLineEdit()
-        self.inp_id.setPlaceholderText("Buscar ID...")
-        self.inp_id.setStyleSheet(input_style)
-        
-        btn_buscar = QPushButton("Buscar")
-        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_buscar.setFixedSize(100, 45)
-        btn_buscar.setStyleSheet("""
-            QPushButton {
-                background-color: #7CEBFC;
-                color: #333;
-                font-weight: bold;
-                border-radius: 10px;
-                border: 1px solid #5CD0E3;
-            }
-            QPushButton:hover { background-color: #5CD0E3; }
-        """)
-        btn_buscar.clicked.connect(self.buscar_mascota)
+        # 1. ID Cliente (Dueño)
+        lbl_cliente = QLabel("ID Dueño:")
+        lbl_cliente.setStyleSheet(label_style)
+        self.inp_cliente = QLineEdit()
+        self.inp_cliente.setPlaceholderText("ID del dueño registrado")
+        self.inp_cliente.setStyleSheet(input_style)
 
-        # 2. Nombre
-        lbl_nombre = QLabel("Nombre:")
+        # 2. Nombre Mascota
+        lbl_nombre = QLabel("Nombre Mascota:")
         lbl_nombre.setStyleSheet(label_style)
         self.inp_nombre = QLineEdit()
+        self.inp_nombre.setPlaceholderText("Nombre de la mascota")
         self.inp_nombre.setStyleSheet(input_style)
 
         # 3. Edad
@@ -351,51 +344,48 @@ class MainWindow(QMainWindow):
         lbl_raza = QLabel("Raza:")
         lbl_raza.setStyleSheet(label_style)
         self.inp_raza = QLineEdit()
+        self.inp_raza.setPlaceholderText("Ej: Golden Retriever")
         self.inp_raza.setStyleSheet(input_style)
 
-        # 7. ID Dueño (Editable)
-        lbl_cliente = QLabel("Id dueño:")
-        lbl_cliente.setStyleSheet(label_style)
-        self.inp_cliente = QLineEdit()
-        self.inp_cliente.setPlaceholderText("ID del cliente")
-        self.inp_cliente.setStyleSheet(input_style)
-
-        # --- CONEXIÓN PARA PREVIEW ---
+        # --- CONEXIÓN PARA VISTA PREVIA ---
+        self.inp_cliente.textChanged.connect(self.update_preview)
         self.inp_nombre.textChanged.connect(self.update_preview)
         self.inp_edad.textChanged.connect(self.update_preview)
         self.inp_peso.textChanged.connect(self.update_preview)
-        self.inp_raza.textChanged.connect(self.update_preview)
-        self.inp_cliente.textChanged.connect(self.update_preview)
         self.inp_especie.currentTextChanged.connect(self.update_preview)
+        self.inp_raza.textChanged.connect(self.update_preview)
 
         # Añadir al Grid
-        grid_layout.addWidget(lbl_id, 0, 0)
-        grid_layout.addWidget(self.inp_id, 0, 1)
-        grid_layout.addWidget(btn_buscar, 0, 2)
+        # Fila 0: ID Dueño
+        grid_layout.addWidget(lbl_cliente, 0, 0)
+        grid_layout.addWidget(self.inp_cliente, 0, 1)
 
+        # Fila 1: Nombre
         grid_layout.addWidget(lbl_nombre, 1, 0)
         grid_layout.addWidget(self.inp_nombre, 1, 1)
 
+        # Fila 2: Edad
         grid_layout.addWidget(lbl_edad, 2, 0)
         grid_layout.addWidget(self.inp_edad, 2, 1)
 
+        # Fila 3: Peso
         grid_layout.addWidget(lbl_peso, 3, 0)
         grid_layout.addWidget(self.inp_peso, 3, 1)
 
+        # Fila 4: Especie
         grid_layout.addWidget(lbl_especie, 4, 0)
         grid_layout.addWidget(self.inp_especie, 4, 1)
 
+        # Fila 5: Raza
         grid_layout.addWidget(lbl_raza, 5, 0)
         grid_layout.addWidget(self.inp_raza, 5, 1)
 
-        grid_layout.addWidget(lbl_cliente, 6, 0)
-        grid_layout.addWidget(self.inp_cliente, 6, 1)
-
-        grid_layout.setRowStretch(7, 1)
+        # Expansión para que no se pegue todo arriba
+        grid_layout.setRowStretch(6, 1)
         parent_layout.addWidget(form_widget, stretch=3)
 
     def setup_info_board(self, parent_layout):
-        # Panel derecho
+        # Panel derecho para información / vista previa
         board_container = QFrame()
         board_container.setFixedWidth(350)
         board_container.setStyleSheet("""
@@ -410,7 +400,7 @@ class MainWindow(QMainWindow):
         board_layout.setContentsMargins(0, 0, 0, 0)
         board_layout.setSpacing(0)
 
-        # Header
+        # Header degradado
         header_frame = QFrame()
         header_frame.setFixedHeight(60)
         header_frame.setStyleSheet("""
@@ -425,24 +415,24 @@ class MainWindow(QMainWindow):
         lbl_info_title.setStyleSheet("color: white; font-size: 18px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_info_title)
 
-        # Contenido (Ficha Resumen)
+        # Contenido (Vista Previa)
         content_frame = QFrame()
         content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
         content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         
-        lbl_preview = QLabel("Ficha de Mascota")
+        # Título de la sección
+        lbl_preview = QLabel("Vista Previa")
         lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_preview.setStyleSheet("color: #888; font-size: 14px; font-weight: bold; margin-bottom: 10px;")
 
-        # Nombre
+        # Detalles
         self.lbl_prev_nombre = QLabel("Nombre Mascota")
         self.lbl_prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_nombre.setWordWrap(True)
         self.lbl_prev_nombre.setStyleSheet("font-size: 24px; font-weight: bold; color: #333; margin-bottom: 15px;")
 
-        # ID Dueño Resaltado
         self.lbl_prev_dueno = QLabel("Dueño ID: --")
         self.lbl_prev_dueno.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_dueno.setStyleSheet("""
@@ -454,12 +444,10 @@ class MainWindow(QMainWindow):
             border-radius: 5px;
         """)
 
-        # Detalles
         self.lbl_prev_detalles = QLabel("Especie - Raza")
         self.lbl_prev_detalles.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_detalles.setStyleSheet("font-size: 16px; color: #555; margin-top: 15px;")
 
-        # Stats
         self.lbl_prev_stats = QLabel("Edad: -- | Peso: --")
         self.lbl_prev_stats.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_stats.setStyleSheet("font-size: 14px; color: #888; margin-top: 5px;")
@@ -477,7 +465,7 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(board_container, stretch=1)
 
     def setup_save_button(self):
-        btn_save = QPushButton("Guardar Cambios")
+        btn_save = QPushButton("Guardar")
         btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_save.setFixedSize(250, 60)
         btn_save.setStyleSheet("""
@@ -496,8 +484,8 @@ class MainWindow(QMainWindow):
             }
         """)
         
-        btn_save.clicked.connect(self.guardar_cambios)
-        
+        btn_save.clicked.connect(self.guardar_datos)
+
         btn_container = QHBoxLayout()
         btn_container.addStretch()
         btn_container.addWidget(btn_save)
@@ -522,87 +510,53 @@ class MainWindow(QMainWindow):
         peso_txt = f"{peso} kg" if peso else "Peso: --"
         self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
 
-    # --- FUNCIÓN: BUSCAR MASCOTA ---
-    def buscar_mascota(self):
-        id_mascota = self.inp_id.text().strip()
-        
-        if not id_mascota:
-            QMessageBox.warning(self, "Aviso", "Ingresa un ID de mascota para buscar.")
-            return
-        
-        if not id_mascota.isdigit():
-            QMessageBox.warning(self, "Error", "El ID debe ser numérico.")
-            return
-
-        print(f"Buscando mascota ID: {id_mascota}")
-        try:
-            columnas = ['nombre', 'edad', 'peso', 'especie', 'raza', 'fk_cliente']
-            registro = self.conexion1.consultar_registro('mascota', 'id_mascota', id_mascota, columnas)
-            
-            if registro:
-                self.inp_nombre.setText(str(registro[0]))
-                self.inp_edad.setText(str(registro[1]))
-                self.inp_peso.setText(str(registro[2]))
-                self.inp_especie.setCurrentText(str(registro[3]))
-                self.inp_raza.setText(str(registro[4]))
-                self.inp_cliente.setText(str(registro[5]))
-                
-                QMessageBox.information(self, "Encontrado", "Datos de la mascota cargados.")
-            else:
-                QMessageBox.warning(self, "No encontrado", "No existe una mascota con ese ID.")
-                
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al buscar: {e}")
-
-    # --- FUNCIÓN: GUARDAR CAMBIOS ---
-    def guardar_cambios(self):
-        id_mascota = self.inp_id.text().strip()
-        
-        if not id_mascota:
-            QMessageBox.warning(self, "Error", "Primero busca una mascota por ID.")
-            return
-
-        # Recolectar datos
+    # --- LÓGICA DE GUARDADO ---
+    def guardar_datos(self):
+        # 1. Obtener datos
+        id_cliente = self.inp_cliente.text().strip()
         nombre = self.inp_nombre.text().strip()
         edad_str = self.inp_edad.text().strip()
         peso_str = self.inp_peso.text().strip()
         especie = self.inp_especie.currentText()
         raza = self.inp_raza.text().strip()
-        id_cliente = self.inp_cliente.text().strip()
 
-        if not nombre or not especie or not id_cliente:
-             QMessageBox.warning(self, "Aviso", "Nombre, Especie e ID Dueño son obligatorios.")
-             return
+        # 2. Validaciones
+        if not id_cliente or not nombre or not especie:
+            QMessageBox.warning(self, "Campos vacíos", "ID Dueño, Nombre y Especie son obligatorios.")
+            return
 
+        # Conversión de tipos
         try:
             edad = int(edad_str) if edad_str else 0
             peso = float(peso_str) if peso_str else 0.0
         except ValueError:
-            QMessageBox.warning(self, "Error", "Edad y Peso deben ser numéricos.")
+            QMessageBox.warning(self, "Formato inválido", "Edad debe ser entero y Peso un número (ej: 12.5).")
             return
 
-        datos = {
-            "nombre": nombre,
-            "edad": edad,
-            "peso": peso,
-            "especie": especie,
-            "raza": raza,
-            "fk_cliente": id_cliente
-        }
+        # 3. Insertar en BD
+        # Campos: nombre, edad, peso, especie, raza, fk_cliente
+        datos = (nombre, edad, peso, especie, raza, id_cliente)
+        columnas = ('nombre', 'edad', 'peso', 'especie', 'raza', 'fk_cliente')
+        table = 'mascota'
 
         try:
-            # Asegúrate de que tu PK sea 'id_mascota'
-            exito = self.conexion1.editar_registro(id_mascota, datos, 'mascota', 'id_mascota')
-            if exito:
-                QMessageBox.information(self, "Éxito", "Mascota actualizada correctamente.")
-            else:
-                QMessageBox.warning(self, "Error", "No se pudo actualizar.")
+            nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)
+            QMessageBox.information(self, "Éxito", f"Mascota registrada correctamente.\nID Generado: {nuevo_id}")
+            
+            # Limpiar campos
+            self.inp_cliente.clear()
+            self.inp_nombre.clear()
+            self.inp_edad.clear()
+            self.inp_peso.clear()
+            self.inp_raza.clear()
+            self.inp_especie.setCurrentIndex(0)
+
         except Exception as e:
-            # Captura error de llave foránea si el cliente no existe
-            if "foreign key" in str(e).lower():
-                QMessageBox.warning(self, "Error Dueño", f"El ID de dueño '{id_cliente}' no existe.")
+            # Si el ID de cliente no existe, psycopg2 arrojará un error de Foreign Key
+            if "foreign key constraint" in str(e) or "violates foreign key" in str(e):
+                QMessageBox.warning(self, "Error de Cliente", f"El ID de dueño '{id_cliente}' no existe en la base de datos.")
             else:
-                QMessageBox.critical(self, "Error", f"Fallo al guardar: {e}")
+                QMessageBox.critical(self, "Error", f"No se pudo registrar la mascota.\nError: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
