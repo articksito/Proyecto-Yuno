@@ -13,38 +13,35 @@ if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
     sys.path.append(current_dir)
-
+    
+from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
-                             QGridLayout, QComboBox, QTextEdit, QMessageBox)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
+                             QMessageBox, QGridLayout, QTextEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
+
 from db_connection import Conexion
 
-class VentanaConsulta(QMainWindow):
-    def __init__(self, nombre_usuario="Mick"):
+class VentanaAgregarMedicamento(QMainWindow):
+    def __init__(self):
         super().__init__()
         
-        # 1. Inicializar conexión
+        # Conexión solo para verificar (la inserción usa FuncinesVete)
         try:
             self.conexion = Conexion()
         except Exception as e:
-            print(f"Error BD: {e}")
-
-        self.nombre_usuario = nombre_usuario
-        self.setWindowTitle("Sistema Veterinario Yuno - Nueva Consulta")
+            print(f"Error Conexión: {e}")
+        self.setWindowTitle("Sistema Veterinario Yuno - Agregar Medicamento")
         self.resize(1280, 720)
 
-        # Widget central
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
-
-        # Layout principal (Horizontal)
         self.main_layout = QHBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS VISUALES ---
+        # --- ESTILOS VISUALES (Uniforme con el resto del sistema) ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -62,21 +59,21 @@ class VentanaConsulta(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Inputs Estilo Yuno */
-            QLineEdit, QComboBox, QTextEdit {
+            
+            /* Inputs del Formulario */
+            QLineEdit {
                 background-color: rgba(241, 131, 227, 0.35); 
                 border: none;
                 border-radius: 10px;
                 padding: 5px 15px;
-                font-size: 18px;
+                font-size: 16px;
                 color: #333;
             }
-            QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
+            QLineEdit:focus {
                 background-color: rgba(241, 131, 227, 0.5);
             }
-            QComboBox::drop-down { border: 0px; }
-            
-            /* Botones Menú Principal */
+
+            /* BOTONES MENU PRINCIPAL */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
@@ -95,7 +92,8 @@ class VentanaConsulta(QMainWindow):
                 border: 1px solid white;
                 color: #FFF;
             }
-            /* Sub-botones */
+
+            /* SUB-BOTONES */
             QPushButton.sub-btn {
                 text-align: left;
                 padding-left: 40px;
@@ -116,8 +114,8 @@ class VentanaConsulta(QMainWindow):
                 background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
-
-            /* Botón Cerrar Sesión */
+            
+            /* Botón Logout */
             QPushButton.logout-btn {
                 text-align: center; border: 2px solid white; 
                 border-radius: 15px; padding: 10px; margin-top: 20px;
@@ -131,7 +129,7 @@ class VentanaConsulta(QMainWindow):
         self.setup_content_panel()
 
     # ============================================================
-    #  BARRA LATERAL
+    #  SIDEBAR
     # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
@@ -147,10 +145,9 @@ class VentanaConsulta(QMainWindow):
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        # Sube a Modulos -> FILES -> logo_yuno.png
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
         ruta_logo = os.path.normpath(ruta_logo)
-         
+
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -165,7 +162,7 @@ class VentanaConsulta(QMainWindow):
 
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
-
+        
         # --- MENÚS DESPLEGABLES ---
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
@@ -209,203 +206,152 @@ class VentanaConsulta(QMainWindow):
         else:
             frame.show()
 
-    # ============================================================
-    #  ENRUTADOR (Navegación)
-    # ============================================================
     def router_ventanas(self, categoria, opcion):
-        print(f"Navegando desde Consulta a: {categoria} -> {opcion}")
+        print(f"Navegando: {categoria} -> {opcion}")
         try:
             # --- CONSULTAS ---
             if categoria == "Consultas":
                 if opcion == "Crear Consulta":
                     from UI_Realizar_consulta import VentanaConsulta
-                    self.ventana = VentanaConsulta(self.nombre_usuario)
-                    self.ventana.show()
+                    self.v = VentanaConsulta(self.nombre_usuario)
+                    self.v.show()
                     self.close()
                 elif opcion == "Ver Registro":
                     from UI_Revisar_consulta import VentanaRevisarConsulta
-                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
-                    self.ventana.show()
+                    self.v = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.v.show()
                     self.close()
 
             # --- RECETAS ---
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
-                    from UI_Registrar_receta import VentanaReceta 
-                    self.ventana = VentanaReceta(self.nombre_usuario)
-                    self.ventana.show()
+                    from UI_Registrar_receta import VentanaReceta
+                    self.v = VentanaReceta(self.nombre_usuario)
+                    self.v.show()
                     self.close()
                 elif opcion == "Ver Registro":
                     from UI_Revisar_recetas import VentanaRevisarReceta
-                    self.ventana = VentanaRevisarReceta(self.nombre_usuario)
-                    self.ventana.show()
+                    self.v = VentanaRevisarReceta(self.nombre_usuario)
+                    self.v.show()
                     self.close()
                 elif opcion == "Agregar medicina a receta":
-                    from UI_Agregar_MReceta import VentanaAgregarMedicamento
-                    self.ventana=VentanaAgregarMedicamento()
-                    self.ventana.show()
-                    self.close()
+                    QMessageBox.information(self, "Sistema", "Ya estás en Agregar Medicina.")
 
-            # --- EXTRA (NUEVO) ---
+            # --- EXTRA ---
             elif categoria == "Extra":
                 if opcion == "Visualizar mascotas":
                     from UI_RevisarMascota_Vete import VentanaRevisarMascota
-                    self.ventana = VentanaRevisarMascota()
-                    self.ventana.show()
+                    self.v = VentanaRevisarMascota(self.nombre_usuario)
+                    self.v.show()
                     self.close()
-                
                 elif opcion == "Visualizar medicamento":
-                    from UI_RevisarMedicamento import VentanaRevisarMedicamento
-                    self.ventana = VentanaRevisarMedicamento()
-                    self.ventana.show()
-                    self.close()
-                
+                    QMessageBox.information(self, "Construcción", "Aquí iría Visualizar Medicamento.")
                 elif opcion == "Agregar notas para internar":
-                    # AQUI CONECTAS TU CLASE
-                    QMessageBox.information(self, "Construcción", "Aquí iría Notas de Internación.")
-        
+                    QMessageBox.information(self, "Construcción", "Aquí iría Notas Internación.")
+
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error: {e}")
 
     # ============================================================
-    #  PANEL CENTRAL (FORMULARIO CONSULTA)
+    #  PANEL CENTRAL (FORMULARIO AGREGAR MEDICAMENTO)
     # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
-        self.white_layout.setContentsMargins(50, 30, 50, 40)
+        self.white_layout.setContentsMargins(50, 40, 50, 40)
 
-        # HEADER
+        # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Realizar Consulta")
-        lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
+        lbl_header = QLabel("Agregar Medicamento a Receta")
+        lbl_header.setStyleSheet("font-size: 32px; font-weight: bold; color: #333;")
         
-        btn_close_view = QPushButton("✕")
-        btn_close_view.setFixedSize(40, 40)
-        btn_close_view.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_close_view.setStyleSheet("""
-            QPushButton { background-color: #f0f0f0; border-radius: 20px; font-size: 20px; color: #666; border: none; }
+        btn_back = QPushButton("✕")
+        btn_back.setFixedSize(40, 40)
+        btn_back.setStyleSheet("""
+            QPushButton { background-color: #F0F0F0; border-radius: 20px; font-size: 20px; color: #666; border: none; }
             QPushButton:hover { background-color: #ffcccc; color: #cc0000; }
         """)
-        btn_close_view.clicked.connect(self.volver_al_menu)
+        btn_back.clicked.connect(self.volver_al_menu)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_close_view)
+        header_layout.addWidget(btn_back)
+
         self.white_layout.addLayout(header_layout)
+        self.white_layout.addSpacing(30)
 
-        self.white_layout.addSpacing(20)
-
-        # FORMULARIO GRID
+        # --- FORMULARIO ---
         form_widget = QWidget()
         grid = QGridLayout(form_widget)
-        grid.setVerticalSpacing(20)
+        grid.setVerticalSpacing(25)
         grid.setHorizontalSpacing(30)
-        grid.setContentsMargins(0, 0, 0, 0)
 
         lbl_style = "font-size: 20px; color: black; font-weight: 400;"
         input_height = "height: 45px;"
 
-        # 1. ID Veterinario
-        lbl_vet = QLabel("ID Veterinario:")
-        lbl_vet.setStyleSheet(lbl_style)
-        self.inp_vet = QLineEdit()
-        self.inp_vet.setPlaceholderText("ID Médico")
-        self.inp_vet.setStyleSheet(input_height)
+        # 1. ID Receta
+        lbl_receta = QLabel("ID Receta:")
+        lbl_receta.setStyleSheet(lbl_style)
+        self.inp_receta = QLineEdit()
+        self.inp_receta.setPlaceholderText("ID de la Receta")
+        self.inp_receta.setStyleSheet(input_height)
 
-        # 2. ID Mascota
-        lbl_mascota = QLabel("ID Mascota:")
-        lbl_mascota.setStyleSheet(lbl_style)
-        self.inp_mascota = QLineEdit()
-        self.inp_mascota.setPlaceholderText("ID Paciente")
-        self.inp_mascota.setStyleSheet(input_height)
+        # 2. ID Medicamento
+        lbl_medicamento = QLabel("ID Medicamento:")
+        lbl_medicamento.setStyleSheet(lbl_style)
+        self.inp_medicamento = QLineEdit()
+        self.inp_medicamento.setPlaceholderText("ID del Medicamento")
+        self.inp_medicamento.setStyleSheet(input_height)
 
-        # 3. Consultorio
-        lbl_cons = QLabel("Consultorio:")
-        lbl_cons.setStyleSheet(lbl_style)
-        self.inp_cons = QComboBox()
-        self.inp_cons.addItems(["Sala 1", "Sala 2", "Quirófano", "Triaje"])
-        self.inp_cons.setEditable(True)
-        self.inp_cons.setStyleSheet(input_height)
+        # 3. Cantidad
+        lbl_cantidad = QLabel("Cantidad:")
+        lbl_cantidad.setStyleSheet(lbl_style)
+        self.inp_cantidad = QLineEdit()
+        self.inp_cantidad.setPlaceholderText("Ej: 2")
+        self.inp_cantidad.setStyleSheet(input_height)
 
-        # 4. Método Pago
-        lbl_pago = QLabel("Método Pago:")
-        lbl_pago.setStyleSheet(lbl_style)
-        self.inp_pago = QComboBox()
-        self.inp_pago.addItems(["Efectivo", "Tarjeta", "Transferencia", "Seguro"])
-        self.inp_pago.setStyleSheet(input_height)
+        # Layout
+        grid.addWidget(lbl_receta, 0, 0)
+        grid.addWidget(self.inp_receta, 0, 1)
 
-        # 5. ID Cita
-        lbl_cita = QLabel("ID Cita (Opcional):")
-        lbl_cita.setStyleSheet(lbl_style)
-        self.inp_cita = QLineEdit()
-        self.inp_cita.setPlaceholderText("ID Cita")
-        self.inp_cita.setStyleSheet(input_height)
+        grid.addWidget(lbl_medicamento, 1, 0)
+        grid.addWidget(self.inp_medicamento, 1, 1)
 
-        # SIN FECHA NI HORA
+        grid.addWidget(lbl_cantidad, 2, 0)
+        grid.addWidget(self.inp_cantidad, 2, 1)
 
-        # AGREGAR AL GRID
-        grid.addWidget(lbl_vet, 0, 0)
-        grid.addWidget(self.inp_vet, 0, 1)
-
-        grid.addWidget(lbl_mascota, 1, 0)
-        grid.addWidget(self.inp_mascota, 1, 1)
-
-        grid.addWidget(lbl_cons, 2, 0)
-        grid.addWidget(self.inp_cons, 2, 1)
-
-        grid.addWidget(lbl_pago, 3, 0)
-        grid.addWidget(self.inp_pago, 3, 1)
-
-        grid.addWidget(lbl_cita, 4, 0)
-        grid.addWidget(self.inp_cita, 4, 1)
-
-        # Empujar hacia arriba
-        grid.setRowStretch(5, 1)
+        grid.setRowStretch(3, 1)
 
         self.white_layout.addWidget(form_widget)
         self.white_layout.addSpacing(20)
 
-        # MOTIVO
-        lbl_motivo = QLabel("Motivo de Consulta / Diagnóstico:")
-        lbl_motivo.setStyleSheet(lbl_style)
-        self.txt_motivo = QTextEdit()
-        self.txt_motivo.setPlaceholderText("Escriba aquí los detalles de la consulta...")
-        self.txt_motivo.setStyleSheet("border-radius: 15px; padding: 15px;")
-        
-        self.white_layout.addWidget(lbl_motivo)
-        self.white_layout.addWidget(self.txt_motivo, stretch=1)
-
-        self.white_layout.addSpacing(20)
-
-        # BOTÓN GUARDAR
-        btn_save = QPushButton("Guardar Consulta")
-        btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
+        # Botón Guardar
+        btn_save = QPushButton("Agregar Medicamento")
         btn_save.setFixedSize(300, 60)
+        btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_save.setStyleSheet("""
             QPushButton {
                 background-color: #b67cfc; color: white;
-                font-size: 24px; font-weight: bold; border-radius: 30px;
+                font-size: 22px; font-weight: bold; border-radius: 30px;
             }
             QPushButton:hover { background-color: #a060e8; }
-            QPushButton:pressed { background-color: #8a4cd0; }
         """)
         btn_save.clicked.connect(self.guardar_datos)
 
-        btn_container = QHBoxLayout()
-        btn_container.addStretch()
-        btn_container.addWidget(btn_save)
-        btn_container.addStretch()
-        
-        self.white_layout.addLayout(btn_container)
+        btn_layout = QHBoxLayout()
+        btn_layout.addStretch()
+        btn_layout.addWidget(btn_save)
+        btn_layout.addStretch()
+
+        self.white_layout.addLayout(btn_layout)
+        self.white_layout.addStretch()
+
+        self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
-    # ============================================================
-    #  LÓGICA
-    # ============================================================
     def volver_al_menu(self):
         try:
             from UI_Veterinario import VeterinarioMenu 
@@ -416,48 +362,57 @@ class VentanaConsulta(QMainWindow):
             self.close()
 
     def guardar_datos(self):
-        # 1. Obtener Datos
-        consultorio = self.inp_cons.currentText()
-        motivo = self.txt_motivo.toPlainText().strip()
-        metodo_pago = self.inp_pago.currentText()
-        id_vet_str = self.inp_vet.text().strip()
-        id_mascota_str = self.inp_mascota.text().strip()
-        id_cita_str = self.inp_cita.text().strip()
+        id_receta_str = self.inp_receta.text().strip()
+        id_med_str = self.inp_medicamento.text().strip()
+        cantidad_str = self.inp_cantidad.text().strip()
 
-        # 2. Validar
-        if not motivo or not id_vet_str or not id_mascota_str:
-            QMessageBox.warning(self, "Campos Vacíos", "ID Veterinario, ID Mascota y Motivo son obligatorios.")
+        if not id_receta_str or not id_med_str or not cantidad_str:
+            QMessageBox.warning(self, "Campos Vacíos", "Todos los campos son obligatorios.")
             return
 
         try:
-            fk_veterinario = int(id_vet_str)
-            fk_mascota = int(id_mascota_str)
-            fk_cita = int(id_cita_str) if id_cita_str else None
+            fk_receta = int(id_receta_str)
+            fk_medicamento = int(id_med_str)
+            cantidad = int(cantidad_str)
         except ValueError:
-            QMessageBox.warning(self, "Error", "Los IDs deben ser numéricos.")
+            QMessageBox.warning(self, "Error de Formato", "Los IDs y la Cantidad deben ser números enteros.")
             return
 
-        # 3. Insertar (SIN FECHA NI HORA)
-        # Columnas: consultorio, motivo, metodo_pago, fk_veterinario, fk_mascota, fk_cita
-        campos = ['consultorio', 'motivo', 'metodo_pago', 'fk_veterinario', 'fk_mascota']
-        datos = [consultorio, motivo, metodo_pago, fk_veterinario, fk_mascota]
-
-        if fk_cita is not None:
-            campos.append('fk_cita')
-            datos.append(fk_cita)
+        # Insertar en tabla intermedia 'receta_medicamento'
+        tabla = 'receta_medicamento' 
+        # IMPORTANTE: Asegúrate que el orden coincida con el orden de las columnas en BD o especifica tupla
+        # Según tu petición: fk_receta, fk_medicamento, cantidad
+        campos = ('fk_receta', 'fk_medicamento', 'cantidad')
+        datos = (fk_receta, fk_medicamento, cantidad)
 
         try:
-            self.conexion.insertar_datos('consulta', tuple(datos), tuple(campos))
-            QMessageBox.information(self, "Éxito", "Consulta registrada correctamente.")
-            self.txt_motivo.clear()
-            self.inp_cita.clear()
+            # Usando funciones_vete como pediste
+            from funciones_vete import FuncinesVete
+            
+            # Instanciamos la clase (corrige el error de tu ejemplo donde faltaban parentesis)
+            self.funcion = FuncinesVete()
+            
+            # Llamamos al método
+            self.funcion.insertar_sindevolverId(tabla, datos, campos)
+            
+            QMessageBox.information(self, "Éxito", "Medicamento agregado a la receta correctamente.")
+            
+            # Limpiar campos para seguir agregando
+            self.inp_medicamento.clear()
+            self.inp_cantidad.clear()
+            # self.inp_receta.clear() # Dejamos el ID receta para agilizar
+
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo guardar:\n{e}")
+            msg = str(e)
+            if "violates foreign key constraint" in msg:
+                QMessageBox.warning(self, "Error de ID", "El ID de Receta o Medicamento no existe.")
+            else:
+                QMessageBox.critical(self, "Error", f"No se pudo guardar:\n{msg}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = VentanaConsulta("Mick")
+    window = VentanaAgregarMedicamento()
     window.show()
     sys.exit(app.exec())

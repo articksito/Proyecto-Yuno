@@ -131,7 +131,8 @@ class LoginWindow(QWidget):
                 self.close()
             elif rol == "REP":
                 from Recepcionista.UI_REP_main import RecepMenu
-                self.rep = RecepMenu(conexion.Nombre_Usuario(username))
+                self.rep = RecepMenu
+                (conexion.Nombre_Usuario(username))
                 self.rep.show()
                 self.close()
             elif rol== "ENF":

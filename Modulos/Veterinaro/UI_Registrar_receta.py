@@ -1,9 +1,9 @@
 import sys
 import os
 
-# --- CONFIGURACIÓN DE RUTAS ---
+# --- 1. CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Ajuste para subir niveles correctamente dependiendo de donde esté el archivo
+# Ajuste para subir niveles correctamente
 if 'Veterinaro' in current_dir:
     project_root = os.path.abspath(os.path.join(current_dir, '..'))
 else:
@@ -41,7 +41,7 @@ class VentanaReceta(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS ---
+        # --- ESTILOS VISUALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -139,7 +139,7 @@ class VentanaReceta(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ---
+        # --- LOGO ROBUSTO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -154,18 +154,19 @@ class VentanaReceta(QMainWindow):
                 scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
-                lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+                lbl_logo.setText("YUNO VET\nRECETAS")
+                lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
         else:
-            lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+            lbl_logo.setText("YUNO VET\nRECETAS")
+            lbl_logo.setStyleSheet("color: white; font-size: 28px; font-weight: bold; margin-bottom: 20px;")
 
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
         
         # --- MENÚS DESPLEGABLES ---
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
-        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
+        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
+        self.setup_accordion_group("Extra", ["Visualizar mascotas", "Visualizar medicamento", "Agregar notas para internar"])
 
         self.sidebar_layout.addStretch()
 
@@ -209,32 +210,62 @@ class VentanaReceta(QMainWindow):
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando: {categoria} -> {opcion}")
         try:
+            # CONSULTAS
             if categoria == "Consultas":
                 if opcion == "Crear Consulta":
                     from UI_Realizar_consulta import VentanaConsulta
-                    self.v = VentanaConsulta(self.nombre_usuario)
-                    self.v.show()
+                    self.ventana = VentanaConsulta(self.nombre_usuario)
+                    self.ventana.show()
                     self.close()
                 elif opcion == "Ver Registro":
                     from UI_Revisar_consulta import VentanaRevisarConsulta
-                    self.v = VentanaRevisarConsulta(self.nombre_usuario)
-                    self.v.show()
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.ventana.show()
                     self.close()
+
+            # --- RECETAS ---
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
-                    QMessageBox.information(self, "Sistema", "Ya estás creando una Receta.")
+                    from UI_Registrar_receta import VentanaReceta 
+                    self.ventana = VentanaReceta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
                 elif opcion == "Ver Registro":
                     from UI_Revisar_recetas import VentanaRevisarReceta
-                    self.v = VentanaRevisarReceta(self.nombre_usuario)
-                    self.v.show()
+                    self.ventana = VentanaRevisarReceta(self.nombre_usuario)
+                    self.ventana.show()
                     self.close()
+                elif opcion == "Agregar medicina a receta":
+                    from UI_Agregar_MReceta import VentanaAgregarMedicamento
+                    self.ventana=VentanaAgregarMedicamento()
+                    self.ventana.show()
+                    self.close()
+
+            # --- EXTRA (NUEVO) ---
+            elif categoria == "Extra":
+                if opcion == "Visualizar mascotas":
+                    from UI_RevisarMascota_Vete import VentanaRevisarMascota
+                    self.ventana = VentanaRevisarMascota()
+                    self.ventana.show()
+                    self.close()
+                
+                elif opcion == "Visualizar medicamento":
+                    from UI_RevisarMedicamento import VentanaRevisarMedicamento
+                    self.ventana = VentanaRevisarMedicamento()
+                    self.ventana.show()
+                    self.close()
+                
+                elif opcion == "Agregar notas para internar":
+                    # AQUI CONECTAS TU CLASE
+                    QMessageBox.information(self, "Construcción", "Aquí iría Notas de Internación.")
+
         except ImportError as e:
-            QMessageBox.warning(self, "Error", f"No se encontró el archivo: {e.name}")
+            QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error: {e}")
 
     # ============================================================
-    #  PANEL CENTRAL (SIN FECHA)
+    #  PANEL CENTRAL
     # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
@@ -338,6 +369,7 @@ class VentanaReceta(QMainWindow):
             return
 
         # INSERTAR EN RECETA (SIN FECHA)
+        # Columnas: indicaciones, fk_consulta
         campos = ['indicaciones', 'fk_consulta']
         datos = [indicaciones, fk_consulta]
 
@@ -347,7 +379,11 @@ class VentanaReceta(QMainWindow):
             self.txt_indicaciones.clear()
             self.inp_consulta.clear()
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al guardar:\n{e}")
+            # Manejo de error de FK (Consulta no existe)
+            if "violates foreign key constraint" in str(e):
+                QMessageBox.warning(self, "Error ID", f"El ID de Consulta {fk_consulta} no existe.")
+            else:
+                QMessageBox.critical(self, "Error", f"Error al guardar:\n{e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

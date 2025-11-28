@@ -362,6 +362,7 @@ class Conexion:
         except Exception as e:
             print(f"Error al obtener pacientes: {e}")
             return []
+    
 
 
 class main:

@@ -1,10 +1,8 @@
 import sys
 import os
 
-# --- 1. CONFIGURACIÓN DE RUTAS (Vital para evitar errores) ---
+# --- 1. CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Subimos un nivel para encontrar db_connection (si está en Modulos)
-# O dos niveles si está en la raíz. Ajustado a tu estructura actual:
 project_root = os.path.abspath(os.path.join(current_dir, '..')) 
 
 if project_root not in sys.path:
@@ -14,25 +12,22 @@ if current_dir not in sys.path:
 
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QListWidget, 
-                             QMessageBox)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, 
+                             QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView)
 from PyQt6.QtCore import Qt, QTimer
-from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtGui import QFont, QPixmap, QColor
 
-# Importar conexión
 from db_connection import Conexion
 
 class VeterinarioMenu(QMainWindow):
     def __init__(self, nombre_usuario="Veterinario"):
         super().__init__()
         
-        # 1. Base de Datos
         try:
             self.conexion = Conexion()
         except Exception as e:
             print(f"Error BD: {e}")
 
-        # 2. Datos del Usuario
         self.nombre_usuario = nombre_usuario
         self.user_data = {
             "nombre": f"{self.nombre_usuario}",
@@ -49,7 +44,7 @@ class VeterinarioMenu(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS (Diseño idéntico al Enfermero) ---
+        # --- ESTILOS ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -65,69 +60,61 @@ class VeterinarioMenu(QMainWindow):
             }
             QLabel { font-family: 'Segoe UI', sans-serif; }
             
-            /* ESTILO BOTÓN PRINCIPAL (ACORDEÓN) */
-            QPushButton.menu-btn {
-                text-align: left;
-                padding-left: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 15px;
-                color: white;
-                font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
-                font-size: 18px;
-                background-color: rgba(255, 255, 255, 0.1);
-                height: 50px;
-                margin-bottom: 5px;
-            }
-            QPushButton.menu-btn:hover { 
-                background-color: rgba(255, 255, 255, 0.25);
-                border: 1px solid white;
-                color: #FFF;
-            }
-
-            /* ESTILO SUB-BOTONES (DESPLEGABLES) */
-            QPushButton.sub-btn {
-                text-align: left;
-                padding-left: 40px;
+            /* ESTILO TABLA (FONDO BLANCO PURO) */
+            QTableWidget {
+                border: 1px solid black;
                 border-radius: 10px;
-                color: #F0F0F0;
-                font-family: 'Segoe UI', sans-serif;
-                font-size: 16px;
-                font-weight: normal;
-                background-color: rgba(0, 0, 0, 0.05);
-                height: 35px;
-                margin-bottom: 2px;
-                margin-left: 10px;
-                margin-right: 10px;
+                background-color: white;
+                gridline-color: black;
+                font-size: 14px;
+                color: black;
             }
-            QPushButton.sub-btn:hover { 
+            QHeaderView::section {
+                background-color: #FC7CE2;
                 color: white;
-                background-color: rgba(255, 255, 255, 0.3);
+                padding: 5px;
                 font-weight: bold;
+                border: 1px solid black;
+            }
+            QTableWidget::item {
+                padding: 5px;
+                color: black;
+                background-color: white;
+                border-bottom: 1px solid black;
+            }
+            QTableWidget::item:selected {
+                background-color: #e0e0e0;
+                color: black;
             }
             
-            /* Botón Logout */
+            /* ESTILO BOTONES SIDEBAR */
+            QPushButton.menu-btn {
+                text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px; color: white; font-family: 'Segoe UI', sans-serif;
+                font-weight: bold; font-size: 18px; background-color: rgba(255, 255, 255, 0.1);
+                height: 50px; margin-bottom: 5px;
+            }
+            QPushButton.menu-btn:hover { background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF; }
+
+            QPushButton.sub-btn {
+                text-align: left; padding-left: 40px; border-radius: 10px; color: #F0F0F0;
+                font-family: 'Segoe UI', sans-serif; font-size: 16px; font-weight: normal;
+                background-color: rgba(0, 0, 0, 0.05); height: 35px; margin-bottom: 2px;
+                margin-left: 10px; margin-right: 10px;
+            }
+            QPushButton.sub-btn:hover { color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold; }
+            
             QPushButton.logout-btn {
-                text-align: center; border: 2px solid white; 
-                border-radius: 15px; padding: 10px; margin-top: 20px;
-                font-size: 14px; color: white; font-weight: bold;
-                background-color: transparent;
+                text-align: center; border: 2px solid white; border-radius: 15px;
+                padding: 10px; margin-top: 20px; font-size: 14px; color: white;
+                font-weight: bold; background-color: transparent;
             }
             QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
-            
-            /* Lista */
-            QListWidget {
-                border: 1px solid #E0E0E0; border-radius: 10px;
-                background-color: #F9F9F9; padding: 10px; font-size: 15px; color: #333;
-            }
         """)
 
         self.setup_sidebar()
         self.setup_content_panel()
 
-    # ============================================================
-    #  BARRA LATERAL CON LOGO FUNCIONAL
-    # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
@@ -136,14 +123,11 @@ class VeterinarioMenu(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO (Lógica Robusta copiada de Enfermero) ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # 1. Ruta actual
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        # 2. Ruta relativa a FILES (Subir a Modulos -> FILES)
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
         ruta_logo = os.path.normpath(ruta_logo)
 
@@ -156,16 +140,22 @@ class VeterinarioMenu(QMainWindow):
                 lbl_logo.setText("YUNO VET")
                 lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
         else:
-            print(f"No se encontró el logo en: {ruta_logo}")
             lbl_logo.setText("YUNO VET")
             lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
 
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- GRUPOS DESPLEGABLES ---
+        # --- AQUI ESTAN LOS CAMBIOS DE MENU ---
+        
+        # 1. Consultas
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
-        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
+        
+        # 2. Recetas (Agregada nueva opción)
+        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
+        
+        # 3. Extra (Nuevo Grupo)
+        self.setup_accordion_group("Extra", ["Visualizar mascotas", "Visualizar medicamento", "Agregar notas para internar"])
 
         self.sidebar_layout.addStretch()
 
@@ -179,7 +169,7 @@ class VeterinarioMenu(QMainWindow):
 
     def setup_accordion_group(self, title, options):
         btn_main = QPushButton(title)
-        btn_main.setProperty("class", "menu-btn") # Aplica Estilo
+        btn_main.setProperty("class", "menu-btn")
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
         self.sidebar_layout.addWidget(btn_main)
 
@@ -190,73 +180,79 @@ class VeterinarioMenu(QMainWindow):
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
-            btn_sub.setProperty("class", "sub-btn") # Aplica Estilo
+            btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            
-            # CONEXIÓN AL ENRUTADOR
             btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.router_ventanas(t, o))
-            
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
-        
-        # Lógica de mostrar/ocultar
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
-        if frame.isVisible():
-            frame.hide()
-        else:
-            frame.show()
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
 
     # ============================================================
-    #  ENRUTADOR (ROUTER) DE VENTANAS
+    #  ENRUTADOR ACTUALIZADO
     # ============================================================
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
-
         try:
-            # --- LÓGICA DE CONSULTAS ---
+            # --- CONSULTAS ---
             if categoria == "Consultas":
                 if opcion == "Crear Consulta":
-                    # IMPORT DENTRO PARA EVITAR ERROR CIRCULAR
                     from UI_Realizar_consulta import VentanaConsulta
                     self.ventana = VentanaConsulta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-                    
                 elif opcion == "Ver Registro":
-                    # IMPORT DENTRO PARA EVITAR ERROR CIRCULAR
                     from UI_Revisar_consulta import VentanaRevisarConsulta
                     self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
 
-            # --- LÓGICA DE RECETAS ---
+            # --- RECETAS ---
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
-                    # Asegúrate de que el nombre del archivo coincida (UI_Crear_Receta vs UI_Registrar_receta)
-                    # Usaré UI_Crear_Receta basado en nuestra conversación anterior
                     from UI_Registrar_receta import VentanaReceta 
                     self.ventana = VentanaReceta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-                    
                 elif opcion == "Ver Registro":
                     from UI_Revisar_recetas import VentanaRevisarReceta
                     self.ventana = VentanaRevisarReceta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
+                elif opcion == "Agregar medicina a receta":
+                    from UI_Agregar_MReceta import VentanaAgregarMedicamento
+                    self.ventana=VentanaAgregarMedicamento()
+                    self.ventana.show()
+                    self.close()
+
+            # --- EXTRA (NUEVO) ---
+            elif categoria == "Extra":
+                if opcion == "Visualizar mascotas":
+                    from UI_RevisarMascota_Vete import VentanaRevisarMascota
+                    self.ventana = VentanaRevisarMascota()
+                    self.ventana.show()
+                    self.close()
+                
+                elif opcion == "Visualizar medicamento":
+                    from UI_RevisarMedicamento import VentanaRevisarMedicamento
+                    self.ventana = VentanaRevisarMedicamento()
+                    self.ventana.show()
+                    self.close()
+                
+                elif opcion == "Agregar notas para internar":
+                    # AQUI CONECTAS TU CLASE
+                    QMessageBox.information(self, "Construcción", "Aquí iría Notas de Internación.")
 
         except ImportError as e:
-            QMessageBox.warning(self, "Archivo Faltante", f"No se encontró el archivo: {e.name}\nVerifica el nombre en la carpeta.")
+            QMessageBox.warning(self, "Archivo Faltante", f"No se encontró el archivo: {e.name}")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al abrir ventana:\n{e}")
 
-    # ============================================================
-    #  PANEL CENTRAL (RELOJ + DB)
-    # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
@@ -308,7 +304,7 @@ class VeterinarioMenu(QMainWindow):
         self.timer.start(1000)
         self.update_time()
 
-        # DERECHA: Lista DB
+        # DERECHA: TABLA DE CITAS
         right_container = QFrame()
         list_layout = QVBoxLayout(right_container)
         list_layout.setContentsMargins(0, 0, 0, 0)
@@ -317,28 +313,45 @@ class VeterinarioMenu(QMainWindow):
         lbl_info.setStyleSheet("font-size: 18px; color: #666; font-weight: bold; margin-bottom: 10px;")
         list_layout.addWidget(lbl_info)
 
-        self.lista_espera = QListWidget()
+        # TABLA
+        self.tabla_citas = QTableWidget()
+        self.tabla_citas.setColumnCount(4)
+        self.tabla_citas.setHorizontalHeaderLabels(["Paciente ID", "Fecha", "Hora", "Estado"])
+        
+        self.tabla_citas.setAlternatingRowColors(False) 
+        self.tabla_citas.verticalHeader().setVisible(False)
+        self.tabla_citas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
+        self.tabla_citas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
+        
+        header = self.tabla_citas.horizontalHeader()
+        header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+
         try:
             datos_citas = self.conexion.Select_users('cita') 
             if datos_citas:
-                citas_recientes = datos_citas[::-1][:15]
+                pendientes = [fila for fila in datos_citas if fila[3] == 'Pendiente']
+                pendientes = pendientes[::-1][:15] 
 
-                for fila in citas_recientes:
-                    # Ajusta los índices [1], [2], [3] según tu tabla real
-                    paciente = fila[1]  
-                    motivo = fila[2]    
-                    hora = fila[3]      
-                    self.lista_espera.addItem(f"{hora} - {paciente} ({motivo})")
+                self.tabla_citas.setRowCount(len(pendientes))
+
+                for row, fila in enumerate(pendientes):
+                    self.tabla_citas.setItem(row, 0, QTableWidgetItem(str(fila[0])))
+                    self.tabla_citas.setItem(row, 1, QTableWidgetItem(str(fila[1])))
+                    self.tabla_citas.setItem(row, 2, QTableWidgetItem(str(fila[2])))
+                    
+                    item_estado = QTableWidgetItem(str(fila[3]))
+                    item_estado.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+                    self.tabla_citas.setItem(row, 3, item_estado)
             else:
-                self.lista_espera.addItem("No hay citas pendientes.")
+                pass
+                
         except Exception as e:
-            print(f"Error UI Citas: {e}")
-            self.lista_espera.addItem("Sin conexión a Base de Datos.")
+            print(f"Error Tabla Citas: {e}")
 
-        list_layout.addWidget(self.lista_espera)
+        list_layout.addWidget(self.tabla_citas)
 
-        panel_layout.addWidget(left_container, 60)
-        panel_layout.addWidget(right_container, 40)
+        panel_layout.addWidget(left_container, 40)
+        panel_layout.addWidget(right_container, 60)
 
         self.main_layout.addWidget(self.white_panel)
 
@@ -350,6 +363,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = VeterinarioMenu("Mick")
+    window = VeterinarioMenu()
     window.show()
     sys.exit(app.exec())
