@@ -1,20 +1,16 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QGridLayout)
-from PyQt6.QtCore import Qt
+                             QHBoxLayout, QPushButton, QLabel, QFrame)
+from PyQt6.QtCore import Qt, QSize
 from PyQt6.QtGui import QFont, QIcon
 
 class MainWindow(QMainWindow):
+    """
+    Clase principal para la ventana de Revisión de Mascota.
+    Implementa la interfaz de usuario con barra lateral y un panel de contenido
+    para mostrar y gestionar los datos de una mascota.
+    """
     def __init__(self):
         super().__init__()
 
@@ -30,9 +26,10 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES ---
+        # --- ESTILOS GENERALES (Asegurando el degradado y la estética) ---
         self.setStyleSheet("""
             QMainWindow {
+                /* Degradado principal de la aplicación */
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
             }
             QWidget#Sidebar {
@@ -101,6 +98,20 @@ class MainWindow(QMainWindow):
                 padding-bottom: 15px;
                 border-bottom: 1px solid #EEE;
             }
+            QPushButton#EditButton {
+                background-color: #FC7CE2; /* Color principal de la marca */
+                color: white;
+                border-radius: 20px;
+                padding: 10px 20px;
+                font-size: 18px;
+                font-weight: bold;
+                margin-top: 20px;
+                border: none;
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            }
+            QPushButton#EditButton:hover {
+                background-color: #d868c2;
+            }
         """)
 
         # --- 1. BARRA LATERAL (Izquierda) ---
@@ -135,7 +146,7 @@ class MainWindow(QMainWindow):
                 color: #333;
             }
         """)
-        btn_back.clicked.connect(self.close) # O función para volver atrás
+        btn_back.clicked.connect(self.close) # Función para volver atrás
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
@@ -162,6 +173,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     def setup_sidebar(self):
+        """Configura la barra lateral de navegación."""
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(300)
@@ -195,6 +207,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(btn_logout)
 
     def setup_accordion_group(self, title, options):
+        """Crea un grupo de menú tipo acordeón."""
         btn_main = QPushButton(title)
         btn_main.setProperty("class", "menu-btn")
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -216,20 +229,23 @@ class MainWindow(QMainWindow):
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
+        """Alterna la visibilidad del menú de acordeón."""
         if frame.isVisible():
             frame.hide()
         else:
             frame.show()
 
     def setup_pet_data(self, parent_layout):
+        """Configura la columna izquierda con los datos de la mascota y el botón Editar."""
         # Contenedor de datos estilo lista/ficha
         data_widget = QWidget()
         data_layout = QVBoxLayout(data_widget)
         data_layout.setSpacing(20)
         data_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        # Datos simulados basados en el HTML
+        # Datos simulados de la mascota
         pet_data = [
+            ("Nombre:", "Max"),
             ("ID:", "PET-1092"),
             ("Edad:", "4 Años"),
             ("Peso:", "12.5 kg"),
@@ -255,17 +271,29 @@ class MainWindow(QMainWindow):
             
             data_layout.addWidget(row_widget)
 
+        # Botón para Editar la información
+        btn_edit = QPushButton("✎ Editar Información")
+        btn_edit.setObjectName("EditButton")
+        btn_edit.setCursor(Qt.CursorShape.PointingHandCursor)
+        # Conectar este botón a una función de edición (actualmente solo imprime)
+        btn_edit.clicked.connect(lambda: print("Editando información de mascota PET-1092"))
+        
+        data_layout.addWidget(btn_edit)
+        data_layout.addStretch() # Empujar el contenido hacia arriba
+
         parent_layout.addWidget(data_widget, stretch=3)
 
     def setup_info_board(self, parent_layout):
+        """Configura el panel derecho con la información de ingreso/notas."""
         # Panel derecho "Board"
         board_container = QFrame()
-        board_container.setFixedWidth(400) # Un poco más ancho según diseño
+        board_container.setFixedWidth(400) # Ancho fijo para el panel de información
         board_container.setStyleSheet("""
             QFrame {
                 background-color: white;
                 border: 1px solid #CCC;
                 border-radius: 10px;
+                box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
             }
         """)
         
@@ -301,11 +329,12 @@ class MainWindow(QMainWindow):
         lbl_motivo_text = QLabel(
             "El paciente presenta decaimiento general y falta de apetito desde hace 24 horas. "
             "Se requiere realizar análisis de sangre y revisión física completa. "
-            "Historial de alergias: Ninguna conocida."
+            "Historial de alergias: Ninguna conocida. "
+            "El propietario reporta que el problema comenzó después de un paseo en el parque."
         )
         lbl_motivo_text.setWordWrap(True)
         lbl_motivo_text.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        lbl_motivo_text.setStyleSheet("color: #555; font-size: 16px; border: none; line-height: 1.4;")
+        lbl_motivo_text.setStyleSheet("color: #555; font-size: 16px; border: none;")
         
         content_layout.addWidget(lbl_motivo_title)
         content_layout.addWidget(lbl_motivo_text)
@@ -317,6 +346,8 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(board_container, stretch=2)
 
 if __name__ == "__main__":
+    # La parte que inicializa la aplicación
+    # No es necesario modificar la ruta del proyecto aquí
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)

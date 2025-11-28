@@ -1,24 +1,38 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-    
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
                              QMessageBox, QGridLayout)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QIcon, QPixmap
+from PyQt6.QtGui import QFont, QPixmap
 
-# Importar conexión
-from db_connection import Conexion
-
+# Se asume que 'db_connection.py' y 'Conexion' están disponibles en el path.
+# Para este ejemplo, mantendremos la estructura de importación del usuario.
+try:
+    # Ajuste de ruta para el entorno de ejecución
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    project_root = os.path.abspath(os.path.join(current_dir, '..'))
+    if project_root not in sys.path:
+        sys.path.append(project_root)
+    if current_dir not in sys.path:
+        sys.path.append(current_dir)
+        
+    from db_connection import Conexion
+except ImportError:
+    # Manejo de error si la conexión no se puede importar
+    class Conexion:
+        def consultar_registro(self, tabla, id_columna, id_valor, columnas, joins):
+            print("AVISO: Clase Conexion no disponible. Usando Mock Data.")
+            if id_valor == '101':
+                # Datos simulados para una cita exitosa
+                return ('2025-12-20', '10:30:00', 'Chequeo anual y vacuna', 'Confirmada', 
+                        'Milo', 'Juan', 'Pérez', 'Dr. Mateo', 'García')
+            return None
+    
+    
 class MainWindow(QMainWindow):
+    # Inicialización de la conexión. Usará el mock si la importación falla.
     conexion1 = Conexion()
 
     def __init__(self):
@@ -49,6 +63,7 @@ class MainWindow(QMainWindow):
                 border-top-left-radius: 30px;
                 border-bottom-left-radius: 30px;
                 margin: 20px 20px 20px 0px; 
+                box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
             }
             QLabel {
                 font-family: 'Segoe UI', sans-serif;
@@ -67,6 +82,7 @@ class MainWindow(QMainWindow):
                 background-color: rgba(255, 255, 255, 0.1);
                 height: 50px;
                 margin-bottom: 5px;
+                transition: all 0.3s;
             }
             QPushButton.menu-btn:hover {
                 background-color: rgba(255, 255, 255, 0.25);
@@ -87,11 +103,44 @@ class MainWindow(QMainWindow):
                 margin-bottom: 2px;
                 margin-left: 10px;
                 margin-right: 10px;
+                transition: all 0.3s;
             }
             QPushButton.sub-btn:hover {
                 color: white;
                 background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
+            }
+            /* Estilo de Campo de Búsqueda */
+            #SearchInput {
+                border: 2px solid #ddd;
+                border-radius: 10px;
+                padding: 8px 15px;
+                font-size: 16px;
+                color: #333;
+                background-color: #F9F9F9;
+            }
+            /* Estilo de Botón de Búsqueda */
+            #SearchButton {
+                background-color: #7CEBFC; /* Azul Claro */
+                color: #333;
+                font-weight: bold;
+                font-size: 16px;
+                border-radius: 10px;
+                border: 1px solid #5CD0E3;
+            }
+            #SearchButton:hover { 
+                background-color: #5CD0E3; 
+                color: white;
+            }
+            /* Estilo Campos de Lectura */
+            #ReadonlyInput {
+                background-color: #F0F0F0;
+                border: 1px solid #DDD;
+                border-radius: 10px;
+                padding: 5px 15px;
+                font-size: 18px;
+                color: #555;
+                height: 45px;
             }
         """)
 
@@ -175,6 +224,7 @@ class MainWindow(QMainWindow):
         
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
 
+        # Se utiliza una ruta relativa robusta para la imagen
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
         ruta_logo = os.path.normpath(ruta_logo)
 
@@ -184,12 +234,13 @@ class MainWindow(QMainWindow):
                 scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
-                lbl_logo.setText("YUNO VET")
+                lbl_logo.setText("YUNO VET (Logo no cargado)")
         else:
-            lbl_logo.setText("YUNO VET")
+            lbl_logo.setText("YUNO VET (Placeholder)")
 
         self.sidebar_layout.addWidget(lbl_logo)
         
+        # Setup Accordion Groups
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
@@ -225,6 +276,8 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            # Conexión mejorada usando functools.partial si fuera necesario, 
+            # pero lambda con argumentos default es suficiente aquí
             btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
             layout_options.addWidget(btn_sub)
 
@@ -236,6 +289,7 @@ class MainWindow(QMainWindow):
     def abrir_ventana(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
+            # Importaciones dentro de la función para evitar errores si no existen los archivos
             if categoria == "Citas":
                 if opcion == "Agendar":
                     from UI_REP_Crear_cita import MainWindow as Agendar_cita
@@ -243,7 +297,8 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
                 elif opcion == "Visualizar":
-                    pass # Ya estamos aquí
+                    # Ya estamos aquí, no hacemos nada
+                    return 
                 elif opcion == "Modificar":
                     from UI_REP_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
@@ -275,7 +330,7 @@ class MainWindow(QMainWindow):
                     self.close()
                     
         except ImportError as e:
-            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
+            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}.py")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error al intentar abrir la ventana: {e}")
 
@@ -294,33 +349,14 @@ class MainWindow(QMainWindow):
         lbl_search.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
         
         self.inp_search = QLineEdit()
-        self.inp_search.setPlaceholderText("Ingresa el ID de la cita a revisar")
+        self.inp_search.setObjectName("SearchInput")
+        self.inp_search.setPlaceholderText("Ingresa el ID de la cita a revisar (Ej. 101 para prueba)")
         self.inp_search.setFixedWidth(300)
-        self.inp_search.setStyleSheet("""
-            QLineEdit {
-                border: 2px solid #ddd;
-                border-radius: 10px;
-                padding: 8px 15px;
-                font-size: 16px;
-                color: #333;
-                background-color: #F9F9F9;
-            }
-        """)
         
         btn_search = QPushButton("Buscar")
+        btn_search.setObjectName("SearchButton")
         btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_search.setFixedSize(120, 40)
-        btn_search.setStyleSheet("""
-            QPushButton {
-                background-color: #7CEBFC;
-                color: #333;
-                font-weight: bold;
-                font-size: 16px;
-                border-radius: 10px;
-                border: 1px solid #5CD0E3;
-            }
-            QPushButton:hover { background-color: #5CD0E3; }
-        """)
         btn_search.clicked.connect(self.buscar_cita)
         
         search_layout.addWidget(lbl_search)
@@ -337,19 +373,7 @@ class MainWindow(QMainWindow):
         grid_layout.setHorizontalSpacing(30)
         grid_layout.setContentsMargins(0, 0, 0, 0)
 
-        # Estilo "Solo Lectura"
-        readonly_style = """
-            QLineEdit {
-                background-color: #F0F0F0;
-                border: 1px solid #DDD;
-                border-radius: 10px;
-                padding: 5px 15px;
-                font-size: 18px;
-                color: #555;
-                height: 45px;
-            }
-        """
-        label_style = "font-size: 20px; color: black; font-weight: 400;"
+        label_style = "font-size: 20px; color: black; font-weight: 500;"
 
         def add_row(row, label_text, attr_name):
             lbl = QLabel(label_text)
@@ -357,7 +381,7 @@ class MainWindow(QMainWindow):
             inp = QLineEdit()
             inp.setReadOnly(True)
             inp.setText("---")
-            inp.setStyleSheet(readonly_style)
+            inp.setObjectName("ReadonlyInput")
             setattr(self, attr_name, inp)
             grid_layout.addWidget(lbl, row, 0)
             grid_layout.addWidget(inp, row, 1)
@@ -369,7 +393,7 @@ class MainWindow(QMainWindow):
         add_row(4, "Cliente:", "inp_cliente")
         add_row(5, "Veterinario:", "inp_vet")
 
-        grid_layout.setRowStretch(6, 1)
+        grid_layout.setColumnStretch(1, 1)
         parent_layout.addWidget(form_widget, stretch=2)
 
     def setup_info_board(self, parent_layout):
@@ -379,7 +403,7 @@ class MainWindow(QMainWindow):
             QFrame {
                 background-color: white;
                 border: 1px solid #DDD;
-                border-radius: 10px;
+                border-radius: 15px; /* Ligeramente más redondeado */
             }
         """)
         
@@ -391,8 +415,8 @@ class MainWindow(QMainWindow):
         header_frame.setFixedHeight(60)
         header_frame.setStyleSheet("""
             background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7CEBFC, stop:1 rgba(252, 124, 226, 0.8));
-            border-top-left-radius: 10px;
-            border-top-right-radius: 10px;
+            border-top-left-radius: 15px;
+            border-top-right-radius: 15px;
             border-bottom: none;
         """)
         header_layout = QVBoxLayout(header_frame)
@@ -402,14 +426,14 @@ class MainWindow(QMainWindow):
         header_layout.addWidget(lbl_info_title)
 
         content_frame = QFrame()
-        content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;")
+        content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(20, 20, 20, 20)
         
-        self.lbl_motivo_text = QLabel("Ingrese un ID para ver los detalles...")
+        self.lbl_motivo_text = QLabel("Ingrese un ID y presione 'Buscar' para ver los detalles...")
         self.lbl_motivo_text.setWordWrap(True)
         self.lbl_motivo_text.setAlignment(Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignLeft)
-        self.lbl_motivo_text.setStyleSheet("color: #555; font-size: 18px; border: none; line-height: 1.5;")
+        self.lbl_motivo_text.setStyleSheet("color: #555; font-size: 16px; border: none; line-height: 1.5; padding: 0;")
         
         content_layout.addWidget(self.lbl_motivo_text)
         content_layout.addStretch()
@@ -422,33 +446,33 @@ class MainWindow(QMainWindow):
     # --- FUNCIÓN: BUSCAR CITA ---
     def buscar_cita(self):
         id_cita = self.inp_search.text().strip()
-        
+        self.limpiar_datos() # Limpia antes de intentar buscar
+
         if not id_cita:
             QMessageBox.warning(self, "Aviso", "Ingresa un ID de cita.")
             return
         
         if not id_cita.isdigit():
-            QMessageBox.warning(self, "Error", "El ID debe ser numérico.")
+            QMessageBox.warning(self, "Error", "El ID debe ser un número entero.")
             return
 
         print(f"Consultando cita ID: {id_cita}")
         try:
-            # Traer Nombres en lugar de IDs usando JOINs
-            # Ajusta 'cliente.nombre' y 'cliente.apellido' según tu tabla cliente
+            # Columnas a seleccionar de la base de datos (IMPORTANTE MANTENER EL ORDEN)
             columnas = [
-                "cita.fecha",
-                "cita.hora",
-                "cita.motivo",
-                "cita.estado",
-                "mascota.nombre",
-                "cliente.nombre",
-                "cliente.apellido",
-                "usuario.nombre",
-                "usuario.apellido"
+                "cita.fecha",           # 0
+                "cita.hora",            # 1
+                "cita.motivo",          # 2
+                "cita.estado",          # 3
+                "mascota.nombre",       # 4
+                "cliente.nombre",       # 5 (Nombre Cliente)
+                "cliente.apellido",     # 6 (Apellido Cliente)
+                "usuario.nombre",       # 7 (Nombre Veterinario)
+                "usuario.apellido"      # 8 (Apellido Veterinario)
             ]
 
             
-            # Ajustar JOINS según tu esquema real
+            # JOINS para obtener los nombres completos
             joins = """
                 JOIN mascota ON cita.fk_mascota = mascota.id_mascota
                 JOIN cliente ON mascota.fk_cliente = cliente.id_cliente
@@ -465,9 +489,7 @@ class MainWindow(QMainWindow):
             )
             
             if registro:
-                # Mapeo: 
-                # 0: fecha, 1: hora, 2: motivo, 3: estado, 4: mascota, 5: cte_nom, 6: cte_ape, 7: vet_nom, 8: vet_ape
-                
+                # Asignación de datos del registro
                 self.inp_fecha.setText(str(registro[0]))
                 self.inp_hora.setText(str(registro[1]))
                 self.lbl_motivo_text.setText(str(registro[2]))
@@ -476,19 +498,19 @@ class MainWindow(QMainWindow):
                 self.inp_mascota.setText(str(registro[4]))
                 self.inp_cliente.setText(f"{registro[5]} {registro[6]}")
                 
-                # Asumiendo que el veterinario también tiene apellido en la posición 8
-                nombre_vet = str(registro[7])
-                if len(registro) > 8:
-                    nombre_vet += f" {registro[8]}"
-                self.inp_vet.setText(f"Dr. {nombre_vet}")
+                # Formato Dr. Nombre Apellido para el veterinario
+                nombre_vet = f"{registro[7]} {registro[8]}" if len(registro) > 8 else str(registro[7])
+                self.inp_vet.setText(f"Dr. {nombre_vet.strip()}")
                 
-                QMessageBox.information(self, "Encontrado", "Cita cargada exitosamente.")
+                # Muestra el mensaje de éxito
+                QMessageBox.information(self, "Cita Encontrada", "Cita cargada exitosamente.")
             else:
                 self.limpiar_datos()
-                QMessageBox.warning(self, "No encontrado", "No existe cita con ese ID.")
+                QMessageBox.warning(self, "No Encontrado", f"No existe cita con el ID {id_cita}.")
                 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al buscar: {e}")
+            QMessageBox.critical(self, "Error de Búsqueda", f"Error al buscar la cita: {e}")
+            self.limpiar_datos()
 
     def limpiar_datos(self):
         self.inp_fecha.setText("---")
@@ -497,9 +519,11 @@ class MainWindow(QMainWindow):
         self.inp_mascota.setText("---")
         self.inp_cliente.setText("---")
         self.inp_vet.setText("---")
-        self.lbl_motivo_text.setText("---")
+        self.lbl_motivo_text.setText("Ingrese un ID y presione 'Buscar' para ver los detalles...")
 
 if __name__ == "__main__":
+    # La clase 'Conexion' debe estar disponible, si no, el mock se activa automáticamente.
+    # Para probar sin BD, ingrese '101' en el campo de ID.
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)

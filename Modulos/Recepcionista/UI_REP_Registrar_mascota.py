@@ -16,7 +16,8 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon, QPixmap
 
 # Importar conexión
-from db_connection import Conexion
+# NOTA: Este módulo (db_connection) debe existir y contener la clase Conexion
+from db_connection import Conexion 
 
 class MainWindow(QMainWindow):
     conexion1 = Conexion()
@@ -177,18 +178,21 @@ class MainWindow(QMainWindow):
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
         ruta_logo = os.path.normpath(ruta_logo)
 
+        # Nota: La carga de imágenes como "logo_yuno.png" requiere que la ruta 
+        # y el archivo existan en la estructura de directorios relativa.
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
                 scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
                 lbl_logo.setPixmap(scaled_pixmap)
             else:
-                lbl_logo.setText("YUNO VET") 
+                lbl_logo.setText("YUNO VET (Logo no cargado)") 
         else:
             lbl_logo.setText("YUNO VET") 
 
         self.sidebar_layout.addWidget(lbl_logo)
         
+        # Se asumen estos métodos de configuración para el menú acordeón
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"]) # Sin Visualizar
         self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
@@ -225,6 +229,7 @@ class MainWindow(QMainWindow):
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
             # Conexión de botones
+            # El lambda se usa para pasar argumentos a la función connect
             btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
             layout_options.addWidget(btn_sub)
 
@@ -234,20 +239,24 @@ class MainWindow(QMainWindow):
 
     # --- GESTOR DE VENTANAS ---
     def abrir_ventana(self, categoria, opcion):
+        """Maneja la navegación a otras ventanas de la aplicación."""
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
             if categoria == "Citas":
                 if opcion == "Agendar":
+                    # Nota: Requiere el archivo UI_REP_Crear_cita.py
                     from UI_REP_Crear_cita import MainWindow as Agendar_cita
                     self.ventana = Agendar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Visualizar":
+                    # Nota: Requiere el archivo UI_REP_Revisar_Cita.py
                     from UI_REP_Revisar_Cita import MainWindow as Visualizar_cita
                     self.ventana = Visualizar_cita()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
+                    # Nota: Requiere el archivo UI_REP_Modificar_cita.py
                     from UI_REP_Modificar_cita import MainWindow as Modificar_cita
                     self.ventana = Modificar_cita()
                     self.ventana.show()
@@ -257,6 +266,7 @@ class MainWindow(QMainWindow):
                 if opcion == "Registrar":
                     pass # Ya estamos aquí
                 elif opcion == "Modificar":
+                    # Nota: Requiere el archivo UI_REP_Modificar_Mascota.py
                     from UI_REP_Modificar_Mascota import MainWindow as Modificar_mascota
                     self.ventana = Modificar_mascota()
                     self.ventana.show()
@@ -264,11 +274,13 @@ class MainWindow(QMainWindow):
 
             elif categoria == "Clientes":
                 if opcion == "Registrar":
+                    # Nota: Requiere el archivo UI_REP_Registra_cliente.py
                     from UI_REP_Registra_cliente import MainWindow as Regsitrar_dueno
                     self.ventana = Regsitrar_dueno()
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
+                    # Nota: Requiere el archivo UI_REP_Modificar_cliente.py
                     from UI_REP_Modificar_cliente import MainWindow as Modficiar_dueno
                     self.ventana = Modficiar_dueno()
                     self.ventana.show()
@@ -280,12 +292,14 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", f"Ocurrió un error al intentar abrir la ventana: {e}")
 
     def toggle_menu(self, frame):
+        """Muestra u oculta el submenú del acordeón."""
         if frame.isVisible():
             frame.hide()
         else:
             frame.show()
 
     def setup_register_form(self, parent_layout):
+        """Configura el formulario de registro de mascota."""
         form_widget = QWidget()
         grid_layout = QGridLayout(form_widget)
         grid_layout.setVerticalSpacing(20)
@@ -389,6 +403,7 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(form_widget, stretch=3)
 
     def setup_info_board(self, parent_layout):
+        """Configura el panel de vista previa."""
         # Panel derecho para información / vista previa
         board_container = QFrame()
         board_container.setFixedWidth(350)
@@ -431,7 +446,7 @@ class MainWindow(QMainWindow):
         lbl_preview.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_preview.setStyleSheet("color: #888; font-size: 14px; font-weight: bold; margin-bottom: 10px;")
 
-        # Detalles
+        # Detalles (los labels se guardan como atributos para ser actualizados)
         self.lbl_prev_nombre = QLabel("Nombre Mascota")
         self.lbl_prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.lbl_prev_nombre.setWordWrap(True)
@@ -469,6 +484,7 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(board_container, stretch=1)
 
     def setup_save_button(self):
+        """Configura el botón de guardar."""
         btn_save = QPushButton("Guardar")
         btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_save.setFixedSize(250, 60)
@@ -499,6 +515,7 @@ class MainWindow(QMainWindow):
 
     # --- ACTUALIZACIÓN PREVIEW ---
     def update_preview(self):
+        """Actualiza la vista previa con los datos del formulario."""
         nombre = self.inp_nombre.text().strip()
         id_cliente = self.inp_cliente.text().strip()
         especie = self.inp_especie.currentText()
@@ -508,14 +525,17 @@ class MainWindow(QMainWindow):
 
         self.lbl_prev_nombre.setText(nombre if nombre else "Nombre Mascota")
         self.lbl_prev_dueno.setText(f"Dueño ID: {id_cliente}" if id_cliente else "Dueño ID: --")
-        self.lbl_prev_detalles.setText(f"{especie} - {raza}")
+        # Si la raza está vacía, mostrar solo la especie
+        raza_txt = f" - {raza}" if raza else ""
+        self.lbl_prev_detalles.setText(f"{especie}{raza_txt}")
         
-        edad_txt = f"{edad} años" if edad else "Edad: --"
-        peso_txt = f"{peso} kg" if peso else "Peso: --"
+        edad_txt = f"Edad: {edad} años" if edad else "Edad: --"
+        peso_txt = f"Peso: {peso} kg" if peso else "Peso: --"
         self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
 
     # --- LÓGICA DE GUARDADO ---
     def guardar_datos(self):
+        """Valida los datos y los inserta en la base de datos."""
         # 1. Obtener datos
         id_cliente = self.inp_cliente.text().strip()
         nombre = self.inp_nombre.text().strip()
@@ -531,10 +551,11 @@ class MainWindow(QMainWindow):
 
         # Conversión de tipos
         try:
+            # Asume 0 si está vacío
             edad = int(edad_str) if edad_str else 0
             peso = float(peso_str) if peso_str else 0.0
         except ValueError:
-            QMessageBox.warning(self, "Formato inválido", "Edad debe ser entero y Peso un número (ej: 12.5).")
+            QMessageBox.warning(self, "Formato inválido", "Edad debe ser un número entero y Peso un número decimal (ej: 12.5).")
             return
 
         # 3. Insertar en BD
@@ -544,23 +565,26 @@ class MainWindow(QMainWindow):
         table = 'mascota'
 
         try:
+            # Llama al método de inserción de la clase Conexion
             nuevo_id = self.conexion1.insertar_datos(table, datos, columnas)
             QMessageBox.information(self, "Éxito", f"Mascota registrada correctamente.\nID Generado: {nuevo_id}")
             
-            # Limpiar campos
+            # Limpiar campos después de la inserción exitosa
             self.inp_cliente.clear()
             self.inp_nombre.clear()
             self.inp_edad.clear()
             self.inp_peso.clear()
             self.inp_raza.clear()
-            self.inp_especie.setCurrentIndex(0)
+            self.inp_especie.setCurrentIndex(0) # Restablece a "Perro"
+            self.update_preview() # Limpiar vista previa
 
         except Exception as e:
-            # Si el ID de cliente no existe, psycopg2 arrojará un error de Foreign Key
-            if "foreign key constraint" in str(e) or "violates foreign key" in str(e):
-                QMessageBox.warning(self, "Error de Cliente", f"El ID de dueño '{id_cliente}' no existe en la base de datos.")
+            # Manejo específico para errores de clave foránea (cliente no existe)
+            error_message = str(e).lower()
+            if "foreign key constraint" in error_message or "violates foreign key" in error_message:
+                QMessageBox.warning(self, "Error de Cliente", f"El ID de dueño '{id_cliente}' no existe en la base de datos o el ID ingresado no es válido.")
             else:
-                QMessageBox.critical(self, "Error", f"No se pudo registrar la mascota.\nError: {e}")
+                QMessageBox.critical(self, "Error de Base de Datos", f"No se pudo registrar la mascota.\nDetalle: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

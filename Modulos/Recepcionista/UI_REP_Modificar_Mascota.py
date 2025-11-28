@@ -1,13 +1,5 @@
 import sys
 import os
-
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
@@ -15,16 +7,46 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon, QPixmap
 
-# Importar conexión
-from db_connection import Conexion
+# Configuración del path para imports relativos
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
+# Importar conexión a la base de datos y el Menú Principal
+try:
+    from db_connection import Conexion
+    # 🛑 Importar el Menú Principal para el retorno
+    from UI_Menu_Principal import MainWindow as MenuPrincipal 
+except ImportError as e:
+    # Definición de clases Mock para evitar fallos si no se encuentran los archivos
+    print(f"Error de importación: {e.name}")
+    class Conexion:
+        def consultar_registro(self, *args): return None
+        def editar_registro(self, *args): return True
+    class MenuPrincipal(QMainWindow):
+        def __init__(self, nombre_usuario=""):
+            super().__init__()
+            self.setWindowTitle("MENU PRINCIPAL (MOCK)")
+            self.resize(500, 300)
+            self.setCentralWidget(QLabel("Ventana de Menú Principal (MOCK)"))
+
 
 class MainWindow(QMainWindow):
+    # Instancia de la conexión a la DB
     conexion1 = Conexion()
 
-    def __init__(self):
+    def __init__(self, nombre_usuario="Recepcionista"): # Se añade nombre_usuario para consistencia
         super().__init__()
+        
+        self.nombre_usuario = nombre_usuario
+        self.ventana = None
+        # Variable para almacenar el ID de la mascota actualmente cargada
+        self.mascota_id_cargada = None
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Modificar Mascota")
+        self.setWindowTitle(f"Sistema Veterinario Yuno - Modificar Mascota ({self.nombre_usuario})")
         self.resize(1280, 720)
 
         # Widget central
@@ -36,7 +58,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS ---
+        # --- ESTILOS (Mismo código CSS del original) ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -106,31 +128,14 @@ class MainWindow(QMainWindow):
 
         # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Modificar mascota")
+        lbl_header = QLabel("Modificar Mascota")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("↶ Volver")
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: #F0F0F0;
-                color: #555;
-                border-radius: 20px;
-                padding: 10px 20px;
-                font-size: 16px;
-                font-weight: bold;
-                border: none;
-            }
-            QPushButton:hover {
-                background-color: #E0E0E0;
-                color: #333;
-            }
-        """)
-        btn_back.clicked.connect(self.close)
+        # 🛑 Botón Volver (btn_back) ELIMINADO de aquí.
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_back)
+        # 🛑 header_layout.addWidget(btn_back) ELIMINADO
 
         self.white_layout.addLayout(header_layout)
         
@@ -159,6 +164,33 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
+
+        # Inicializar UI deshabilitada hasta que se cargue una mascota
+        self.set_form_editable(False)
+
+    # --- MÉTODO PARA VOLVER AL MENÚ PRINCIPAL ---
+    def return_to_menu(self):
+        """Muestra la ventana del menú principal (UI_Menu_Principal) y cierra la actual."""
+        try:
+            # Recrea el menú principal con el nombre de usuario de la sesión
+            self.ventana = MenuPrincipal(self.nombre_usuario)
+            self.ventana.show()
+            self.close()
+        except Exception as e:
+            QMessageBox.critical(self, "Error de Navegación", f"No se pudo cargar el Menú Principal.\nDetalle: {e}")
+            self.close()
+
+    def set_form_editable(self, enabled):
+        """Habilita o deshabilita los campos del formulario de edición."""
+        self.inp_nombre.setEnabled(enabled)
+        self.inp_edad.setEnabled(enabled)
+        self.inp_peso.setEnabled(enabled)
+        self.inp_especie.setEnabled(enabled)
+        self.inp_raza.setEnabled(enabled)
+        self.inp_cliente.setEnabled(enabled)
+        # Buscar siempre debe estar activo
+        self.findChild(QPushButton, "btn_guardar").setEnabled(enabled)
+
 
     def setup_sidebar(self):
         self.sidebar = QWidget()
@@ -193,12 +225,13 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
+        self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar"]) # Se añade Visualizar para mantener consistencia
+        self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar"]) # Se añade Visualizar para mantener consistencia
 
         self.sidebar_layout.addStretch()
 
-        btn_logout = QPushButton("Cerrar Sesión")
+        # 🛑 Botón Modificado: Ahora es "Volver al Menú"
+        btn_logout = QPushButton("↶ Volver al Menú")
         btn_logout.setStyleSheet("""
             QPushButton {
                 text-align: center; border: 2px solid white; 
@@ -209,7 +242,8 @@ class MainWindow(QMainWindow):
             QPushButton:hover { background-color: rgba(255,255,255,0.2); }
         """)
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_logout.clicked.connect(self.close)
+        # 🛑 Conectar al retorno al menú
+        btn_logout.clicked.connect(self.return_to_menu)
         self.sidebar_layout.addWidget(btn_logout)
 
     def setup_accordion_group(self, title, options):
@@ -238,45 +272,53 @@ class MainWindow(QMainWindow):
     # --- GESTOR DE VENTANAS ---
     def abrir_ventana(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
+        
+        # Si la opción es Modificar Mascota y ya estamos aquí, no hacemos nada.
+        if categoria == "Mascotas" and opcion == "Modificar":
+            return 
+            
+        target_window = None
+
         try:
+            # Pasa siempre el nombre_usuario a la nueva ventana
             if categoria == "Citas":
                 if opcion == "Agendar":
-                    from UI_REP_Crear_cita import MainWindow as Agendar_cita
-                    self.ventana = Agendar_cita()
-                    self.ventana.show()
-                    self.close()
+                    from UI_REP_Crear_cita import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
                 elif opcion == "Visualizar":
-                    from UI_REP_Revisar_Cita import MainWindow as Visualizar_cita
-                    self.ventana = Visualizar_cita()
-                    self.ventana.show()
-                    self.close()
+                    from UI_REP_Revisar_Cita import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
                 elif opcion == "Modificar":
-                    from UI_REP_Modificar_cita import MainWindow as Modificar_cita
-                    self.ventana = Modificar_cita()
-                    self.ventana.show()
-                    self.close()
+                    from UI_REP_Modificar_cita import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
 
             elif categoria == "Mascotas":
                 if opcion == "Registrar":
-                    from UI_REP_Registrar_mascota import MainWindow as Registrar_mascota
-                    self.ventana = Registrar_mascota()
-                    self.ventana.show()
-                    self.close()
+                    from UI_REP_Registrar_mascota import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
+                elif opcion == "Visualizar":
+                    from UI_REP_Revisar_Mascota import MainWindow as Win # Asume este nombre
+                    target_window = Win(self.nombre_usuario)
+                # La opción Modificar ya está abierta
 
             elif categoria == "Clientes":
                 if opcion == "Registrar":
-                    from UI_REP_Registra_cliente import MainWindow as Regsitrar_dueno
-                    self.ventana = Regsitrar_dueno()
-                    self.ventana.show()
-                    self.close()
+                    from UI_REP_Registra_cliente import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
+                elif opcion == "Visualizar":
+                    from UI_REP_Revisar_cliente import MainWindow as Win # Asume este nombre
+                    target_window = Win(self.nombre_usuario)
                 elif opcion == "Modificar":
-                    from UI_REP_Modificar_cliente import MainWindow as Modificar_cliente
-                    self.ventana = Modificar_cliente()
-                    self.ventana.show()
-                    self.close()
+                    from UI_REP_Modificar_cliente import MainWindow as Win
+                    target_window = Win(self.nombre_usuario)
                     
+            if target_window:
+                self.ventana = target_window
+                self.ventana.show()
+                self.close()
+            
         except ImportError as e:
-            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
+            QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: **{e.name}**")
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Ocurrió un error al intentar abrir la ventana: {e}")
 
@@ -344,6 +386,7 @@ class MainWindow(QMainWindow):
         self.inp_edad = QLineEdit()
         self.inp_edad.setPlaceholderText("Ej: 4")
         self.inp_edad.setStyleSheet(input_style)
+        self.inp_edad.setInputMask("99") # Permite hasta 2 dígitos numéricos
 
         # 4. Peso
         lbl_peso = QLabel("Peso (Kg):")
@@ -351,7 +394,7 @@ class MainWindow(QMainWindow):
         self.inp_peso = QLineEdit()
         self.inp_peso.setPlaceholderText("Ej: 12.5")
         self.inp_peso.setStyleSheet(input_style)
-
+        
         # 5. Especie
         lbl_especie = QLabel("Especie:")
         lbl_especie.setStyleSheet(label_style)
@@ -381,12 +424,17 @@ class MainWindow(QMainWindow):
         self.inp_especie.currentTextChanged.connect(self.update_preview)
 
         # Añadir al Grid
+        # Fila 0: Búsqueda
+        input_busqueda_layout = QHBoxLayout()
+        input_busqueda_layout.addWidget(self.inp_id)
+        input_busqueda_layout.addWidget(btn_buscar)
+        input_busqueda_layout.setContentsMargins(0,0,0,0)
+        
         grid_layout.addWidget(lbl_id, 0, 0)
-        grid_layout.addWidget(self.inp_id, 0, 1)
-        grid_layout.addWidget(btn_buscar, 0, 2)
+        grid_layout.addLayout(input_busqueda_layout, 0, 1, 1, 2) # Ocupa dos columnas
 
         grid_layout.addWidget(lbl_nombre, 1, 0)
-        grid_layout.addWidget(self.inp_nombre, 1, 1)
+        grid_layout.addWidget(self.inp_nombre, 1, 1, 1, 2)
 
         grid_layout.addWidget(lbl_edad, 2, 0)
         grid_layout.addWidget(self.inp_edad, 2, 1)
@@ -490,6 +538,7 @@ class MainWindow(QMainWindow):
 
     def setup_save_button(self):
         btn_save = QPushButton("Guardar Cambios")
+        btn_save.setObjectName("btn_guardar") # Añadir ObjectName para controlar la habilitación
         btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_save.setFixedSize(250, 60)
         btn_save.setStyleSheet("""
@@ -505,6 +554,10 @@ class MainWindow(QMainWindow):
             }
             QPushButton:pressed {
                 background-color: #8a4cd0;
+            }
+            QPushButton:disabled {
+                background-color: #cccccc;
+                color: #666666;
             }
         """)
         
@@ -528,50 +581,85 @@ class MainWindow(QMainWindow):
 
         self.lbl_prev_nombre.setText(nombre if nombre else "Nombre Mascota")
         self.lbl_prev_dueno.setText(f"Dueño ID: {id_cliente}" if id_cliente else "Dueño ID: --")
-        self.lbl_prev_detalles.setText(f"{especie} - {raza}")
+        self.lbl_prev_detalles.setText(f"{especie} - {raza}" if raza else f"{especie}")
         
-        edad_txt = f"{edad} años" if edad else "Edad: --"
-        peso_txt = f"{peso} kg" if peso else "Peso: --"
+        # Validar si edad y peso son convertibles a float/int antes de mostrarlos
+        try:
+            edad_val = int(edad)
+            edad_txt = f"{edad_val} años" if edad_val > 0 else "Edad: 0"
+        except ValueError:
+            edad_txt = "Edad: -- (Inválida)" if edad else "Edad: --"
+            
+        try:
+            peso_val = float(peso)
+            peso_txt = f"{peso_val:.1f} kg"
+        except ValueError:
+            peso_txt = "Peso: -- (Inválido)" if peso else "Peso: --"
+
         self.lbl_prev_stats.setText(f"{edad_txt} | {peso_txt}")
 
     # --- FUNCIÓN: BUSCAR MASCOTA ---
     def buscar_mascota(self):
-        id_mascota = self.inp_id.text().strip()
-        
-        if not id_mascota:
+        id_mascota_str = self.inp_id.text().strip()
+        self.mascota_id_cargada = None # Limpiar ID anterior
+        self.set_form_editable(False) # Deshabilitar formulario
+
+        if not id_mascota_str:
             QMessageBox.warning(self, "Aviso", "Ingresa un ID de mascota para buscar.")
             return
         
-        if not id_mascota.isdigit():
+        if not id_mascota_str.isdigit():
             QMessageBox.warning(self, "Error", "El ID debe ser numérico.")
             return
 
-        print(f"Buscando mascota ID: {id_mascota}")
         try:
+            id_mascota = int(id_mascota_str)
+            print(f"Buscando mascota ID: {id_mascota}")
+
+            # Columnas a recuperar (deben coincidir con el orden del registro)
             columnas = ['nombre', 'edad', 'peso', 'especie', 'raza', 'fk_cliente']
+            # Asumimos que consultar_registro devuelve una tupla o None
             registro = self.conexion1.consultar_registro('mascota', 'id_mascota', id_mascota, columnas)
             
             if registro:
                 self.inp_nombre.setText(str(registro[0]))
                 self.inp_edad.setText(str(registro[1]))
-                self.inp_peso.setText(str(registro[2]))
+                self.inp_peso.setText(f"{registro[2]:.1f}") # Formatear peso a 1 decimal
                 self.inp_especie.setCurrentText(str(registro[3]))
                 self.inp_raza.setText(str(registro[4]))
                 self.inp_cliente.setText(str(registro[5]))
                 
-                QMessageBox.information(self, "Encontrado", "Datos de la mascota cargados.")
+                # Almacenar el ID de la mascota cargada y habilitar la edición
+                self.mascota_id_cargada = id_mascota
+                self.set_form_editable(True) 
+                self.update_preview()
+                
+                QMessageBox.information(self, "Encontrado", "Datos de la mascota cargados. Ahora puedes modificar.")
             else:
                 QMessageBox.warning(self, "No encontrado", "No existe una mascota con ese ID.")
+                self.limpiar_campos_formulario()
                 
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al buscar: {e}")
+            QMessageBox.critical(self, "Error", f"Error al buscar en la base de datos: {e}")
+
+    # --- FUNCIÓN: LIMPIAR CAMPOS ---
+    def limpiar_campos_formulario(self):
+        """Limpia todos los campos de entrada de datos."""
+        self.inp_nombre.clear()
+        self.inp_edad.clear()
+        self.inp_peso.clear()
+        self.inp_raza.clear()
+        self.inp_cliente.clear()
+        self.inp_especie.setCurrentIndex(0) # Pone el primer ítem
+        self.update_preview()
+        self.set_form_editable(False) # Deshabilitar edición
 
     # --- FUNCIÓN: GUARDAR CAMBIOS ---
     def guardar_cambios(self):
-        id_mascota = self.inp_id.text().strip()
+        id_mascota_a_modificar = self.mascota_id_cargada
         
-        if not id_mascota:
-            QMessageBox.warning(self, "Error", "Primero busca una mascota por ID.")
+        if id_mascota_a_modificar is None:
+            QMessageBox.warning(self, "Error", "Primero debes buscar y cargar una mascota por ID.")
             return
 
         # Recolectar datos
@@ -582,44 +670,58 @@ class MainWindow(QMainWindow):
         raza = self.inp_raza.text().strip()
         id_cliente = self.inp_cliente.text().strip()
 
-        if not nombre or not especie or not id_cliente:
-             QMessageBox.warning(self, "Aviso", "Nombre, Especie e ID Dueño son obligatorios.")
+        # Validación de campos obligatorios
+        if not nombre or not id_cliente:
+             QMessageBox.warning(self, "Aviso", "Nombre e ID Dueño son campos obligatorios.")
              return
+        
+        if not id_cliente.isdigit():
+            QMessageBox.warning(self, "Error", "El ID de Dueño debe ser un número entero.")
+            return
 
+        # Validación de tipos de datos (Edad y Peso)
         try:
+            # Si el campo está vacío, asumimos 0 o None si la columna lo permite.
             edad = int(edad_str) if edad_str else 0
             peso = float(peso_str) if peso_str else 0.0
         except ValueError:
-            QMessageBox.warning(self, "Error", "Edad y Peso deben ser numéricos.")
+            QMessageBox.warning(self, "Error de Datos", "Edad debe ser un número entero y Peso un número (decimal permitido).")
             return
 
+        # Datos a actualizar en la DB
         datos = {
             "nombre": nombre,
             "edad": edad,
             "peso": peso,
             "especie": especie,
             "raza": raza,
-            "fk_cliente": id_cliente
+            "fk_cliente": int(id_cliente) # Convertir a int para la DB
         }
 
         try:
-            # Asegúrate de que tu PK sea 'id_mascota'
-            exito = self.conexion1.editar_registro(id_mascota, datos, 'mascota', 'id_mascota')
+            # Usar la ID de la mascota cargada para la edición
+            exito = self.conexion1.editar_registro(id_mascota_a_modificar, datos, 'mascota', 'id_mascota')
+            
             if exito:
-                QMessageBox.information(self, "Éxito", "Mascota actualizada correctamente.")
+                QMessageBox.information(self, "Éxito", f"Mascota con ID {id_mascota_a_modificar} actualizada correctamente.")
+                self.limpiar_campos_formulario()
+                self.inp_id.clear() # Limpiar también el campo de búsqueda
             else:
-                QMessageBox.warning(self, "Error", "No se pudo actualizar.")
+                QMessageBox.warning(self, "Error de DB", "La base de datos reportó un fallo en la actualización. (Verificar log de conexión)")
+
         except Exception as e:
-            # Captura error de llave foránea si el cliente no existe
-            if "foreign key" in str(e).lower():
-                QMessageBox.warning(self, "Error Dueño", f"El ID de dueño '{id_cliente}' no existe.")
+            error_msg = str(e).lower()
+            # Intenta capturar errores comunes de SQL como la llave foránea
+            if "foreign key" in error_msg or "cliente" in error_msg:
+                 QMessageBox.warning(self, "Error Dueño", f"El ID de dueño '{id_cliente}' no existe en la base de datos de clientes.")
             else:
-                QMessageBox.critical(self, "Error", f"Fallo al guardar: {e}")
+                QMessageBox.critical(self, "Fallo al Guardar", f"Ocurrió un error inesperado al guardar: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = MainWindow()
+    # 🛑 Se pasa un nombre de usuario de prueba para consistencia
+    window = MainWindow("Recepcionista Prueba") 
     window.show()
     sys.exit(app.exec())

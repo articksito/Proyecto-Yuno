@@ -1,13 +1,6 @@
 import sys
 import os
 
-current_dir = os.path.dirname(os.path.abspath(__file__))
-project_root = os.path.abspath(os.path.join(current_dir, '..'))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-if current_dir not in sys.path:
-    sys.path.append(current_dir)
-
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame)
@@ -15,6 +8,11 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QIcon, QPixmap
 
 class MainWindow(QMainWindow):
+    """
+    Clase principal que representa la ventana de la aplicación.
+    Diseñada para mostrar la vista de "Revisar Cliente" 
+    dentro del Sistema Veterinario Yuno.
+    """
     def __init__(self):
         super().__init__()
 
@@ -33,16 +31,19 @@ class MainWindow(QMainWindow):
         # --- ESTILOS GENERALES ---
         self.setStyleSheet("""
             QMainWindow {
+                /* Fondo degradado suave (Rosa a Cian) */
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
             }
             QWidget#Sidebar {
                 background-color: transparent;
             }
             QWidget#WhitePanel {
+                /* Panel principal con esquinas redondeadas solo a la izquierda */
                 background-color: white;
                 border-top-left-radius: 30px;
                 border-bottom-left-radius: 30px;
                 margin: 20px 20px 20px 0px; 
+                box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             }
             QLabel {
                 font-family: 'Segoe UI', sans-serif;
@@ -93,6 +94,7 @@ class MainWindow(QMainWindow):
                 font-size: 20px;
                 color: #666;
                 font-weight: normal;
+                padding-bottom: 5px;
             }
             QLabel.label-value {
                 font-size: 24px;
@@ -129,6 +131,7 @@ class MainWindow(QMainWindow):
                 font-size: 16px;
                 font-weight: bold;
                 border: none;
+                transition: all 0.2s;
             }
             QPushButton:hover {
                 background-color: #E0E0E0;
@@ -159,9 +162,10 @@ class MainWindow(QMainWindow):
 
         # Agregar al layout principal
         self.main_layout.addWidget(self.sidebar)
-        self.main_layout.addWidget(self.white_panel)
+        self.main_layout.addWidget(self.white_panel, stretch=1) # Panel principal toma el espacio restante
 
     def setup_sidebar(self):
+        """Configura la barra lateral de navegación con el logo y menús."""
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(300)
@@ -174,6 +178,7 @@ class MainWindow(QMainWindow):
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.sidebar_layout.addWidget(lbl_logo)
         
+        # Uso de la función para crear grupos de menú (acordeón)
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar", "Eliminar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar", "Eliminar"])
@@ -195,6 +200,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(btn_logout)
 
     def setup_accordion_group(self, title, options):
+        """Crea un grupo de menú expandible (estilo acordeón)."""
         btn_main = QPushButton(title)
         btn_main.setProperty("class", "menu-btn")
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -211,17 +217,22 @@ class MainWindow(QMainWindow):
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
             layout_options.addWidget(btn_sub)
 
+        # Inicialmente oculto
         frame_options.hide()
         self.sidebar_layout.addWidget(frame_options)
+        
+        # Conexión para alternar visibilidad
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
+        """Alterna la visibilidad de un QFrame (efecto acordeón)."""
         if frame.isVisible():
             frame.hide()
         else:
             frame.show()
 
     def setup_client_data(self, parent_layout):
+        """Configura la columna izquierda con los detalles del cliente."""
         # Contenedor de datos estilo lista/ficha
         data_widget = QWidget()
         data_layout = QVBoxLayout(data_widget)
@@ -260,6 +271,7 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(data_widget, stretch=3)
 
     def setup_info_board(self, parent_layout):
+        """Configura el panel derecho con la foto de perfil y el historial."""
         # Panel derecho contenedor
         right_container = QWidget()
         right_layout = QVBoxLayout(right_container)
@@ -298,6 +310,7 @@ class MainWindow(QMainWindow):
                 background-color: white;
                 border: 1px solid #CCC;
                 border-radius: 10px;
+                box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
             }
         """)
         
@@ -350,6 +363,20 @@ class MainWindow(QMainWindow):
         parent_layout.addWidget(right_container, stretch=2)
 
 if __name__ == "__main__":
+    # La aplicación debe ser inicializada con el path apropiado para encontrar recursos
+    # Pero para este ejemplo de UI puro, podemos omitir las líneas de sys/os si no hay recursos externos.
+    # Usaremos el script tal cual lo proporcionaste.
+    try:
+        current_dir = os.path.dirname(os.path.abspath(__file__))
+        project_root = os.path.abspath(os.path.join(current_dir, '..'))
+        if project_root not in sys.path:
+            sys.path.append(project_root)
+        if current_dir not in sys.path:
+            sys.path.append(current_dir)
+    except NameError:
+        # Esto maneja entornos donde __file__ no está definido (como IPython/Jupyter)
+        pass
+
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
