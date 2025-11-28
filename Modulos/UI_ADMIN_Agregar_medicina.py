@@ -188,10 +188,32 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENÚ LATERAL (ADMINISTRADOR) ---
-        self.setup_accordion_group("Administrar", ["Pacientes", "Clientes", "Citas"])
-        self.setup_accordion_group("Usuarios", ["Crear", "Modificar", "Consultar"])
-        self.setup_accordion_group("Medicamentos", ["Agregar", "Modificar"])
+        # --- MENÚ LATERAL EXTENDIDO ---
+        
+        # Cita
+        self.setup_accordion_group("Cita", ["Visualizar"])
+        
+        # Consulta
+        self.setup_accordion_group("Consulta", ["Visualizar"])
+        
+        # Mascota
+        self.setup_accordion_group("Mascota", ["Visualizar"])
+        
+        # Cliente
+        self.setup_accordion_group("Cliente", ["Visualizar"])
+        
+        # Hospitalizacion
+        self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
+        
+        # Medicamentos
+        self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
+        
+        # Usuarios
+        self.setup_accordion_group("Usuarios", ["Agregar", "Modificar", "Visualizar"])
+        
+        # Especialidad
+        self.setup_accordion_group("Especialidad", ["Agregar", "Modificar"])
+
 
         self.sidebar_layout.addStretch()
 
@@ -238,39 +260,73 @@ class MainWindow(QMainWindow):
         else:
             frame.show()
 
-    # --- GESTOR DE VENTANAS (ADMIN) ---
+    # --- GESTOR DE VENTANAS ---
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
-            # --- ADMINISTRAR ---
-            if categoria == "Administrar":
-                if opcion == "Pacientes":
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    from UI_Revisar_Cita import MainWindow as CitasWindow
+                    self.ventana = CitasWindow()
+                    self.ventana.show()
+                    self.close()
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    # self.abrir_visualizar_consulta()
+                    pass
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
                    from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
                    self.apaciente = UI_ADMIN_Paciente()
                    self.apaciente.show()
                    self.close()
-                elif opcion == "Clientes":
-                   from UI_Modificar_cliente import MainWindow as ClientesWindow
-                   self.ventana = ClientesWindow()
-                   self.ventana.show()
-                   self.close()
-                elif opcion == "Citas":
-                   from UI_Revisar_Cita import MainWindow as CitasWindow
-                   self.ventana = CitasWindow()
-                   self.ventana.show()
-                   self.close()
-            
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_Modificar_cliente import MainWindow as ClientesWindow
+                    self.ventana = ClientesWindow()
+                    self.ventana.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    # self.abrir_hospitalizacion()
+                    pass
+
             # --- MEDICAMENTOS ---
             elif categoria == "Medicamentos":
-                if opcion == "Agregar":
-                    pass # Estamos aquí
-                elif opcion == "Modificar":
-                    # self.abrir_modificar_medicamento()
-                    pass
-            
+                if opcion == "Visualizar":
+                    pass # Seria lista de medicamentos
+                elif opcion == "Agregar":
+                    pass # Ya estamos aquí
+
             # --- USUARIOS ---
             elif categoria == "Usuarios":
-                 pass
+                if opcion == "Agregar":
+                    # self.abrir_crear_usuario()
+                    pass
+                elif opcion == "Modificar":
+                    # self.abrir_modificar_usuario()
+                    pass
+                elif opcion == "Visualizar":
+                    # self.abrir_consultar_usuario()
+                    pass
+
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    # self.abrir_agregar_especialidad()
+                    pass
+                elif opcion == "Modificar":
+                    # self.abrir_modificar_especialidad()
+                    pass
 
         except ImportError as e:
             QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
@@ -479,8 +535,8 @@ class MainWindow(QMainWindow):
         nombre = self.inp_nombre.text().strip()
         tipo = self.inp_tipo.currentText()
         composicion = self.inp_comp.text().strip()
-        dosis = self.inp_dosis.text().strip()
-        via = self.inp_via.currentText()
+        dosis_recomendada = self.inp_dosis.text().strip()
+        via_administracion = self.inp_via.currentText()
 
         # 2. Validaciones
         if not nombre:
@@ -488,7 +544,7 @@ class MainWindow(QMainWindow):
             return
 
         # 3. Insertar en BD
-        datos = (nombre, tipo, composicion, dosis, via)
+        datos = (nombre, tipo, composicion, dosis_recomendada, via_administracion)
         # Asumiendo tabla 'medicamento' con estas columnas
         columnas = ('nombre', 'tipo', 'composicion', 'dosis_recomendada', 'via_administracion')
         table = 'medicamento'
