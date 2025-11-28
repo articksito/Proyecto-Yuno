@@ -1,5 +1,14 @@
 import sys
 import os
+
+# --- CONFIGURACIÓN DE RUTAS PARA IMPORTACIONES ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QMessageBox,
@@ -13,17 +22,16 @@ from db_connection import Conexion
 class GraficaCitas(QWidget):
     def __init__(self, data_dict):
         super().__init__()
-        # Procesar datos para unir "Completado" y "Completada"
         self.data = self.procesar_datos(data_dict)
         
-        # Colores actualizados (Sin amarillo, tonos rosas/violetas/cian)
+        # Colores actualizados
         self.colors = {
             "Confirmada": QColor("#26C6DA"),  # Cian
             "Completada": QColor("#AB47BC"),  # Violeta
             "Cancelada": QColor("#EC407A"),   # Rosa Fuerte
-            "Pendiente": QColor("#FF80AB")    # Rosa Claro (Reemplaza al amarillo)
+            "Pendiente": QColor("#FF80AB")    # Rosa Claro
         }
-        self.setMinimumHeight(350) # Aumenté altura para llenar mejor el espacio
+        self.setMinimumHeight(350)
 
     def procesar_datos(self, data_raw):
         """Une claves similares y limpia datos"""
@@ -38,10 +46,9 @@ class GraficaCitas(QWidget):
             return clean_data
 
         for estado, cantidad in data_raw.items():
-            # Normalizar texto (quitar espacios, mayúsculas)
             est_norm = str(estado).strip().capitalize()
             
-            if "Completad" in est_norm: # Captura Completada y Completado
+            if "Completad" in est_norm:
                 clean_data["Completada"] += cantidad
             elif "Confirmad" in est_norm:
                 clean_data["Confirmada"] += cantidad
@@ -49,46 +56,36 @@ class GraficaCitas(QWidget):
                 clean_data["Cancelada"] += cantidad
             elif "Pendiente" in est_norm:
                 clean_data["Pendiente"] += cantidad
-            else:
-                # Si hay otros estados, se pueden agregar o ignorar
-                pass
         
         return clean_data
 
     def paintEvent(self, event):
         painter = QPainter(self)
         painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        # Fondo del widget
         painter.fillRect(self.rect(), QColor("transparent"))
 
-        # Configuración de márgenes y dimensiones
+        # Configuración
         margin_left = 60
         margin_bottom = 50
         margin_top = 40
-        bar_width_ratio = 0.5 # Barras un poco más delgadas para elegancia
+        bar_width_ratio = 0.5
         
         w = self.width()
         h = self.height()
-        
-        # Área de dibujo
         draw_w = w - margin_left - 40
         draw_h = h - margin_bottom - margin_top
 
-        # Calcular valor máximo para escalar (con un margen superior)
         max_val = max(self.data.values()) if self.data.values() else 1
-        max_val = int(max_val * 1.2) # 20% de aire arriba
+        max_val = int(max_val * 1.2)
         if max_val == 0: max_val = 1
 
-        # Dibujar ejes
+        # Ejes
         pen_axis = QPen(QColor("#888"), 2)
         painter.setPen(pen_axis)
-        # Eje Y
         painter.drawLine(margin_left, margin_top, margin_left, h - margin_bottom)
-        # Eje X
         painter.drawLine(margin_left, h - margin_bottom, w - 20, h - margin_bottom)
 
-        # Dibujar líneas guía horizontales (Grid)
+        # Grid
         pen_grid = QPen(QColor("#DDD"), 1, Qt.PenStyle.DotLine)
         painter.setPen(pen_grid)
         steps = 5
@@ -97,11 +94,10 @@ class GraficaCitas(QWidget):
             y_pos = (h - margin_bottom) - (val / max_val) * draw_h
             painter.drawLine(margin_left, int(y_pos), w - 20, int(y_pos))
 
-        # Dibujar barras
-        categories = ["Confirmada", "Pendiente", "Completada", "Cancelada"] # Orden específico
+        # Barras
+        categories = ["Confirmada", "Pendiente", "Completada", "Cancelada"]
         num_bars = len(categories)
         section_width = draw_w / num_bars
-        
         bar_width = section_width * bar_width_ratio
         spacing = (section_width - bar_width) / 2
 
@@ -110,36 +106,21 @@ class GraficaCitas(QWidget):
 
         for i, estado in enumerate(categories):
             valor = self.data.get(estado, 0)
-            
-            # Altura de la barra
             bar_h = (valor / max_val) * draw_h
-            
-            # Coordenadas
             x = margin_left + (i * section_width) + spacing
             y = (h - margin_bottom) - bar_h
-            
             rect = QRectF(x, y, bar_width, bar_h)
             
-            # Color según estado
             color = self.colors.get(estado, QColor("#999"))
-            
-            # Gradiente suave para la barra
-            gradient = QBrush(color) 
-            # (Opcional: Podrías usar QLinearGradient aquí para más detalle)
-            
-            painter.setBrush(gradient)
+            painter.setBrush(QBrush(color))
             painter.setPen(Qt.PenStyle.NoPen)
-            
-            # Dibujar Rectángulo
             painter.drawRoundedRect(rect, 6, 6) 
             
-            # Dibujar Valor arriba
             painter.setPen(QColor("#333"))
             painter.setFont(font_val)
             if valor > 0:
                 painter.drawText(QRectF(x, y - 25, bar_width, 20), Qt.AlignmentFlag.AlignCenter, str(valor))
             
-            # Dibujar Etiqueta abajo
             painter.setPen(QColor("#555"))
             painter.setFont(font_lbl)
             painter.drawText(QRectF(x - 15, h - margin_bottom + 10, bar_width + 30, 20), 
@@ -148,33 +129,29 @@ class GraficaCitas(QWidget):
 
 class MainWindow(QMainWindow):
     def __init__(self, nombre="Administrador"):
-        self.nombre = nombre # Nombre de usuario para buscar en BD
+        self.nombre = nombre
         super().__init__()
 
         self.setWindowTitle("Sistema Veterinario Yuno - Administrador")
         self.resize(1280, 720)
 
-        # Datos simulados
-        self.user_data = {
-            "nombre": f"{self.nombre}",
-            "puesto": "Administrador",
-            "id": "ADM-001"
-        }
-
-        # Conexión para datos
+        # Conexión
         self.conexion = Conexion()
+        if nombre == "Administrador" or nombre == "Admin":
+             pass 
+        
         self.stats_citas = self.obtener_stats_citas()
 
         # Widget central
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
 
-        # Layout principal (Horizontal)
+        # Layout principal
         self.main_layout = QHBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES ---
+        # --- ESTILOS ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -191,7 +168,6 @@ class MainWindow(QMainWindow):
             QLabel {
                 font-family: 'Segoe UI', sans-serif;
             }
-            /* Estilo Botones Menú Principal */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
@@ -210,7 +186,6 @@ class MainWindow(QMainWindow):
                 border: 1px solid white;
                 color: #FFF;
             }
-            /* Estilo Sub-botones */
             QPushButton.sub-btn {
                 text-align: left;
                 font-family: 'Segoe UI', sans-serif;
@@ -232,43 +207,37 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # --- 1. BARRA LATERAL (Izquierda) ---
+        # --- 1. BARRA LATERAL ---
         self.setup_sidebar()
 
-        # --- 2. PANEL BLANCO (Derecha) ---
+        # --- 2. PANEL BLANCO ---
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 40, 50, 40)
 
-        # Header del Panel
+        # Header
         header_layout = QHBoxLayout()
         lbl_header = QLabel("Panel de Control")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
         
-        # Reloj en el header
         self.lbl_reloj_header = QLabel()
         self.lbl_reloj_header.setStyleSheet("font-size: 24px; color: #777; font-weight: 300;")
         header_layout.addWidget(self.lbl_reloj_header)
         
         self.white_layout.addLayout(header_layout)
-
-        # Espaciador superior (flexible) para centrar contenido
-        self.white_layout.addStretch(1)
+        self.white_layout.addSpacing(20)
 
         # Contenido Central
         self.setup_central_board()
+        self.white_layout.addStretch()
 
-        # Espaciador inferior (flexible) para centrar contenido
-        self.white_layout.addStretch(1)
-
-        # Agregar al layout principal
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
-        # Iniciar timer global
+        # Timer
         self.timer = QTimer(self)
         self.timer.timeout.connect(self.update_time)
         self.timer.start(1000)
@@ -282,16 +251,12 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ---
+        # Logo
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # ----------------------------------------------
-        #  RUTA DEL LOGO (Ajustar si es necesario)
-        # ----------------------------------------------
-        ruta_logo = "Modulos/FILES/logo_yuno.png" 
-        
+        ruta_logo = "logo.png" 
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -307,11 +272,32 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- SECCIONES NUEVAS ---
-        self.setup_accordion_group("Administrar", ["Pacientes", "Clientes", "Citas"])
-        self.setup_accordion_group("Usuarios", ["Crear", "Modificar", "Consultar"])
-        # --- NUEVA SECCIÓN MEDICAMENTOS ---
-        self.setup_accordion_group("Medicamentos", ["Agregar", "Modificar"])
+        # --- MENU NUEVO ---
+        
+        # Cita
+        self.setup_accordion_group("Cita", ["Visualizar"])
+        
+        # Consulta
+        self.setup_accordion_group("Consulta", ["Visualizar"])
+        
+        # Mascota
+        self.setup_accordion_group("Mascota", ["Visualizar"])
+        
+        # Cliente
+        self.setup_accordion_group("Cliente", ["Visualizar"])
+        
+        # Hospitalizacion
+        self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
+        
+        # Medicamentos
+        self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
+        
+        # Usuarios
+        self.setup_accordion_group("Usuarios", ["Agregar", "Modificar", "Visualizar"])
+        
+        # Especialidad
+        self.setup_accordion_group("Especialidad", ["Agregar", "Modificar"])
+
 
         self.sidebar_layout.addStretch()
 
@@ -345,7 +331,6 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            # Conexión al router
             btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.router_ventanas(cat, opt))
             layout_options.addWidget(btn_sub)
 
@@ -360,7 +345,6 @@ class MainWindow(QMainWindow):
             frame.show()
 
     def setup_central_board(self):
-        # Contenedor principal del área de trabajo
         board_container = QFrame()
         board_container.setStyleSheet("""
             QFrame {
@@ -374,7 +358,6 @@ class MainWindow(QMainWindow):
         board_layout.setContentsMargins(0, 0, 0, 0)
         board_layout.setSpacing(0)
 
-        # Header del Board (Bienvenida)
         header_frame = QFrame()
         header_frame.setFixedHeight(80)
         header_frame.setStyleSheet("""
@@ -386,118 +369,122 @@ class MainWindow(QMainWindow):
         header_layout = QVBoxLayout(header_frame)
         
         # Nombre del Admin
-        lbl_welcome = QLabel(f"Bienvenido, {self.user_data['nombre']}")
+        lbl_welcome = QLabel(f"Bienvenido, {self.nombre}") # Usamos self.nombre que viene del login
         lbl_welcome.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_welcome.setStyleSheet("color: white; font-size: 24px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_welcome)
 
-        # Contenido del Board (Gráfica)
         content_frame = QFrame()
         content_frame.setStyleSheet("background: white; border: none; border-bottom-left-radius: 15px; border-bottom-right-radius: 15px;")
         content_layout = QVBoxLayout(content_frame)
         content_layout.setContentsMargins(40, 30, 40, 40)
         
+        content_layout.addStretch()
+
         lbl_chart_title = QLabel("Resumen de Citas")
         lbl_chart_title.setStyleSheet("font-size: 22px; color: #555; font-weight: bold; margin-bottom: 20px;")
         lbl_chart_title.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
-        # Instanciar la gráfica personalizada
         self.chart_widget = GraficaCitas(self.stats_citas)
         
         content_layout.addWidget(lbl_chart_title)
         content_layout.addWidget(self.chart_widget)
         
+        content_layout.addStretch()
+        
         board_layout.addWidget(header_frame)
         board_layout.addWidget(content_frame)
-
         self.white_layout.addWidget(board_container)
 
-    # --- UTILERÍAS BD ---
-    def obtener_nombre_real(self):
-        """Obtiene el nombre del admin desde la BD"""
-        try:
-            return self.conexion.obtener_nombre(self.nombre_usuario)
-        except Exception:
-            return "Administrador"
-
-    # ##########################################################
-    # ### --- PARA MOVER A DB_CONNECTION.PY --- ###
-    #
-    # Esta función realiza una consulta directa. Lo ideal es moverla
-    # a tu archivo db_connection.py para centralizar el SQL.
-    #
     def obtener_stats_citas(self):
-        """Consulta la BD para contar citas por estado"""
+        """Consulta BD"""
         try:
             query = "SELECT estado, COUNT(*) FROM cita GROUP BY estado"
             self.conexion.cursor_uno.execute(query)
             resultados = self.conexion.cursor_uno.fetchall()
-            
-            # Convertir a diccionario
             stats = {row[0]: row[1] for row in resultados}
-            
-            # Asegurar claves por defecto
             defaults = ["Confirmada", "Completada", "Cancelada", "Pendiente"]
             for d in defaults:
-                if d not in stats:
-                    stats[d] = 0
+                if d not in stats: stats[d] = 0
             return stats
-        except Exception as e:
-            print(f"Error obteniendo estadísticas: {e}")
+        except Exception:
             return {"Confirmada": 0, "Completada": 0, "Cancelada": 0, "Pendiente": 0}
-    # ##########################################################
 
     def update_time(self):
         current_time = datetime.now().strftime("%I:%M:%S %p")
         self.lbl_reloj_header.setText(current_time)
 
     # ============================================================
-    #        ENRUTADOR DE VENTANAS
+    #        ENRUTADOR DE VENTANAS (NUEVO)
     # ============================================================
-
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
-        
         try:
-            # --- ADMINISTRAR ---
-            if categoria == "Administrar":
-                if opcion == "Pacientes":
-                   from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
-                   self.apaciente = UI_ADMIN_Paciente()
-                   self.apaciente.show()
-                   self.close()
-                   
-                elif opcion == "Clientes":
-                    from UI_ADMIN_Modificar_cliente import MainWindow as UI_Modificar_cliente
-                    self.cliente = UI_Modificar_cliente()
-                    self.cliente.show()
-                    self.close()
-                    
-                elif opcion == "Citas":
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
                     self.cita = UI_Revisar_Cita()
                     self.cita.show()
                     self.close()
-                    
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    # self.abrir_visualizar_consulta()
+                    pass
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                   from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
+                   self.apaciente = UI_ADMIN_Paciente()
+                   self.apaciente.show()
+                   self.close()
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Modificar_cliente import MainWindow as UI_Modificar_cliente
+                    self.cliente = UI_Modificar_cliente()
+                    self.cliente.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    # self.abrir_hospitalizacion()
+                    pass
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    pass # Seria lista de medicamentos
+                elif opcion == "Agregar":
+                    from UI_Agregar_Medicamento import MainWindow as AddMed
+                    self.ventana = AddMed()
+                    self.ventana.show()
+                    self.close()
+
             # --- USUARIOS ---
             elif categoria == "Usuarios":
-                if opcion == "Crear":
+                if opcion == "Agregar":
                     # self.abrir_crear_usuario()
                     pass
                 elif opcion == "Modificar":
                     # self.abrir_modificar_usuario()
                     pass
-                elif opcion == "Consultar":
+                elif opcion == "Visualizar":
                     # self.abrir_consultar_usuario()
                     pass
 
-            # --- MEDICAMENTOS (NUEVO) ---
-            elif categoria == "Medicamentos":
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
                 if opcion == "Agregar":
-                    # self.abrir_agregar_medicamento()
+                    # self.abrir_agregar_especialidad()
                     pass
                 elif opcion == "Modificar":
-                    # self.abrir_modificar_medicamento()
+                    # self.abrir_modificar_especialidad()
                     pass
 
         except ImportError as e:
