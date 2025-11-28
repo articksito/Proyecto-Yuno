@@ -24,8 +24,9 @@ from PyQt6.QtGui import QFont, QPixmap
 from db_connection import Conexion
 
 class VentanaAgregarMedicamento(QMainWindow):
-    def __init__(self):
+    def __init__(self, nombre_usuario):
         super().__init__()
+        self.nombre_usuario=nombre_usuario
         
         # Conexión solo para verificar (la inserción usa FuncinesVete)
         try:
@@ -245,7 +246,11 @@ class VentanaAgregarMedicamento(QMainWindow):
                     self.v.show()
                     self.close()
                 elif opcion == "Visualizar medicamento":
-                    QMessageBox.information(self, "Construcción", "Aquí iría Visualizar Medicamento.")
+                    from UI_RevisarMedicamento import VentanaRevisarMedicamento
+                    self.ventana = VentanaRevisarMedicamento(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                
                 elif opcion == "Agregar notas para internar":
                     QMessageBox.information(self, "Construcción", "Aquí iría Notas Internación.")
 

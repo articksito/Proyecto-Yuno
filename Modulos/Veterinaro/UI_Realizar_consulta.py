@@ -22,7 +22,7 @@ from PyQt6.QtGui import QFont, QPixmap
 from db_connection import Conexion
 
 class VentanaConsulta(QMainWindow):
-    def __init__(self, nombre_usuario="Mick"):
+    def __init__(self, nombre_usuario):
         super().__init__()
         
         # 1. Inicializar conexión
@@ -242,7 +242,7 @@ class VentanaConsulta(QMainWindow):
                     self.close()
                 elif opcion == "Agregar medicina a receta":
                     from UI_Agregar_MReceta import VentanaAgregarMedicamento
-                    self.ventana=VentanaAgregarMedicamento()
+                    self.ventana=VentanaAgregarMedicamento(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
 
@@ -250,13 +250,13 @@ class VentanaConsulta(QMainWindow):
             elif categoria == "Extra":
                 if opcion == "Visualizar mascotas":
                     from UI_RevisarMascota_Vete import VentanaRevisarMascota
-                    self.ventana = VentanaRevisarMascota()
+                    self.ventana = VentanaRevisarMascota(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
                 
                 elif opcion == "Visualizar medicamento":
                     from UI_RevisarMedicamento import VentanaRevisarMedicamento
-                    self.ventana = VentanaRevisarMedicamento()
+                    self.ventana = VentanaRevisarMedicamento(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
                 

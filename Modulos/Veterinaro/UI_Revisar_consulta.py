@@ -30,7 +30,7 @@ except ImportError:
 from db_connection import Conexion
 
 class VentanaRevisarConsulta(QMainWindow):
-    def __init__(self, nombre_usuario="Mick"):
+    def __init__(self, nombre_usuario):
         super().__init__()
         
         # Conexión base
@@ -254,7 +254,7 @@ class VentanaRevisarConsulta(QMainWindow):
                     self.close()
                 elif opcion == "Agregar medicina a receta":
                     from UI_Agregar_MReceta import VentanaAgregarMedicamento
-                    self.ventana=VentanaAgregarMedicamento()
+                    self.ventana=VentanaAgregarMedicamento(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
 
@@ -262,13 +262,13 @@ class VentanaRevisarConsulta(QMainWindow):
             elif categoria == "Extra":
                 if opcion == "Visualizar mascotas":
                     from UI_RevisarMascota_Vete import VentanaRevisarMascota
-                    self.ventana = VentanaRevisarMascota()
+                    self.ventana = VentanaRevisarMascota(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
                 
                 elif opcion == "Visualizar medicamento":
                     from UI_RevisarMedicamento import VentanaRevisarMedicamento
-                    self.ventana = VentanaRevisarMedicamento()
+                    self.ventana = VentanaRevisarMedicamento(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
                 
