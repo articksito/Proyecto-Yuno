@@ -9,12 +9,11 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
                              QGridLayout, QTextEdit, QMessageBox)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QIcon, QPixmap, QDoubleValidator
+from PyQt6.QtGui import QFont, QPixmap
 
 # Importar conexión
 from db_connection import Conexion
@@ -25,7 +24,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Modificar Cliente")
+        self.setWindowTitle("Sistema Veterinario Yuno - Visualizar Cliente")
         self.resize(1280, 720)
 
         # Widget central
@@ -94,6 +93,11 @@ class MainWindow(QMainWindow):
                 background-color: rgba(255, 255, 255, 0.3);
                 font-weight: bold;
             }
+            /* Estilo Input Solo Lectura */
+            QLineEdit[readOnly="true"], QTextEdit[readOnly="true"] {
+                background-color: #f0f0f0;
+                color: #555;
+            }
         """)
 
         # --- 1. BARRA LATERAL ---
@@ -107,7 +111,7 @@ class MainWindow(QMainWindow):
 
         # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Modificar cliente")
+        lbl_header = QLabel("Visualizar Cliente")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
         btn_back = QPushButton("↶ Volver")
@@ -138,7 +142,7 @@ class MainWindow(QMainWindow):
         # --- ESPACIADOR SUPERIOR (Centrado) ---
         self.white_layout.addStretch(1)
 
-        # Barra de Búsqueda (Estilo unificado)
+        # Barra de Búsqueda
         self.setup_search_bar()
         self.white_layout.addSpacing(20)
 
@@ -148,7 +152,7 @@ class MainWindow(QMainWindow):
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
 
-        # --- A. FORMULARIO DE EDICIÓN (Izquierda) ---
+        # --- A. FORMULARIO DE VISUALIZACIÓN (Izquierda) ---
         self.setup_edit_form(content_layout)
 
         # --- B. PANEL DE INFORMACIÓN (Derecha) ---
@@ -156,12 +160,6 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(content_container)
         
-        # Espacio entre form y botón
-        self.white_layout.addSpacing(30)
-        
-        # Botón Guardar
-        self.setup_save_button()
-
         # --- ESPACIADOR INFERIOR (Centrado) ---
         self.white_layout.addStretch(2)
 
@@ -196,10 +194,31 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENU ---
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Modificar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Modificar"])
+        # --- MENÚ LATERAL ACTUALIZADO ---
+        
+        # Cita
+        self.setup_accordion_group("Cita", ["Visualizar"])
+        
+        # Consulta
+        self.setup_accordion_group("Consulta", ["Visualizar"])
+        
+        # Mascota
+        self.setup_accordion_group("Mascota", ["Visualizar"])
+        
+        # Cliente
+        self.setup_accordion_group("Cliente", ["Visualizar"])
+        
+        # Hospitalizacion
+        self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
+        
+        # Medicamentos
+        self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
+        
+        # Usuarios
+        self.setup_accordion_group("Usuarios", ["Agregar", "Modificar", "Visualizar"])
+        
+        # Especialidad
+        self.setup_accordion_group("Especialidad", ["Agregar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
@@ -232,6 +251,7 @@ class MainWindow(QMainWindow):
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            # Pasamos categoria y opcion al router
             btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.abrir_ventana(cat, opt))
             layout_options.addWidget(btn_sub)
 
@@ -239,46 +259,69 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(frame_options)
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
-    # --- GESTOR DE VENTANAS ---
+    # --- GESTOR DE VENTANAS ACTUALIZADO ---
     def abrir_ventana(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
-            if categoria == "Citas":
-                if opcion == "Agendar":
-                    from UI_Crear_cita import MainWindow as Agendar_cita
-                    self.ventana = Agendar_cita()
-                    self.ventana.show()
-                    self.close()
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    # from UI_Revisar_Cita import MainWindow as CitasWindow
+                    # self.ventana = CitasWindow()
+                    # self.ventana.show()
+                    # self.close()
+                    pass
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    # Lógica para visualizar consulta
+                    pass
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                    # from UI_ADMIN_Paciente import MainWindow as MascotaWindow
+                    # self.ventana = MascotaWindow()
+                    # self.ventana.show()
+                    # self.close()
+                    pass
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    # Ya estamos en esta ventana
+                    pass
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    pass
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    pass
+                elif opcion == "Agregar":
+                    # from UI_Agregar_Medicamento import MainWindow as AddMedWindow
+                    pass
+
+            # --- USUARIOS ---
+            elif categoria == "Usuarios":
+                if opcion == "Agregar":
+                    pass
+                elif opcion == "Modificar":
+                    pass
                 elif opcion == "Visualizar":
-                    from UI_Revisar_Cita import MainWindow as Visualizar_cita
-                    self.ventana = Visualizar_cita()
-                    self.ventana.show()
-                    self.close()
-                elif opcion == "Modificar":
-                    pass # Ya estamos aquí (en la sección de citas, aunque esta ventana es Cliente)
+                    pass
 
-            elif categoria == "Mascotas":
-                if opcion == "Registrar":
-                    from UI_Registrar_mascota import MainWindow as Registrar_mascota
-                    self.ventana = Registrar_mascota()
-                    self.ventana.show()
-                    self.close()
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    pass
                 elif opcion == "Modificar":
-                    from UI_Revisar_Mascota import MainWindow as Modificar_mascota
-                    self.ventana = Modificar_mascota()
-                    self.ventana.show()
-                    self.close()
+                    pass
 
-            elif categoria == "Clientes":
-                if opcion == "Registrar":
-                    from UI_Registra_cliente import MainWindow as Regsitrar_dueno
-                    self.ventana = Regsitrar_dueno()
-                    self.ventana.show()
-                    self.close()
-                elif opcion == "Modificar":
-                    # Estamos en Modificar Cliente, no hacemos nada o recargamos
-                    pass 
-                    
         except ImportError as e:
             QMessageBox.warning(self, "Error de Navegación", f"No se pudo abrir la ventana solicitada.\nFalta el archivo: {e.name}")
         except Exception as e:
@@ -299,7 +342,7 @@ class MainWindow(QMainWindow):
         lbl_search.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
         
         self.inp_id = QLineEdit()
-        self.inp_id.setPlaceholderText("Ingresa el ID del cliente a modificar")
+        self.inp_id.setPlaceholderText("Ingresa el ID del cliente")
         self.inp_id.setFixedWidth(300)
         self.inp_id.setStyleSheet("""
             QLineEdit {
@@ -355,38 +398,42 @@ class MainWindow(QMainWindow):
         """
         label_style = "font-size: 24px; color: black; font-weight: 400;"
 
-        # --- Campos de Cliente ---
-        # (Nota: El ID ya está en la barra de búsqueda)
-
+        # --- Campos de Cliente (MODO SOLO LECTURA) ---
+        
         # 1. Nombre
         lbl_nombre = QLabel("Nombre:")
         lbl_nombre.setStyleSheet(label_style)
         self.inp_nombre = QLineEdit()
         self.inp_nombre.setStyleSheet(input_style)
+        self.inp_nombre.setReadOnly(True)
 
         # 2. Apellido
         lbl_apellido = QLabel("Apellido:")
         lbl_apellido.setStyleSheet(label_style)
         self.inp_apellido = QLineEdit()
         self.inp_apellido.setStyleSheet(input_style)
+        self.inp_apellido.setReadOnly(True)
 
         # 3. Correo
         lbl_correo = QLabel("Correo:")
         lbl_correo.setStyleSheet(label_style)
         self.inp_correo = QLineEdit()
         self.inp_correo.setStyleSheet(input_style)
+        self.inp_correo.setReadOnly(True)
 
         # 4. Dirección
         lbl_direccion = QLabel("Dirección:")
         lbl_direccion.setStyleSheet(label_style)
         self.inp_direccion = QLineEdit()
         self.inp_direccion.setStyleSheet(input_style)
+        self.inp_direccion.setReadOnly(True)
 
         # 5. Teléfono
         lbl_telefono = QLabel("Teléfono:")
         lbl_telefono.setStyleSheet(label_style)
         self.inp_telefono = QLineEdit()
         self.inp_telefono.setStyleSheet(input_style)
+        self.inp_telefono.setReadOnly(True)
 
         # Añadir al Grid
         grid_layout.addWidget(lbl_nombre, 0, 0)
@@ -448,7 +495,7 @@ class MainWindow(QMainWindow):
         lbl_notas.setStyleSheet("font-weight: bold; font-size: 16px; color: #333; margin-bottom: 5px;")
         
         self.txt_notas = QTextEdit()
-        self.txt_notas.setPlaceholderText("Espacio para notas locales...")
+        self.txt_notas.setPlaceholderText("No hay observaciones registradas.")
         self.txt_notas.setStyleSheet("""
             border: 1px solid #DDD; 
             border-radius: 5px; 
@@ -456,6 +503,7 @@ class MainWindow(QMainWindow):
             font-size: 14px;
             padding: 10px;
         """)
+        self.txt_notas.setReadOnly(True)
 
         content_layout.addWidget(lbl_notas)
         content_layout.addWidget(self.txt_notas)
@@ -464,35 +512,6 @@ class MainWindow(QMainWindow):
         board_layout.addWidget(content_frame)
 
         parent_layout.addWidget(board_container, stretch=1)
-
-    def setup_save_button(self):
-        btn_save = QPushButton("Guardar Cambios")
-        btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_save.setFixedSize(250, 60)
-        btn_save.setStyleSheet("""
-            QPushButton {
-                background-color: #b67cfc;
-                color: white;
-                font-size: 24px;
-                font-weight: bold;
-                border-radius: 30px;
-            }
-            QPushButton:hover {
-                background-color: #a060e8;
-            }
-            QPushButton:pressed {
-                background-color: #8a4cd0;
-            }
-        """)
-        
-        btn_save.clicked.connect(self.guardar_cambios)
-        
-        btn_container = QHBoxLayout()
-        btn_container.addStretch()
-        btn_container.addWidget(btn_save)
-        btn_container.addStretch()
-        
-        self.white_layout.addLayout(btn_container)
 
     # --- FUNCIÓN: BUSCAR CLIENTE ---
     def buscar_cliente(self):
@@ -521,55 +540,19 @@ class MainWindow(QMainWindow):
                 
                 self.txt_notas.clear()
                 
-                QMessageBox.information(self, "Encontrado", "Datos del cliente cargados correctamente.")
+                QMessageBox.information(self, "Encontrado", "Datos del cliente cargados.")
             else:
                 QMessageBox.warning(self, "No encontrado", "No existe un cliente con ese ID.")
+                # Limpiar campos si no se encuentra
+                self.inp_nombre.clear()
+                self.inp_apellido.clear()
+                self.inp_correo.clear()
+                self.inp_direccion.clear()
+                self.inp_telefono.clear()
+                self.txt_notas.clear()
                 
         except Exception as e:
             QMessageBox.critical(self, "Error", f"Error al buscar: {e}")
-
-    # --- FUNCIÓN: GUARDAR CAMBIOS ---
-    def guardar_cambios(self):
-        id_cliente = self.inp_id.text().strip()
-        
-        if not id_cliente:
-            QMessageBox.warning(self, "Error", "Primero busca un cliente por ID para modificar.")
-            return
-
-        # Recolectar datos
-        nombre = self.inp_nombre.text().strip()
-        apellido = self.inp_apellido.text().strip()
-        correo = self.inp_correo.text().strip()
-        direccion = self.inp_direccion.text().strip()
-        telefono_str = self.inp_telefono.text().strip()
-        
-        if not nombre or not apellido:
-             QMessageBox.warning(self, "Aviso", "El nombre y apellido son obligatorios.")
-             return
-
-        # Convertir teléfono
-        try:
-            telefono_num = int(telefono_str) if telefono_str else None
-        except ValueError:
-            QMessageBox.warning(self, "Error", "El teléfono debe ser numérico.")
-            return
-
-        datos = {
-            "nombre": nombre,
-            "apellido": apellido,
-            "correo": correo,
-            "direccion": direccion,
-            "telefono": telefono_num
-        }
-
-        try:
-            exito = self.conexion1.editar_registro(id_cliente, datos, 'cliente', 'id_cliente')
-            if exito:
-                QMessageBox.information(self, "Éxito", "Cliente actualizado correctamente.")
-            else:
-                QMessageBox.warning(self, "Error", "No se pudo actualizar el registro.")
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Fallo al guardar: {e}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
