@@ -1,5 +1,14 @@
 import sys
 import os
+
+# --- 1. CONFIGURACIÓN DE RUTAS ---
+current_dir = os.path.dirname(os.path.abspath(__file__))
+# Ajuste para subir niveles correctamente
+if 'Veterinaro' in current_dir:
+    project_root = os.path.abspath(os.path.join(current_dir, '..'))
+else:
+    project_root = os.path.abspath(os.path.join(current_dir, '..'))
+    
 from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
