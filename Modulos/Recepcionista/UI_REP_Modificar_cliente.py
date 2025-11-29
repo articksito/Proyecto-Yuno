@@ -19,23 +19,13 @@ if current_dir not in sys.path:
 # --- IMPORTACIONES ---
 try:
     from db_connection import Conexion
-    # Importamos el menú principal correcto según tu lista de archivos
     from UI_REP_main import MainWindow as MenuPrincipal
-except ImportError as e:
-    print(f"Error de importación (Mock activo): {e.name}")
-    # Clases Mock para pruebas sin dependencias
+except ImportError:
     class Conexion:
-        def consultar_registro(self, tabla, col_clave, val_clave, columnas): 
-            print(f"MOCK SELECT FROM {tabla} WHERE {col_clave}={val_clave}")
-            return None
-        def editar_registro(self, val_clave, datos, tabla, col_clave): 
-            print(f"MOCK UPDATE {tabla} SET {datos} WHERE {col_clave}={val_clave}")
-            return True
+        def consultar_registro(self, *args): return None
+        def editar_registro(self, *args): return True
     class MenuPrincipal(QMainWindow):
-        def __init__(self, nombre_usuario=""):
-            super().__init__()
-            self.setWindowTitle("MENU PRINCIPAL (MOCK)")
-            self.setCentralWidget(QLabel("Menu Principal Mock"))
+        def __init__(self, u): super().__init__(); self.show()
 
 class MainWindow(QMainWindow):
     conexion1 = Conexion()
@@ -43,10 +33,13 @@ class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Recepcionista"):
         super().__init__()
         self.nombre_usuario = nombre_usuario
-        self.ventana = None # Referencia para navegación
+        self.ventana = None
         
         self.setWindowTitle(f"Sistema Veterinario Yuno - Modificar Cliente ({self.nombre_usuario})")
+        
+        # 1. TAMAÑO MÍNIMO
         self.resize(1280, 720)
+        self.setMinimumSize(1024, 600)
 
         # Widget central
         self.central_widget = QWidget()
@@ -57,7 +50,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS CSS ---
+        # --- ESTILOS ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -88,6 +81,10 @@ class MainWindow(QMainWindow):
             QPushButton.sub-btn:hover {
                 color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold;
             }
+            /* Inputs */
+            QLineEdit:disabled {
+                background-color: #F0F0F0; color: #999; border: 1px solid #DDD;
+            }
         """)
 
         self.setup_sidebar()
@@ -103,7 +100,6 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Modificar Cliente")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        # Botón Guardar Superior
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
@@ -116,15 +112,18 @@ class MainWindow(QMainWindow):
         content_layout = QHBoxLayout(content_container)
         content_layout.setContentsMargins(0, 0, 0, 0)
         content_layout.setSpacing(40)
+        # 2. ALINEACIÓN SUPERIOR
+        content_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
         self.setup_edit_form(content_layout)
         self.setup_info_board(content_layout)
 
         self.white_layout.addWidget(content_container)
-        self.white_layout.addSpacing(30)
+        self.white_layout.addStretch(1)
         
-        self.setup_save_button() # Botón inferior grande
-        self.white_layout.addStretch(2)
+        # Botón Guardar Inferior
+        self.setup_save_button()
+        self.white_layout.addSpacing(20)
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
@@ -144,6 +143,7 @@ class MainWindow(QMainWindow):
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
+        # 3. MÁRGENES OPTIMIZADOS
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
@@ -156,11 +156,9 @@ class MainWindow(QMainWindow):
             if not pixmap.isNull():
                 lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             else:
-                lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 30px; font-weight: bold;")
+                lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
         else:
-            lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 30px; font-weight: bold;")
+            lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
         self.sidebar_layout.addWidget(lbl_logo)
 
         # Menús
@@ -170,11 +168,11 @@ class MainWindow(QMainWindow):
         
         self.sidebar_layout.addStretch()
 
-        # 🟢 BOTÓN VOLVER AL MENÚ
+        # Botón Volver
         btn_back = QPushButton("↶ Volver al Menú")
         btn_back.setStyleSheet("""
             QPushButton {
-                border: 2px solid white; border-radius: 15px; padding: 10px; margin-top: 20px;
+                border: 2px solid white; border-radius: 15px; padding: 10px; margin-top: 10px;
                 font-size: 14px; color: white; font-weight: bold; background-color: transparent;
             }
             QPushButton:hover { background-color: rgba(255,255,255,0.2); }
@@ -191,21 +189,20 @@ class MainWindow(QMainWindow):
         
         frame = QFrame()
         layout = QVBoxLayout(frame)
-        layout.setContentsMargins(0,0,0,10)
+        layout.setContentsMargins(0, 0, 0, 10)
         
         for opt in options:
             btn = QPushButton(opt)
             btn.setProperty("class", "sub-btn")
             btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.clicked.connect(lambda _, c=title, o=opt: self.abrir_ventana(c, o))
+            btn.clicked.connect(lambda checked=False, c=title, o=opt: self.abrir_ventana(c, o))
             layout.addWidget(btn)
         
         frame.hide()
         self.sidebar_layout.addWidget(frame)
-        btn_main.clicked.connect(lambda: frame.setVisible(not frame.isVisible()))
+        btn_main.clicked.connect(lambda: self.toggle_menu(frame))
 
     def abrir_ventana(self, categoria, opcion):
-        # Evitar recargar la misma ventana
         if categoria == "Clientes" and opcion == "Modificar": return
 
         ventana_map = {
@@ -216,12 +213,12 @@ class MainWindow(QMainWindow):
             },
             "Mascotas": {
                 "Registrar": "UI_REP_Registrar_mascota",
-                "Visualizar": "UI_REP_Revisar_Mascota", # Ojo con el nombre exacto en tu carpeta
+                "Visualizar": "UI_Revisar_Mascota",
                 "Modificar": "UI_REP_Modificar_Mascota"
             },
             "Clientes": {
                 "Registrar": "UI_REP_Registra_cliente",
-                "Visualizar": "UI_Revisar_cliente", # Ojo con el nombre exacto en tu carpeta
+                "Visualizar": "UI_Revisar_cliente", 
                 "Modificar": "UI_REP_Modificar_cliente"
             }
         }
@@ -230,31 +227,35 @@ class MainWindow(QMainWindow):
 
         if nombre_modulo:
             try:
-                # Import dinámico para no llenar el encabezado
                 module = __import__(nombre_modulo, fromlist=['MainWindow'])
                 self.ventana = module.MainWindow(self.nombre_usuario)
                 self.ventana.show()
                 self.close()
             except ImportError as e:
-                QMessageBox.warning(self, "Error", f"Falta archivo: {nombre_modulo}.py\n{e}")
+                QMessageBox.warning(self, "Error de Navegación", f"Falta el archivo: {nombre_modulo}.py\n{e}")
             except Exception as e:
-                QMessageBox.critical(self, "Error", f"Error al abrir: {e}")
+                QMessageBox.critical(self, "Error", f"Error al abrir ventana: {e}")
         else:
             print(f"Ruta no mapeada: {categoria} -> {opcion}")
+
+    def toggle_menu(self, frame):
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
 
     def setup_edit_form(self, parent_layout):
         form_widget = QWidget()
         grid = QGridLayout(form_widget)
         grid.setVerticalSpacing(20)
         grid.setHorizontalSpacing(30)
+        grid.setContentsMargins(0, 0, 0, 0)
 
         style_input = "background-color: rgba(241, 131, 227, 0.35); border: none; border-radius: 10px; padding: 5px 15px; font-size: 18px; color: #333; height: 45px;"
-        style_lbl = "font-size: 24px; color: black;"
+        style_lbl = "font-size: 24px; color: black; font-weight: 400;"
 
         # 1. Búsqueda
         lbl_id = QLabel("Id Cliente:"); lbl_id.setStyleSheet(style_lbl)
         self.inp_id = QLineEdit(); self.inp_id.setPlaceholderText("ID..."); self.inp_id.setStyleSheet(style_input)
-        self.inp_id.setValidator(QIntValidator()) # Solo números en ID
+        self.inp_id.setValidator(QIntValidator())
         
         btn_search = QPushButton("Buscar")
         btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -272,8 +273,7 @@ class MainWindow(QMainWindow):
 
         # Grid
         grid.addWidget(lbl_id, 0, 0)
-        grid.addWidget(self.inp_id, 0, 1)
-        grid.addWidget(btn_search, 0, 2)
+        grid.addWidget(self.inp_id, 0, 1); grid.addWidget(btn_search, 0, 2)
 
         self.add_row(grid, 1, "Nombre:", self.inp_nombre, style_lbl)
         self.add_row(grid, 2, "Apellido:", self.inp_apellido, style_lbl)
@@ -290,31 +290,24 @@ class MainWindow(QMainWindow):
         grid.addWidget(widget, row, 1, 1, 2)
 
     def setup_info_board(self, parent_layout):
-        board = QFrame()
-        board.setFixedWidth(350)
+        board = QFrame(); board.setFixedWidth(350)
         board.setStyleSheet("background-color: white; border: 1px solid #DDD; border-radius: 10px;")
-        layout = QVBoxLayout(board); layout.setContentsMargins(0,0,0,0)
+        vl = QVBoxLayout(board); vl.setContentsMargins(0,0,0,0); vl.setSpacing(0)
 
-        # Header Board
-        h_frame = QFrame(); h_frame.setFixedHeight(60)
-        h_frame.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7CEBFC, stop:1 rgba(252, 124, 226, 0.8)); border-top-left-radius: 10px; border-top-right-radius: 10px;")
-        hl = QVBoxLayout(h_frame)
-        lbl = QLabel("Información"); lbl.setAlignment(Qt.AlignmentFlag.AlignCenter); lbl.setStyleSheet("color: white; font-weight: bold; font-size: 18px; background: transparent;")
-        hl.addWidget(lbl)
+        h = QFrame(); h.setFixedHeight(60)
+        h.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7CEBFC, stop:1 rgba(252, 124, 226, 0.8)); border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom: none;")
+        hl = QVBoxLayout(h); l = QLabel("Información"); l.setAlignment(Qt.AlignmentFlag.AlignCenter); l.setStyleSheet("color: white; font-weight: bold; font-size: 18px; background: transparent;")
+        hl.addWidget(l)
 
-        # Content
-        c_frame = QFrame(); c_frame.setStyleSheet("background: white; border-radius: 10px;")
-        cl = QVBoxLayout(c_frame); cl.setContentsMargins(20,20,20,20); cl.setAlignment(Qt.AlignmentFlag.AlignTop)
+        c = QFrame(); c.setStyleSheet("background: white; border-radius: 10px; border: none;")
+        cl = QVBoxLayout(c); cl.setContentsMargins(20,20,20,20); cl.setAlignment(Qt.AlignmentFlag.AlignTop)
         
-        lbl_nota = QLabel("Observaciones:"); lbl_nota.setStyleSheet("font-weight: bold; color: #333;")
-        self.txt_notas = QTextEdit(); self.txt_notas.setPlaceholderText("Notas locales (no guardadas en BD)...")
+        l_n = QLabel("Observaciones:"); l_n.setStyleSheet("font-weight: bold; color: #333;")
+        self.txt_notas = QTextEdit(); self.txt_notas.setPlaceholderText("Notas locales...")
         self.txt_notas.setStyleSheet("border: 1px solid #DDD; background: #FAFAFA; border-radius: 5px; padding: 5px;")
         
-        cl.addWidget(lbl_nota)
-        cl.addWidget(self.txt_notas)
-
-        layout.addWidget(h_frame)
-        layout.addWidget(c_frame)
+        cl.addWidget(l_n); cl.addWidget(self.txt_notas)
+        vl.addWidget(h); vl.addWidget(c)
         parent_layout.addWidget(board, stretch=1)
 
     def setup_save_button(self):
@@ -323,21 +316,15 @@ class MainWindow(QMainWindow):
         btn.setFixedSize(250, 60)
         btn.setStyleSheet("QPushButton { background-color: #b67cfc; color: white; font-size: 24px; font-weight: bold; border-radius: 30px; } QPushButton:hover { background-color: #a060e8; }")
         btn.clicked.connect(self.guardar_cambios)
-        
-        layout = QHBoxLayout()
-        layout.addStretch()
-        layout.addWidget(btn)
-        layout.addStretch()
-        self.white_layout.addLayout(layout)
+        l = QHBoxLayout(); l.addStretch(); l.addWidget(btn); l.addStretch()
+        self.white_layout.addLayout(l)
 
-    # --- LÓGICA ---
     def buscar_cliente(self):
         cid = self.inp_id.text().strip()
         if not cid: return QMessageBox.warning(self, "Aviso", "Ingresa un ID.")
 
-        cols = ['nombre', 'apellido', 'correo', 'direccion', 'telefono']
         try:
-            res = self.conexion1.consultar_registro('cliente', 'id_cliente', cid, cols)
+            res = self.conexion1.consultar_registro('cliente', 'id_cliente', cid, ['nombre', 'apellido', 'correo', 'direccion', 'telefono'])
             if res:
                 self.inp_nombre.setText(str(res[0]))
                 self.inp_apellido.setText(str(res[1]))
@@ -358,9 +345,9 @@ class MainWindow(QMainWindow):
         
         nom = self.inp_nombre.text().strip()
         ape = self.inp_apellido.text().strip()
-        tel_str = self.inp_telefono.text().strip()
+        tel = self.inp_telefono.text().strip()
 
-        if not nom or not ape or not tel_str:
+        if not nom or not ape or not tel:
             return QMessageBox.warning(self, "Aviso", "Nombre, Apellido y Teléfono obligatorios.")
 
         datos = {
@@ -368,7 +355,7 @@ class MainWindow(QMainWindow):
             "apellido": ape,
             "correo": self.inp_correo.text().strip(),
             "direccion": self.inp_direccion.text().strip(),
-            "telefono": int(tel_str)
+            "telefono": int(tel)
         }
 
         try:
@@ -380,8 +367,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", str(e))
 
     def limpiar_form(self):
-        self.inp_nombre.clear(); self.inp_apellido.clear(); self.inp_correo.clear()
-        self.inp_direccion.clear(); self.inp_telefono.clear()
+        self.inp_nombre.clear(); self.inp_apellido.clear(); self.inp_correo.clear(); self.inp_direccion.clear(); self.inp_telefono.clear()
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
