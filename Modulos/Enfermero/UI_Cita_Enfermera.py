@@ -67,17 +67,11 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Revisar Cita")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_close_view = QPushButton("✕")
-        btn_close_view.setFixedSize(40, 40)
-        btn_close_view.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_close_view.setStyleSheet("QPushButton { background-color: #f0f0f0; border-radius: 20px; font-size: 20px; color: #666; border: none; } QPushButton:hover { background-color: #ffcccc; color: #cc0000; }")
         
         # CONEXIÓN IMPORTANTE: Regresar al menú
-        btn_close_view.clicked.connect(self.regresar_menu)
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_close_view)
 
         self.white_layout.addLayout(header_layout)
         self.white_layout.addStretch(1)

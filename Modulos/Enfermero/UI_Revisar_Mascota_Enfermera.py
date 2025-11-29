@@ -67,21 +67,9 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Revisar Mascota")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("↶ Volver")
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: #F0F0F0; color: #555; border-radius: 20px;
-                padding: 10px 20px; font-size: 16px; font-weight: bold; border: none;
-            }
-            QPushButton:hover { background-color: #E0E0E0; color: #333; }
-        """)
-        # CONEXIÓN AL MENÚ
-        btn_back.clicked.connect(self.regresar_menu)
-
+        
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_back)
 
         self.white_layout.addLayout(header_layout)
         self.white_layout.addSpacing(20)

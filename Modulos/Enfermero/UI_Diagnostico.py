@@ -79,21 +79,11 @@ class MainWindow(QMainWindow):
         lbl_title = QLabel("Expediente / Diagnóstico")
         lbl_title.setStyleSheet("font-size: 32px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("↶ Volver al Menú")
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_back.setStyleSheet("""
-            QPushButton {
-                background-color: #F0F0F0; color: #555; border-radius: 20px; 
-                padding: 10px 20px; font-weight: bold; border: none; font-size: 14px;
-            }
-            QPushButton:hover { background-color: #E0E0E0; color: #333; }
-        """)
+        
         # CONEXIÓN AL MENU
-        btn_back.clicked.connect(self.regresar_menu)
 
         header_layout.addWidget(lbl_title)
         header_layout.addStretch()
-        header_layout.addWidget(btn_back)
         self.white_layout.addLayout(header_layout)
         self.white_layout.addSpacing(20)
         
