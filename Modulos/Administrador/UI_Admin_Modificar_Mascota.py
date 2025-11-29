@@ -15,13 +15,12 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
                              QGridLayout, QMessageBox, QComboBox, QScrollArea)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QIntValidator, QDoubleValidator
+from db_connection  import Conexion
 
 # Si tienes un archivo db_connection.py, descomenta:
 # from db_connection import Conexion
 
 class MainWindow(QMainWindow):
-    # conexion1 = Conexion() # Descomentar para producción
-
     def __init__(self):
         super().__init__()
 
@@ -111,6 +110,7 @@ class MainWindow(QMainWindow):
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
+        self.conexion = Conexion() # Descomentar para producción
 
     # ==========================================
     # --- SETUP UI ---
@@ -432,6 +432,9 @@ class MainWindow(QMainWindow):
         self.prev_stats.setText(f"Edad: {eda if eda else '-'} | Peso: {pes if pes else '-'} kg")
 
     def buscar_mascota(self):
+        from db_connection import Conexion
+        self.funcion=Conexion()
+        
         id_busqueda = self.inp_search_id.text().strip()
         if not id_busqueda:
             QMessageBox.warning(self, "Error", "Ingresa un ID válido.")
@@ -468,6 +471,9 @@ class MainWindow(QMainWindow):
             self.current_mascota_id = None
 
     def guardar_cambios(self):
+        from db_connection import Conexion
+        funcion=Conexion()
+
         if not self.current_mascota_id: return
 
         # Recolectar datos
@@ -486,7 +492,7 @@ class MainWindow(QMainWindow):
             return
 
         # Actualizar BD
-        exito = self.db_actualizar_mascota(self.current_mascota_id, datos_nuevos)
+        exito=self.funcion.editar_registro(self.current_mascota_id,datos_nuevos,tabla='mascota',id_columna='id_mascota')
         
         if exito:
             QMessageBox.information(self, "Guardado", "Los cambios han sido guardados correctamente.")
@@ -502,28 +508,49 @@ class MainWindow(QMainWindow):
     # ==========================================
 
     def db_consultar_mascota(self, id_mascota):
-        """
-        TODO: Reemplazar con: 
-        cursor.execute("SELECT * FROM mascota WHERE id_mascota = %s", (id_mascota,))
-        """
-        # Simulacion
-        if id_mascota == "1092":
-            return {
-                "nombre": "Max",
-                "edad": 4,
-                "peso": 12.5,
-                "especie": "Canino",
-                "raza": "Golden Retriever",
-                "fk_cliente": 55
-            }
-        return None
+        try:
+            # Definimos las columnas que queremos traer (coinciden con tu formulario)
+            columnas_deseadas = ['nombre', 'edad', 'peso', 'especie', 'raza', 'fk_cliente']
+  
+            resultado = self.conexion.consultar_registro(
+                tabla='mascota', 
+                id_columna='id_mascota', 
+                id_valor=id_mascota, 
+                columnas=columnas_deseadas
+            )
+            
+            if resultado:
+                datos_dict = {
+                    "nombre": resultado[0],
+                    "edad": resultado[1],
+                    "peso": resultado[2],
+                    "especie": resultado[3],
+                    "raza": resultado[4],
+                    "fk_cliente": resultado[5]
+                }
+                return datos_dict
+            
+            return None
+
+        except Exception as e:
+            print(f"Error SQL consultar mascota: {e}")
+            return None
+    
 
     def db_actualizar_mascota(self, id_mascota, datos):
-        """
-        TODO: Reemplazar con UPDATE mascota SET ... WHERE id_mascota = ...
-        """
-        print(f"Actualizando ID {id_mascota} con: {datos}")
-        return True
+        try:
+            exito = self.conexion.editar_registro(
+                id=id_mascota,
+                datos=datos,
+                tabla='mascota',
+                id_columna='id_mascota'
+            )
+            
+            return exito
+            
+        except Exception as e:
+            print(f"Error SQL actualizar mascota: {e}")
+            return False
 
     # ==========================================
     # --- UTILIDADES ---

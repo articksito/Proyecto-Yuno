@@ -212,7 +212,7 @@ class Conexion:
             self.cursor_uno.execute(comando_sql, tuple(valores))
             self.conexion1.commit()
             print('Editar Correcto')
-            return True
+            return 
         except Exception as a:
             print(f"Error al editar registro/s: {a}")
             self.conexion1.rollback()
