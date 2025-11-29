@@ -38,7 +38,7 @@ class VentanaRevisarUsuario(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS VISUALES (INTEGRADOS) ---
+        # --- ESTILOS VISUALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -57,7 +57,7 @@ class VentanaRevisarUsuario(QMainWindow):
                 color: #333;
             }
             
-            /* --- ESTILOS DEL SIDEBAR --- */
+            /* --- ESTILOS DEL SIDEBAR (ADMINISTRADOR) --- */
             QPushButton.menu-btn {
                 text-align: left;
                 padding-left: 20px;
@@ -132,7 +132,7 @@ class VentanaRevisarUsuario(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     # ============================================================
-    #  SIDEBAR (ADMIN)
+    #  SIDEBAR (ADMIN ACTUALIZADO)
     # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
@@ -169,7 +169,7 @@ class VentanaRevisarUsuario(QMainWindow):
         # --- MENÚS ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
-        self.setup_accordion_group("Mascota", ["Visualizar"])
+        self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
         self.setup_accordion_group("Cliente", ["Visualizar"])
         self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
         self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
@@ -213,29 +213,102 @@ class VentanaRevisarUsuario(QMainWindow):
     def navegar(self, categoria, opcion):
         print(f"Admin navegando a: {categoria} -> {opcion}")
         
+        # Evitar recargar
         if categoria == "Usuarios" and opcion == "Visualizar":
-             QMessageBox.information(self, "Sistema", "Ya te encuentras en Revisar Usuarios.")
              return
 
         try:
-            # Navegación Admin
-            if categoria == "Usuarios" and opcion == "Agregar":
-                from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
-                self.ventana = VentanaAgregarUsuario()
-                self.ventana.show()
-                self.close()
-            elif categoria == "Consulta" and opcion == "Visualizar":
-                from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
-                self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
-                self.ventana.show()
-                self.close()
-            else:
-                 QMessageBox.information(self, "Navegación", f"Ir a: {categoria} - {opcion}")
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                    self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   self.ventana = revisar_mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+                elif opcion == "Modificar":
+                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                    self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
+                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Agregar":
+                    from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
+                    self.ventana = AddMed(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- USUARIOS ---
+            elif categoria == "Usuarios":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
+                    self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
+                    self.ventana = VentanaModificarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    # Estamos aqui
+                    pass
+
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
+                    self.ventana = VentanaAgregarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad
+                    self.ventana = VentanaModificarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error: {e}")
+            QMessageBox.critical(self, "Error", f"Error general al navegar: {e}")
 
     # ============================================================
     #  PANEL CENTRAL (REVISAR USUARIO)
@@ -251,12 +324,11 @@ class VentanaRevisarUsuario(QMainWindow):
         lbl_header = QLabel("Revisar Usuario")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("✕")
-        btn_back.setFixedSize(40, 40)
+        btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_back.setStyleSheet("""
-            QPushButton { background-color: #F0F0F0; border-radius: 20px; font-size: 20px; color: #666; border: none; }
-            QPushButton:hover { background-color: #ffcccc; color: #cc0000; }
+            QPushButton { background-color: #F0F0F0; color: #555; border-radius: 20px; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
         btn_back.clicked.connect(self.volver_al_menu)
 

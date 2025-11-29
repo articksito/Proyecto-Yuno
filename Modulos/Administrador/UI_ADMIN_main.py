@@ -136,11 +136,12 @@ class MainWindow(QMainWindow):
         self.resize(1280, 720)
 
         # Conexión
-        self.conexion = Conexion()
-        if nombre == "Administrador" or nombre == "Admin":
-             pass 
-        
-        self.stats_citas = self.obtener_stats_citas()
+        try:
+            self.conexion = Conexion()
+            self.stats_citas = self.obtener_stats_citas()
+        except Exception as e:
+            print(f"Error al conectar o traer stats: {e}")
+            self.stats_citas = {"Confirmada": 0, "Completada": 0, "Cancelada": 0, "Pendiente": 0}
 
         # Widget central
         self.central_widget = QWidget()
@@ -275,7 +276,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENU NUEVO ---
+        # --- MENU ADMIN ACTUALIZADO ---
         
         # Cita
         self.setup_accordion_group("Cita", ["Visualizar"])
@@ -283,8 +284,8 @@ class MainWindow(QMainWindow):
         # Consulta
         self.setup_accordion_group("Consulta", ["Visualizar"])
         
-        # Mascota
-        self.setup_accordion_group("Mascota", ["Visualizar"])
+        # Mascota (AHORA CON MODIFICAR)
+        self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
         
         # Cliente
         self.setup_accordion_group("Cliente", ["Visualizar"])
@@ -328,13 +329,13 @@ class MainWindow(QMainWindow):
         frame_options = QFrame()
         layout_options = QVBoxLayout(frame_options)
         layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(5)
+        layout_options.setSpacing(2) 
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.router_ventanas(cat, opt))
+            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.navegar(cat, opt))
             layout_options.addWidget(btn_sub)
 
         frame_options.hide()
@@ -371,8 +372,7 @@ class MainWindow(QMainWindow):
         """)
         header_layout = QVBoxLayout(header_frame)
         
-        # Nombre del Admin
-        lbl_welcome = QLabel(f"Bienvenido, {self.nombre}") # Usamos self.nombre que viene del login
+        lbl_welcome = QLabel(f"Bienvenido, {self.nombre}") 
         lbl_welcome.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_welcome.setStyleSheet("color: white; font-size: 24px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_welcome)
@@ -418,77 +418,100 @@ class MainWindow(QMainWindow):
         self.lbl_reloj_header.setText(current_time)
 
     # ============================================================
-    #        ENRUTADOR DE VENTANAS (NUEVO)
+    #        ENRUTADOR DE VENTANAS (ACTUALIZADO)
     # ============================================================
-    def router_ventanas(self, categoria, opcion):
+    def navegar(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
             # --- CITA ---
             if categoria == "Cita":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
-                    self.cita = UI_Revisar_Cita()
+                    self.cita = UI_Revisar_Cita(self.nombre)
                     self.cita.show()
                     self.close()
 
             # --- CONSULTA ---
             elif categoria == "Consulta":
                 if opcion == "Visualizar":
-                    # self.abrir_visualizar_consulta()
-                    pass
+                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta as revisar_consulta
+                    self.ventana = revisar_consulta(self.nombre) # Pasamos el nombre
+                    self.ventana.show()
+                    self.close()
 
             # --- MASCOTA ---
             elif categoria == "Mascota":
                 if opcion == "Visualizar":
-                   from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
-                   self.apaciente = UI_ADMIN_Paciente()
+                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   self.apaciente = revisar_mascota(self.nombre)
                    self.apaciente.show()
+                   self.close()
+                elif opcion == "Modificar":
+                   # AQUI CONECTAMOS LA NUEVA OPCIÓN
+                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                   self.mod_mascota = UI_Modificar_Mascota(self.nombre)
+                   self.mod_mascota.show()
                    self.close()
 
             # --- CLIENTE ---
             elif categoria == "Cliente":
                 if opcion == "Visualizar":
-                    from UI_ADMIN_Modificar_cliente import MainWindow as UI_Modificar_cliente
-                    self.cliente = UI_Modificar_cliente()
+                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                    self.cliente = UI_Modificar_cliente(self.nombre)
                     self.cliente.show()
                     self.close()
 
             # --- HOSPITALIZACION ---
             elif categoria == "Hospitalizacion":
                 if opcion == "Visualizar":
-                    # self.abrir_hospitalizacion()
-                    pass
+                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion as revisar_hospitalizacion
+                    self.cliente = revisar_hospitalizacion(self.nombre)
+                    self.cliente.show()
+                    self.close()
 
             # --- MEDICAMENTOS ---
             elif categoria == "Medicamentos":
                 if opcion == "Visualizar":
-                    pass # Seria lista de medicamentos
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina as revisar_medicina
+                    self.cliente = revisar_medicina(self.nombre)
+                    self.cliente.show()
+                    self.close()
                 elif opcion == "Agregar":
-                    from UI_Agregar_Medicamento import MainWindow as AddMed
-                    self.ventana = AddMed()
+                    from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
+                    self.ventana = AddMed(self.nombre)
                     self.ventana.show()
                     self.close()
 
             # --- USUARIOS ---
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
-                    # self.abrir_crear_usuario()
-                    pass
+                    from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
+                    self.cliente = VentanaAgregarUsuario(self.nombre)
+                    self.cliente.show()
+                    self.close()
                 elif opcion == "Modificar":
-                    # self.abrir_modificar_usuario()
-                    pass
+                    from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
+                    self.cliente = VentanaModificarUsuario(self.nombre)
+                    self.cliente.show()
+                    self.close()
                 elif opcion == "Visualizar":
-                    # self.abrir_consultar_usuario()
-                    pass
+                    from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
+                    self.cliente = VentanaRevisarUsuario(self.nombre)
+                    self.cliente.show()
+                    self.close()
 
             # --- ESPECIALIDAD ---
             elif categoria == "Especialidad":
                 if opcion == "Agregar":
-                    # self.abrir_agregar_especialidad()
-                    pass
+                    from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
+                    self.cliente = VentanaAgregarEspecialidad(self.nombre)
+                    self.cliente.show()
+                    self.close()
                 elif opcion == "Modificar":
-                    # self.abrir_modificar_especialidad()
-                    pass
+                    from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad as modificar_especialidad
+                    self.cliente = modificar_especialidad(self.nombre)
+                    self.cliente.show()
+                    self.close()
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"No se encontró la ventana: {e.name}")

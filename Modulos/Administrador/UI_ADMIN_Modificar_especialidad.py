@@ -114,7 +114,7 @@ class VentanaModificarEspecialidad(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     # ==========================================
-    # --- SETUP SIDEBAR ---
+    # --- SETUP SIDEBAR (ACTUALIZADO) ---
     # ==========================================
 
     def setup_sidebar(self):
@@ -149,14 +149,14 @@ class VentanaModificarEspecialidad(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # Menús Admin
+        # --- MENÚS DESPLEGABLES (IGUAL A MAIN) ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
-        self.setup_accordion_group("Mascota", ["Visualizar"])
+        self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"]) # Actualizado
         self.setup_accordion_group("Cliente", ["Visualizar"])
         self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
         self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
-        self.setup_accordion_group("Usuarios", ["Agregar", "Modificar", "Visualizar"])
+        self.setup_accordion_group("Usuarios", ["Agregar", "Modificar", "Visualizar"]) # Actualizado
         self.setup_accordion_group("Especialidad", ["Agregar", "Modificar"])
 
         self.sidebar_layout.addStretch()
@@ -194,31 +194,108 @@ class VentanaModificarEspecialidad(QMainWindow):
         if frame.isVisible(): frame.hide()
         else: frame.show()
 
+    # ==========================================
+    # --- NAVEGACIÓN (ACTUALIZADO) ---
+    # ==========================================
     def navegar(self, categoria, opcion):
         print(f"Admin navegando a: {categoria} -> {opcion}")
         
+        # Evitar recargar la misma ventana
         if categoria == "Especialidad" and opcion == "Modificar":
-             QMessageBox.information(self, "Sistema", "Ya te encuentras en Modificar Especialidad.")
              return
 
         try:
-            # Ejemplo de navegación básica
-            if categoria == "Especialidad" and opcion == "Agregar":
-                from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
-                self.ventana = VentanaAgregarEspecialidad()
-                self.ventana.show()
-                self.close()
-            elif categoria == "Usuarios" and opcion == "Modificar":
-                from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
-                self.ventana = VentanaModificarUsuario()
-                self.ventana.show()
-                self.close()
-            # Agregar los demás imports aquí...
-            else:
-                 QMessageBox.information(self, "Navegación", f"Ir a: {categoria} - {opcion}")
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                    self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   self.ventana = revisar_mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+                elif opcion == "Modificar":
+                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                    self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
+                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Agregar":
+                    from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
+                    self.ventana = AddMed(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- USUARIOS ---
+            elif categoria == "Usuarios":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
+                    self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
+                    self.ventana = VentanaModificarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
+                    self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
+                    self.ventana = VentanaAgregarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    # Ya estamos aquí
+                    pass
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error general al navegar: {e}")
 
     # ==========================================
     # --- PANEL DERECHO (Modificar Especialidad) ---
@@ -241,7 +318,7 @@ class VentanaModificarEspecialidad(QMainWindow):
             QPushButton { background-color: #F0F0F0; color: #555; border-radius: 20px; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; }
             QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
-        btn_back.clicked.connect(self.close)
+        btn_back.clicked.connect(self.volver_al_menu) # Corregido: ir a volver_al_menu
 
         header.addWidget(lbl_header)
         header.addStretch()
@@ -524,9 +601,7 @@ class VentanaModificarEspecialidad(QMainWindow):
                 self.inp_search_id.clear()
                 self.limpiar_form()
             else:
-                # Si editar_registro devuelve None o False, pero la BD se actualiza, 
-                # es un problema en db_connection.py (return True faltante), pero aquí mostramos el error.
-                QMessageBox.critical(self, "Error", "No se pudo guardar en la base de datos (verificar db_connection).")
+                QMessageBox.critical(self, "Error", "No se pudo guardar en la base de datos.")
                 
         except Exception as e:
             QMessageBox.critical(self, "Error Crítico", f"{e}")

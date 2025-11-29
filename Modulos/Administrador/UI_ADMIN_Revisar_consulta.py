@@ -38,7 +38,7 @@ class VentanaRevisarConsulta(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS VISUALES (INTEGRADOS: ADMIN MAIN + FORMULARIO) ---
+        # --- ESTILOS VISUALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -175,7 +175,7 @@ class VentanaRevisarConsulta(QMainWindow):
         self.setup_accordion_group("Consulta", ["Visualizar"])
         
         # Mascota
-        self.setup_accordion_group("Mascota", ["Visualizar"])
+        self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
         
         # Cliente
         self.setup_accordion_group("Cliente", ["Visualizar"])
@@ -234,26 +234,95 @@ class VentanaRevisarConsulta(QMainWindow):
         
         # Lógica básica para evitar recargar la misma ventana si ya estamos en ella
         if categoria == "Consulta" and opcion == "Visualizar":
-             QMessageBox.information(self, "Sistema", "Ya te encuentras en Revisar Consulta.")
              return
 
         try:
             # --- CITA ---
-            if categoria == "Cita" and opcion == "Visualizar":
-                pass # Agregar import y llamada a la ventana correspondiente
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                    self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    # Ya estamos aquí
+                    pass
 
             # --- MASCOTA ---
-            elif categoria == "Mascota" and opcion == "Visualizar":
-                pass # Agregar import y llamada a la ventana correspondiente
-                
-            # --- AGREGAR EL RESTO DE TUS IMPORTACIONES AQUÍ ---
-            # from UI_Archivo import Clase
-            # self.ventana = Clase()
-            # self.ventana.show()
-            # self.close()
-            
-            else:
-                 QMessageBox.information(self, "Navegación", f"Ir a: {categoria} - {opcion}")
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   self.ventana = revisar_mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+                elif opcion == "Modificar":
+                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                    self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
+                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Agregar":
+                    from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
+                    self.ventana = AddMed(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- USUARIOS ---
+            elif categoria == "Usuarios":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
+                    self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
+                    self.ventana = VentanaModificarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
+                    self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
+                    self.ventana = VentanaAgregarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad
+                    self.ventana = VentanaModificarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
@@ -274,12 +343,11 @@ class VentanaRevisarConsulta(QMainWindow):
         lbl_header = QLabel("Historial de Consultas")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("✕")
-        btn_back.setFixedSize(40, 40)
+        btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_back.setStyleSheet("""
-            QPushButton { background-color: #F0F0F0; border-radius: 20px; font-size: 20px; color: #666; border: none; }
-            QPushButton:hover { background-color: #ffcccc; color: #cc0000; }
+            QPushButton { background-color: #F0F0F0; color: #555; border-radius: 20px; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
         btn_back.clicked.connect(self.volver_al_menu)
 
@@ -458,6 +526,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = VentanaRevisarConsulta("Admin")
+    window = VentanaRevisarConsulta()
     window.show()
     sys.exit(app.exec())

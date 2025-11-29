@@ -1,7 +1,7 @@
 import sys
 import os
 
-# --- CONFIGURACIÓN DE RUTAS PARA IMPORTACIONES ---
+# --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
@@ -9,24 +9,28 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
                              QMessageBox, QScrollArea)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-# Si tienes un archivo db_connection.py, descomenta la siguiente línea:
-# from db_connection import Conexion
+# Importar conexión
+from db_connection import Conexion
 
 class MainWindow(QMainWindow):
-    # conexion1 = Conexion() # Descomentar cuando tengas la conexión real
-
-    def __init__(self):
+    def __init__(self, nombre_usuario="Admin"):
         super().__init__()
 
-        self.setWindowTitle("Sistema Veterinario Yuno - Revisar Mascota")
+        self.nombre_usuario = nombre_usuario
+        self.setWindowTitle("Sistema Veterinario Yuno - Revisar Mascota (Admin)")
         self.resize(1280, 720)
+
+        # Conexión DB
+        try:
+            self.conexion = Conexion()
+        except Exception as e:
+            print(f"Error Conexión: {e}")
 
         # Widget central
         self.central_widget = QWidget()
@@ -37,7 +41,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES (Mismo diseño que Cliente) ---
+        # --- ESTILOS GENERALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -76,12 +80,21 @@ class MainWindow(QMainWindow):
             QPushButton.sub-btn:hover {
                 color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold;
             }
+            
+            /* Botón Logout */
+            QPushButton.logout-btn {
+                text-align: center; border: 2px solid white; 
+                border-radius: 15px; padding: 10px; margin-top: 20px;
+                font-size: 14px; color: white; font-weight: bold;
+                background-color: transparent;
+            }
+            QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
 
             /* --- ESTILOS ESPECÍFICOS DE MASCOTA --- */
             /* Panel de Historial (Derecha) */
             QFrame#InfoBoard {
                 background-color: white;
-                border: 2px solid #E0E0E0; /* Borde sólido para compatibilidad */
+                border: 2px solid #E0E0E0;
                 border-radius: 12px;
             }
             /* Tarjetas de información */
@@ -119,7 +132,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ROBUSTO ---
+        # --- LOGO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -135,16 +148,18 @@ class MainWindow(QMainWindow):
                 lbl_logo.setPixmap(scaled)
             else:
                 lbl_logo.setText("YUNO VET")
+                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
         else:
             lbl_logo.setText("YUNO VET")
             lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # Menús
+        # --- MENU COMPLETO ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
-        self.setup_accordion_group("Mascota", ["Visualizar"])
+        self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
         self.setup_accordion_group("Cliente", ["Visualizar"])
         self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
         self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
@@ -155,15 +170,7 @@ class MainWindow(QMainWindow):
 
         # Botón Salir
         btn_logout = QPushButton("Cerrar Sesión")
-        btn_logout.setStyleSheet("""
-            QPushButton {
-                text-align: center; border: 2px solid white; 
-                border-radius: 15px; padding: 10px; margin-top: 20px;
-                font-size: 14px; color: white; font-weight: bold;
-                background-color: transparent;
-            }
-            QPushButton:hover { background-color: rgba(255,255,255,0.2); }
-        """)
+        btn_logout.setProperty("class", "logout-btn")
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
         self.sidebar_layout.addWidget(btn_logout)
@@ -190,6 +197,116 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(frame_options)
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
+    def toggle_menu(self, frame):
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
+
+    # ==========================================
+    # --- NAVEGACIÓN (COMPLETA) ---
+    # ==========================================
+    def navegar(self, categoria, opcion):
+        print(f"Admin navegando a: {categoria} -> {opcion}")
+        
+        if categoria == "Mascota" and opcion == "Visualizar":
+             return # Ya estamos aquí
+
+        try:
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                    self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                   # Estamos aquí
+                   pass
+                elif opcion == "Modificar":
+                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+                   self.ventana.show()
+                   self.close()
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                    self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
+                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Agregar":
+                    from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
+                    self.ventana = AddMed(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- USUARIOS ---
+            elif categoria == "Usuarios":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
+                    self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
+                    self.ventana = VentanaModificarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
+                    self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
+                    self.ventana = VentanaAgregarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad
+                    self.ventana = VentanaModificarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+        except ImportError as e:
+            QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"Error general al navegar: {e}")
+
+    # ==========================================
+    # --- PANEL CENTRAL ---
+    # ==========================================
+
     def setup_white_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
@@ -207,7 +324,7 @@ class MainWindow(QMainWindow):
             QPushButton { background-color: #F0F0F0; color: #555; border-radius: 20px; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; }
             QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
-        btn_back.clicked.connect(self.close)
+        btn_back.clicked.connect(self.volver_al_menu)
 
         header.addWidget(lbl_header)
         header.addStretch()
@@ -215,7 +332,7 @@ class MainWindow(QMainWindow):
         self.white_layout.addLayout(header)
         self.white_layout.addSpacing(20)
 
-        # 2. Barra de Búsqueda (Estilo Cliente)
+        # 2. Barra de Búsqueda
         self.setup_search_bar()
         self.white_layout.addSpacing(30)
 
@@ -273,6 +390,15 @@ class MainWindow(QMainWindow):
     # --- LOGICA Y RENDERIZADO ---
     # ==========================================
 
+    def volver_al_menu(self):
+        try:
+            from UI_ADMIN_main import MainWindow as AdminMenu 
+            self.menu = AdminMenu(self.nombre_usuario)
+            self.menu.show()
+            self.close()
+        except ImportError:
+            self.close()
+
     def buscar_mascota(self):
         id_mascota = self.inp_id.text().strip()
         
@@ -280,9 +406,13 @@ class MainWindow(QMainWindow):
             QMessageBox.warning(self, "Aviso", "Ingresa un ID de mascota.")
             return
 
+        if not id_mascota.isdigit():
+            QMessageBox.warning(self, "Aviso", "El ID debe ser numérico.")
+            return
+
         print(f"Buscando mascota ID: {id_mascota}")
         
-        # 1. Obtener Datos (Conexión BD)
+        # 1. Obtener Datos Básicos
         info_basica = self.db_get_info_basica(id_mascota)
         
         if info_basica:
@@ -294,7 +424,11 @@ class MainWindow(QMainWindow):
             if historial:
                 self.renderizar_panel_derecho(historial)
             else:
-                self.limpiar_panel_derecho() # Si existe pero no tiene historial
+                self.limpiar_panel_derecho()
+                # Mostrar mensaje de historial vacío pero mascota encontrada
+                lbl_vacio = QLabel("No hay historial clínico registrado.")
+                lbl_vacio.setStyleSheet("color: #777; font-style: italic; margin: 20px;")
+                self.right_info_layout.addWidget(lbl_vacio)
                 
             QMessageBox.information(self, "Éxito", "Mascota encontrada.")
         else:
@@ -312,7 +446,10 @@ class MainWindow(QMainWindow):
         frame_img.setFixedSize(100, 100)
         frame_img.setStyleSheet("background: #EEE; border-radius: 50px; border: 2px solid #FC7CE2;")
         lay_img = QVBoxLayout(frame_img)
-        initial = data_dict.get("Nombre", "?")[0]
+        
+        nombre = data_dict.get("Nombre", "?")
+        initial = nombre[0] if nombre else "?"
+        
         lbl_img = QLabel(initial)
         lbl_img.setAlignment(Qt.AlignmentFlag.AlignCenter)
         lbl_img.setStyleSheet("font-size: 40px; color: #FC7CE2; font-weight: bold; border: none;")
@@ -322,7 +459,7 @@ class MainWindow(QMainWindow):
         self.left_data_layout.addSpacing(20)
 
         # Campos
-        campos_orden = ["Nombre", "ID Paciente", "Edad", "Peso", "Especie", "Raza", "Sexo"]
+        campos_orden = ["Nombre", "ID Paciente", "Edad", "Peso", "Especie", "Raza"]
         for key in campos_orden:
             if key in data_dict:
                 lbl_k = QLabel(f"{key}:")
@@ -354,7 +491,7 @@ class MainWindow(QMainWindow):
             border-top-left-radius: 10px; border-top-right-radius: 10px; border-bottom: none;
         """)
         head_lay = QHBoxLayout(header)
-        lbl_tit = QLabel("Resumen Clínico")
+        lbl_tit = QLabel("Historial de Consultas")
         lbl_tit.setStyleSheet("color: white; font-weight: bold; font-size: 16px; border: none; background: transparent;")
         head_lay.addWidget(lbl_tit)
         board_lay.addWidget(header)
@@ -376,10 +513,14 @@ class MainWindow(QMainWindow):
             card_lay = QVBoxLayout(card)
             card_lay.setContentsMargins(15, 10, 15, 10)
             
-            l_tit = QLabel(bloque['titulo'])
+            # Fecha como título
+            titulo_str = f"Consulta: {bloque.get('fecha', 'Sin fecha')}"
+            l_tit = QLabel(titulo_str)
             l_tit.setProperty("class", "info-title")
             
-            l_txt = QLabel(bloque['texto'])
+            # Motivo como contenido
+            texto_str = f"Motivo: {bloque.get('motivo', 'Sin detalles')}"
+            l_txt = QLabel(texto_str)
             l_txt.setProperty("class", "info-content")
             l_txt.setWordWrap(True)
 
@@ -409,56 +550,55 @@ class MainWindow(QMainWindow):
     # ==========================================
     
     def db_get_info_basica(self, id_mascota):
-        """
-        TODO: Reemplazar con tu consulta SQL real.
-        Ej: cursor.execute("SELECT nombre, raza, ... FROM mascota WHERE id=%s", (id_mascota,))
-        """
-        # --- SIMULACIÓN ---
-        # Si el ID es 1092 devolvemos datos, si no, None
-        if id_mascota == "1092":
-            return {
-                "Nombre": "Max",
-                "ID Paciente": f"PET-{id_mascota}",
-                "Edad": "4 Años",
-                "Peso": "12.5 kg",
-                "Especie": "Canino",
-                "Raza": "Golden Retriever",
-                "Sexo": "Macho"
-            }
-        return None
+        try:
+            col_mascota = ["nombre", "edad", "peso", "especie", "raza"]
+            res = self.conexion.consultar_registro(
+                tabla="mascota",
+                id_columna="id_mascota",
+                id_valor=id_mascota,
+                columnas=col_mascota
+            )
+            
+            if res:
+                return {
+                    "Nombre": res[0],
+                    "ID Paciente": id_mascota,
+                    "Edad": f"{res[1]} Años",
+                    "Peso": f"{res[2]} kg",
+                    "Especie": res[3],
+                    "Raza": res[4]
+                }
+            return None
+        except Exception as e:
+            print(f"Error DB Info Basica: {e}")
+            return None
 
     def db_get_historial_clinico(self, id_mascota):
         """
-        TODO: Reemplazar con consulta SQL a tabla de consultas/historial.
-        Retornar lista de diccionarios.
+        Obtiene las consultas relacionadas con la mascota.
         """
-        # --- SIMULACIÓN ---
-        return [
-            {
-                "titulo": "Motivo de Consulta (Reciente)",
-                "texto": "El paciente presenta decaimiento general y falta de apetito. Temperatura levemente elevada."
-            },
-            {
-                "titulo": "Antecedentes",
-                "texto": "Vacunación quíntuple vigente. Sin alergias conocidas."
-            },
-            {
-                "titulo": "Plan Médico",
-                "texto": "1. Realizar hemograma.\n2. Administrar antipirético."
-            }
-        ]
+        try:
+            # Consultamos la tabla consulta. 
+            # Como consultar_registro trae solo 1, necesitamos algo para traer varios.
+            # Usaremos el cursor directamente para esta operación específica o una función genérica si existe.
+            # Asumiremos acceso al cursor para ejecutar QUERY raw.
+            
+            query = f"SELECT fecha, motivo FROM consulta WHERE fk_mascota = {id_mascota} ORDER BY fecha DESC"
+            self.conexion.cursor_uno.execute(query)
+            resultados = self.conexion.cursor_uno.fetchall()
+            
+            historial = []
+            for row in resultados:
+                historial.append({
+                    "fecha": str(row[0]),
+                    "motivo": str(row[1])
+                })
+            
+            return historial
 
-    # ==========================================
-    # --- UTILIDADES ---
-    # ==========================================
-    
-    def toggle_menu(self, frame):
-        if frame.isVisible(): frame.hide()
-        else: frame.show()
-
-    def navegar(self, categoria, opcion):
-        print(f"Navegando a: {categoria} -> {opcion}")
-        # Aquí puedes importar tus otras ventanas y mostrarlas
+        except Exception as e:
+            print(f"Error DB Historial: {e}")
+            return []
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

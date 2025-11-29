@@ -170,7 +170,7 @@ class VentanaAgregarEspecialidad(QMainWindow):
         # --- MENÚS DESPLEGABLES (ADMIN) ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
-        self.setup_accordion_group("Mascota", ["Visualizar"])
+        self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
         self.setup_accordion_group("Cliente", ["Visualizar"])
         self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
         self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
@@ -215,28 +215,102 @@ class VentanaAgregarEspecialidad(QMainWindow):
     def navegar(self, categoria, opcion):
         print(f"Admin navegando a: {categoria} -> {opcion}")
         
+        # Evitar recargar la misma ventana
         if categoria == "Especialidad" and opcion == "Agregar":
              QMessageBox.information(self, "Sistema", "Ya te encuentras en Agregar Especialidad.")
              return
 
         try:
-            # Ejemplo de navegación básica
-            if categoria == "Usuarios" and opcion == "Agregar":
-                from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
-                self.ventana = VentanaAgregarUsuario()
-                self.ventana.show()
-                self.close()
-            elif categoria == "Usuarios" and opcion == "Modificar":
-                from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
-                self.ventana = VentanaModificarUsuario()
-                self.ventana.show()
-                self.close()
-            # Agregar los demás imports aquí...
-            else:
-                 QMessageBox.information(self, "Navegación", f"Ir a: {categoria} - {opcion}")
+            # --- CITA ---
+            if categoria == "Cita":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                    self.cita = UI_Revisar_Cita(self.nombre_usuario)
+                    self.cita.show()
+                    self.close()
+
+            # --- CONSULTA ---
+            elif categoria == "Consulta":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
+                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MASCOTA ---
+            elif categoria == "Mascota":
+                if opcion == "Visualizar":
+                   from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
+                   self.apaciente = UI_ADMIN_Paciente(self.nombre_usuario)
+                   self.apaciente.show()
+                   self.close()
+                elif opcion == "Modificar":
+                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                   self.mod_mascota = UI_Modificar_Mascota(self.nombre_usuario)
+                   self.mod_mascota.show()
+                   self.close()
+
+            # --- CLIENTE ---
+            elif categoria == "Cliente":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                    self.cliente = UI_Modificar_cliente(self.nombre_usuario)
+                    self.cliente.show()
+                    self.close()
+
+            # --- HOSPITALIZACION ---
+            elif categoria == "Hospitalizacion":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- MEDICAMENTOS ---
+            elif categoria == "Medicamentos":
+                if opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
+                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Agregar":
+                    from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
+                    self.ventana = AddMed(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- USUARIOS ---
+            elif categoria == "Usuarios":
+                if opcion == "Agregar":
+                    from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
+                    self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
+                    self.ventana = VentanaModificarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+                elif opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
+                    self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
+
+            # --- ESPECIALIDAD ---
+            elif categoria == "Especialidad":
+                if opcion == "Agregar":
+                    pass # Ya estamos aquí (manejado arriba)
+                elif opcion == "Modificar":
+                    from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad
+                    self.ventana = VentanaModificarEspecialidad(self.nombre_usuario)
+                    self.ventana.show()
+                    self.close()
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
+        except Exception as e:
+             QMessageBox.critical(self, "Error", f"Error al navegar: {e}")
 
     # ==========================================
     # --- PANEL DERECHO (Agregar Especialidad) ---
