@@ -191,15 +191,10 @@ class MainWindow(QMainWindow):
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
         # Botón cerrar vista (X) - Opcional, ya que tenemos volver en sidebar
-        btn_close = QPushButton("✕")
-        btn_close.setFixedSize(40, 40)
-        btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_close.setStyleSheet("background-color: #f0f0f0; border-radius: 20px; font-size: 20px; color: #666; border: none;")
-        btn_close.clicked.connect(self.close)
+    
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_close)
         
         main_white_layout.addLayout(header_layout)
         main_white_layout.addSpacing(20)
