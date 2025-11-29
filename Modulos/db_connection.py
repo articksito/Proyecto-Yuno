@@ -35,6 +35,24 @@ class Conexion:
         else:
             _ = os.system('clear')
 
+    """def logo_every(self):
+        def setup_sidebar(self):
+        self.sidebar = QWidget()
+        self.sidebar.setObjectName("Sidebar")
+        self.sidebar.setFixedWidth(300)
+        self.sidebar_layout = QVBoxLayout(self.sidebar)
+        self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
+        self.sidebar_layout.setSpacing(5)
+
+        # --- LOGO ROBUSTO ---
+        lbl_logo = QLabel()
+        lbl_logo.setObjectName("Logo")
+        lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)"""
+    
     # ----------------------------
     # CONSULTAS (SELECTS)
     # ----------------------------

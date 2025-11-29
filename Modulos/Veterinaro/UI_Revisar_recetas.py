@@ -433,6 +433,6 @@ if __name__ == "__main__":
     app = QApplication(sys.argv)
     font = QFont("Segoe UI", 10)
     app.setFont(font)
-    window = VentanaRevisarReceta()
+    window = VentanaRevisarReceta('Veterinario')
     window.show()
     sys.exit(app.exec())

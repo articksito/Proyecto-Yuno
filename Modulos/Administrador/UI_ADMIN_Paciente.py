@@ -1,13 +1,14 @@
 import sys
 import os
 
-# --- 1. CONFIGURACIÓN DE RUTAS ---
+# --- CONFIGURACIÓN DE RUTAS PARA IMPORTACIONES ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Ajuste para subir niveles correctamente
-if 'Veterinaro' in current_dir:
-    project_root = os.path.abspath(os.path.join(current_dir, '..'))
-else:
-    project_root = os.path.abspath(os.path.join(current_dir, '..'))
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
+if project_root not in sys.path:
+    sys.path.append(project_root)
+if current_dir not in sys.path:
+    sys.path.append(current_dir)
+
     
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
@@ -190,10 +191,14 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ---
+        # --- LOGO ROBUSTO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        
+        directorio_actual = os.path.dirname(os.path.abspath(__file__))
+        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
+        ruta_logo = os.path.normpath(ruta_logo)
         
         ruta_logo = "logo.png" 
         if os.path.exists(ruta_logo):
