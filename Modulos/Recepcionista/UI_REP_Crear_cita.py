@@ -228,7 +228,7 @@ class MainWindow(QMainWindow):
                     from UI_REP_Registrar_mascota import MainWindow as Win
                     target_window_class = Win
                 elif opcion == "Visualizar":
-                    from UI_REP_Revisar_Mascota import MainWindow as Win
+                    from UI_Revisar_Mascota import MainWindow as Win
                     target_window_class = Win
                 elif opcion == "Modificar":
                     from UI_REP_Modificar_Mascota import MainWindow as Win
@@ -240,7 +240,7 @@ class MainWindow(QMainWindow):
                     from UI_REP_Registra_cliente import MainWindow as Win
                     target_window_class = Win
                 elif opcion == "Visualizar":
-                    from UI_REP_Revisar_cliente import MainWindow as Win
+                    from UI_Revisar_cliente import MainWindow as Win
                     target_window_class = Win
                 elif opcion == "Modificar":
                     from UI_REP_Modificar_cliente import MainWindow as Win
