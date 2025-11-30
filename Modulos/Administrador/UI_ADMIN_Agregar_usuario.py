@@ -259,7 +259,7 @@ class VentanaAgregarUsuario(QMainWindow):
             # --- MASCOTA ---
             elif categoria == "Mascota":
                 if opcion == "Visualizar":
-                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   from UI_ADMIN_Revisar_Paciente import MainWindow as revisar_mascota
                    self.ventana = revisar_mascota(self.nombre_usuario)
                    self.ventana.show()
                    self.close()

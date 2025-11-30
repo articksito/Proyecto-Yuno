@@ -9,13 +9,13 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
-                             QMessageBox, QGridLayout, QTextEdit)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap
+from PyQt6.QtGui import QFont, QPixmap, QColor
 
+# Importar conexión
 from db_connection import Conexion
 
 class VentanaRevisarUsuario(QMainWindow):
@@ -29,7 +29,7 @@ class VentanaRevisarUsuario(QMainWindow):
             print(f"Error Conexión: {e}")
 
         self.nombre_usuario = nombre_usuario
-        self.setWindowTitle("Sistema Veterinario Yuno - Revisar Usuario (Admin)")
+        self.setWindowTitle("Sistema Veterinario Yuno - Gestión de Usuarios (Admin)")
         self.resize(1280, 720)
 
         self.central_widget = QWidget()
@@ -59,41 +59,24 @@ class VentanaRevisarUsuario(QMainWindow):
             
             /* --- ESTILOS DEL SIDEBAR (ADMINISTRADOR) --- */
             QPushButton.menu-btn {
-                text-align: left;
-                padding-left: 20px;
+                text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 15px;
-                color: white;
-                font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
-                font-size: 18px;
-                background-color: rgba(255, 255, 255, 0.1);
-                height: 50px;
-                margin-bottom: 5px;
+                border-radius: 15px; color: white;
+                font-weight: bold; font-size: 18px;
+                background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                background-color: rgba(255, 255, 255, 0.25);
-                border: 1px solid white;
-                color: #FFF;
+                background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF;
             }
             QPushButton.sub-btn {
-                text-align: left;
-                font-family: 'Segoe UI', sans-serif;
-                font-size: 16px;
-                font-weight: normal;
-                padding-left: 40px;
-                border-radius: 10px;
-                color: #F0F0F0;
-                background-color: rgba(0, 0, 0, 0.05);
-                height: 35px;
-                margin-bottom: 2px;
-                margin-left: 10px;
-                margin-right: 10px;
+                text-align: left; font-family: 'Segoe UI', sans-serif;
+                font-size: 16px; font-weight: normal; padding-left: 40px;
+                border-radius: 10px; color: #F0F0F0;
+                background-color: rgba(0, 0, 0, 0.05); height: 35px;
+                margin-bottom: 2px; margin-left: 10px; margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: white;
-                background-color: rgba(255, 255, 255, 0.3);
-                font-weight: bold;
+                color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold;
             }
             
             /* Botón Logout */
@@ -105,24 +88,25 @@ class VentanaRevisarUsuario(QMainWindow):
             }
             QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
             
-            /* --- ESTILOS DEL PANEL DERECHO --- */
-            QLineEdit[readOnly="true"], QTextEdit[readOnly="true"] {
-                background-color: #F0F0F0;
-                border: 1px solid #DDD;
-                border-radius: 10px;
-                padding: 5px 15px;
-                font-size: 16px;
-                color: #555;
+            /* --- ESTILO TABLA --- */
+            QTableWidget {
+                background-color: white; border: 1px solid #E0E0E0; border-radius: 15px;
+                gridline-color: transparent; font-size: 14px;
+                selection-background-color: #E1BEE7; selection-color: #333;
+                alternate-background-color: #FAFAFA; outline: 0;
             }
-            QLineEdit {
-                background-color: white;
-                border: 2px solid #ddd; 
-                border-radius: 10px;
-                padding: 8px; 
-                font-size: 16px;
+            QHeaderView::section {
+                background-color: #7CEBFC; color: #444; font-weight: bold; border: none;
+                padding: 12px; font-size: 15px; font-family: 'Segoe UI';
             }
-            QLabel.label-key { font-size: 18px; color: #666; font-weight: normal; }
-            QLabel.label-value { font-size: 22px; color: #000; font-weight: bold; padding-bottom: 5px; border-bottom: 1px solid #EEE; }
+            QHeaderView::section:first { border-top-left-radius: 15px; }
+            QHeaderView::section:last { border-top-right-radius: 15px; }
+            
+            QScrollBar:vertical {
+                border: none; background: #F5F5F5; width: 10px; border-radius: 5px;
+            }
+            QScrollBar::handle:vertical { background: #CCC; min-height: 20px; border-radius: 5px; }
+            QScrollBar::handle:vertical:hover { background: #BBB; }
         """)
 
         self.setup_sidebar()
@@ -149,8 +133,6 @@ class VentanaRevisarUsuario(QMainWindow):
         
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -180,7 +162,6 @@ class VentanaRevisarUsuario(QMainWindow):
 
         btn_logout = QPushButton("Cerrar Sesión")
         btn_logout.setProperty("class", "logout-btn")
-        btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
         self.sidebar_layout.addWidget(btn_logout)
 
@@ -211,99 +192,53 @@ class VentanaRevisarUsuario(QMainWindow):
         else: frame.show()
 
     def navegar(self, categoria, opcion):
-        print(f"Admin navegando a: {categoria} -> {opcion}")
-        
-        # Evitar recargar
         if categoria == "Usuarios" and opcion == "Visualizar":
-             return
+             return 
 
         try:
-            # --- CITA ---
-            if categoria == "Cita":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
-                    self.ventana = UI_Revisar_Cita(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- CONSULTA ---
-            elif categoria == "Consulta":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
-                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- MASCOTA ---
-            elif categoria == "Mascota":
-                if opcion == "Visualizar":
-                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
-                   self.ventana = revisar_mascota(self.nombre_usuario)
-                   self.ventana.show()
-                   self.close()
-                elif opcion == "Modificar":
-                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
-                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
-                   self.ventana.show()
-                   self.close()
-
-            # --- CLIENTE ---
-            elif categoria == "Cliente":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
-                    self.ventana = UI_Modificar_cliente(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- HOSPITALIZACION ---
-            elif categoria == "Hospitalizacion":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
-                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- MEDICAMENTOS ---
+            if categoria == "Cita" and opcion == "Visualizar":
+                from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+            elif categoria == "Consulta" and opcion == "Visualizar":
+                from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
+                self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+            elif categoria == "Mascota" and opcion == "Visualizar":
+                from UI_ADMIN_Revisar_Paciente import MainWindow as UI_Mascota
+                self.ventana = UI_Mascota(self.nombre_usuario)
+            elif categoria == "Mascota" and opcion == "Modificar":
+                from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+            elif categoria == "Cliente" and opcion == "Visualizar":
+                from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+            elif categoria == "Hospitalizacion" and opcion == "Visualizar":
+                from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
             elif categoria == "Medicamentos":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
-                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-                elif opcion == "Agregar":
+                if opcion == "Agregar":
                     from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
                     self.ventana = AddMed(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- USUARIOS ---
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
                     self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
                 elif opcion == "Modificar":
                     from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
                     self.ventana = VentanaModificarUsuario(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
                 elif opcion == "Visualizar":
-                    # Estamos aqui
-                    pass
-
-            # --- ESPECIALIDAD ---
+                     # Ya estamos aqui
+                     pass
             elif categoria == "Especialidad":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
                     self.ventana = VentanaAgregarEspecialidad(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
                 elif opcion == "Modificar":
                     from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad
                     self.ventana = VentanaModificarEspecialidad(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+
+            if hasattr(self, 'ventana') and self.ventana:
+                self.ventana.show()
+                self.close()
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
@@ -311,7 +246,7 @@ class VentanaRevisarUsuario(QMainWindow):
             QMessageBox.critical(self, "Error", f"Error general al navegar: {e}")
 
     # ============================================================
-    #  PANEL CENTRAL (REVISAR USUARIO)
+    #  PANEL CENTRAL (TABLA USUARIOS)
     # ============================================================
     def setup_content_panel(self):
         self.white_panel = QWidget()
@@ -321,9 +256,10 @@ class VentanaRevisarUsuario(QMainWindow):
 
         # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Revisar Usuario")
+        lbl_header = QLabel("Listado de Usuarios")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
+        # Botones Header
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_back.setStyleSheet("""
@@ -332,138 +268,118 @@ class VentanaRevisarUsuario(QMainWindow):
         """)
         btn_back.clicked.connect(self.volver_al_menu)
 
+        btn_refresh = QPushButton("↻ Actualizar")
+        btn_refresh.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_refresh.setFixedSize(120, 40)
+        btn_refresh.setStyleSheet("""
+            QPushButton { 
+                background-color: #7CEBFC; color: #444; border-radius: 10px; 
+                font-weight: bold; border: 1px solid #5CD0E3; 
+            }
+            QPushButton:hover { background-color: #5CD0E3; }
+        """)
+        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(btn_refresh)
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(30)
+        self.white_layout.addSpacing(20)
 
-        # Barra de Búsqueda
-        self.setup_search_bar()
-        self.white_layout.addSpacing(30)
+        # Tabla
+        self.setup_table()
 
-        # Contenedor de Datos
-        content_container = QWidget()
-        content_layout = QHBoxLayout(content_container)
-        content_layout.setContentsMargins(0, 0, 0, 0)
-        content_layout.setSpacing(40)
+        # Cargar datos
+        self.cargar_datos_tabla()
 
-        # IZQUIERDA: Datos Personales
-        self.setup_details_form(content_layout)
+        self.white_layout.addStretch()
 
-        # DERECHA: Detalles de Cuenta (Rol, Status, Pass)
-        self.setup_info_board(content_layout)
-
-        self.white_layout.addWidget(content_container)
-        self.white_layout.addStretch(2)
-
-    def setup_search_bar(self):
-        search_container = QWidget()
-        search_layout = QHBoxLayout(search_container)
-        search_layout.setContentsMargins(0, 0, 0, 0)
+    def setup_table(self):
+        # Columnas: ID, Nombre, Apellido, Correo, Rol, Estatus
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Apellido", "Correo", "Rol", "Estatus"])
         
-        lbl_search = QLabel("ID Usuario:")
-        lbl_search.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        # Configuración visual
+        self.table.setShowGrid(False) 
+        self.table.setAlternatingRowColors(True) 
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus) 
         
-        self.inp_search = QLineEdit()
-        self.inp_search.setPlaceholderText("Ingrese ID...")
-        self.inp_search.setFixedWidth(300)
+        # Ajuste de cabeceras
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed) # ID
+        self.table.setColumnWidth(0, 60)
         
-        btn_search = QPushButton("Buscar")
-        btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_search.setFixedSize(120, 40)
-        btn_search.setStyleSheet("background-color: #7CEBFC; color: #333; font-weight: bold; border-radius: 10px; border: 1px solid #5CD0E3;")
-        btn_search.clicked.connect(self.buscar_usuario)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # Nombre
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # Apellido
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch) # Correo
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents) # Rol
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Estatus
+        self.table.setColumnWidth(5, 100)
         
-        search_layout.addWidget(lbl_search)
-        search_layout.addWidget(self.inp_search)
-        search_layout.addWidget(btn_search)
-        search_layout.addStretch()
+        self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(50)
+
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
+
+        self.white_layout.addWidget(self.table)
+
+    def cargar_datos_tabla(self):
+        """Obtiene datos de la BD y rellena la tabla"""
+        self.table.setRowCount(0)
         
-        self.white_layout.addWidget(search_container)
+        try:
+            # Query a tabla usuario
+            query = """
+                SELECT 
+                    id_usuario,
+                    nombre,
+                    apellido,
+                    correo,
+                    rol,
+                    status
+                FROM usuario
+                ORDER BY rol ASC, nombre ASC
+            """
+            
+            self.conexion.cursor_uno.execute(query)
+            datos = self.conexion.cursor_uno.fetchall()
 
-    def setup_details_form(self, parent_layout):
-        form_widget = QWidget()
-        grid = QGridLayout(form_widget)
-        grid.setVerticalSpacing(20)
-        grid.setHorizontalSpacing(30)
+            for row_idx, row_data in enumerate(datos):
+                self.table.insertRow(row_idx)
+                
+                # row_data = (id, nombre, apellido, correo, rol, status)
+                
+                for col_idx, val in enumerate(row_data):
+                    # Tratamiento especial para la columna de Estatus (índice 5)
+                    if col_idx == 5:
+                        es_activo = val == 1 or val == True
+                        texto_status = "Activo" if es_activo else "Inactivo"
+                        item = QTableWidgetItem(texto_status)
+                        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                        
+                        # Color: Verde si activo, Rojo si inactivo
+                        if es_activo:
+                            item.setForeground(QColor("green"))
+                            item.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+                        else:
+                            item.setForeground(QColor("red"))
+                            item.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+                            
+                        self.table.setItem(row_idx, col_idx, item)
+                    else:
+                        item = QTableWidgetItem(str(val))
+                        item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                        self.table.setItem(row_idx, col_idx, item)
+                    
+        except Exception as e:
+            print(f"Error cargando tabla de usuarios: {e}")
 
-        # Etiquetas de datos
-        # Campos: nombre, apellido, correo, telefono
-        self.lbl_nombre = self.crear_fila_datos("Nombre:", "---", grid, 0)
-        self.lbl_apellido = self.crear_fila_datos("Apellido:", "---", grid, 1)
-        self.lbl_correo = self.crear_fila_datos("Correo:", "---", grid, 2)
-        self.lbl_telefono = self.crear_fila_datos("Teléfono:", "---", grid, 3)
-
-        # Empujar hacia arriba
-        grid.setRowStretch(4, 1)
-        parent_layout.addWidget(form_widget, stretch=2)
-
-    def crear_fila_datos(self, titulo, valor_inicial, grid, row):
-        lbl_tit = QLabel(titulo)
-        lbl_tit.setProperty("class", "label-key")
-        
-        inp = QLineEdit()
-        inp.setReadOnly(True)
-        inp.setText(valor_inicial)
-        
-        grid.addWidget(lbl_tit, row, 0)
-        grid.addWidget(inp, row, 1)
-        
-        return inp
-
-    def setup_info_board(self, parent_layout):
-        board_container = QFrame()
-        board_container.setFixedWidth(400)
-        board_container.setStyleSheet("background-color: white; border: 1px solid #DDD; border-radius: 10px;")
-        
-        board_layout = QVBoxLayout(board_container)
-        board_layout.setContentsMargins(0, 0, 0, 0)
-
-        header = QFrame()
-        header.setFixedHeight(60)
-        header.setStyleSheet("background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FC7CE2, stop:1 #7CEBFC); border-top-left-radius: 10px; border-top-right-radius: 10px;")
-        hl = QVBoxLayout(header)
-        lbl = QLabel("Detalles de Cuenta")
-        lbl.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl.setStyleSheet("color: white; font-size: 18px; font-weight: bold; border: none; background: transparent;")
-        hl.addWidget(lbl)
-
-        content = QWidget()
-        cl = QVBoxLayout(content)
-        cl.setContentsMargins(20, 20, 20, 20)
-        cl.setSpacing(15)
-
-        # Datos de cuenta: Rol, Status, Contraseña
-        self.lbl_rol_val = QLabel("---")
-        self.lbl_rol_val.setStyleSheet("font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px;")
-        
-        self.lbl_status_val = QLabel("---")
-        self.lbl_status_val.setStyleSheet("font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px;")
-
-        self.lbl_pass_val = QLabel("---") # Mostrar la contraseña o asteriscos
-        self.lbl_pass_val.setStyleSheet("font-size: 16px; color: #333; border-bottom: 1px solid #eee; padding-bottom: 5px;")
-
-        cl.addWidget(QLabel("Rol:", styleSheet="font-weight: bold; color: #666;"))
-        cl.addWidget(self.lbl_rol_val)
-        
-        cl.addWidget(QLabel("Estatus:", styleSheet="font-weight: bold; color: #666;"))
-        cl.addWidget(self.lbl_status_val)
-
-        cl.addWidget(QLabel("Contraseña:", styleSheet="font-weight: bold; color: #666;"))
-        cl.addWidget(self.lbl_pass_val)
-        
-        cl.addStretch()
-
-        board_layout.addWidget(header)
-        board_layout.addWidget(content)
-
-        parent_layout.addWidget(board_container, stretch=1)
-
-    # ============================================================
-    #  LÓGICA DB
-    # ============================================================
     def volver_al_menu(self):
         try:
             from UI_ADMIN_main import MainWindow as AdminMenu 
@@ -472,60 +388,6 @@ class VentanaRevisarUsuario(QMainWindow):
             self.close()
         except ImportError:
             self.close()
-
-    def buscar_usuario(self):
-        id_user = self.inp_search.text().strip()
-
-        if not id_user.isdigit():
-            QMessageBox.warning(self, "Error", "El ID debe ser un número.")
-            return
-
-        try:
-            # Columnas: nombre, apellido, correo, telefono, contraseña, status, rol
-            columnas = ['nombre', 'apellido', 'correo', 'telefono', 'contraseña', 'status', 'rol']
-            
-            resultado = self.conexion.consultar_registro(
-                tabla='usuario',
-                id_columna='id_usuario',
-                id_valor=id_user,
-                columnas=columnas
-            )
-
-            if resultado:
-                # resultado = (nombre, apellido, correo, tel, pass, status, rol)
-                self.lbl_nombre.setText(str(resultado[0]))
-                self.lbl_apellido.setText(str(resultado[1]))
-                self.lbl_correo.setText(str(resultado[2]))
-                self.lbl_telefono.setText(str(resultado[3]))
-                
-                self.lbl_pass_val.setText(str(resultado[4])) # O mostrar '********' por seguridad
-                
-                status_bool = resultado[5]
-                self.lbl_status_val.setText("Activo" if status_bool else "Inactivo")
-                # Color status
-                if status_bool:
-                    self.lbl_status_val.setStyleSheet("font-size: 16px; color: green; font-weight: bold;")
-                else:
-                    self.lbl_status_val.setStyleSheet("font-size: 16px; color: red; font-weight: bold;")
-
-                self.lbl_rol_val.setText(str(resultado[6]))
-                
-                QMessageBox.information(self, "Encontrado", "Usuario cargado correctamente.")
-            else:
-                self.limpiar_datos()
-                QMessageBox.warning(self, "No Encontrado", "No existe un usuario con ese ID.")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error BD", f"Error al buscar:\n{e}")
-
-    def limpiar_datos(self):
-        self.lbl_nombre.setText("---")
-        self.lbl_apellido.setText("---")
-        self.lbl_correo.setText("---")
-        self.lbl_telefono.setText("---")
-        self.lbl_rol_val.setText("---")
-        self.lbl_status_val.setText("---")
-        self.lbl_pass_val.setText("---")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)

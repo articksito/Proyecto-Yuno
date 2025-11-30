@@ -9,12 +9,11 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
                              QGridLayout, QMessageBox, QComboBox)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap, QDoubleValidator
+from PyQt6.QtCore import Qt, QRect
+from PyQt6.QtGui import QFont, QPixmap, QDoubleValidator, QIntValidator, QPainter, QColor
 
 from db_connection import Conexion
 
@@ -92,10 +91,10 @@ class VentanaModificarUsuario(QMainWindow):
             }
             QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
 
-            /* --- INPUTS Y FORMULARIO --- */
+            /* --- INPUTS Y FORMULARIO (COLOR ROSA TIPO YUNO) --- */
             QLineEdit, QComboBox {
-                background-color: rgba(241, 131, 227, 0.15); 
-                border: 1px solid rgba(241, 131, 227, 0.5);
+                background-color: rgba(241, 131, 227, 0.35); 
+                border: none;
                 border-radius: 10px;
                 padding: 5px 15px;
                 font-size: 16px;
@@ -103,10 +102,16 @@ class VentanaModificarUsuario(QMainWindow):
                 height: 40px;
             }
             QLineEdit:focus, QComboBox:focus {
-                background-color: white;
-                border: 2px solid #FC7CE2;
+                background-color: rgba(241, 131, 227, 0.5); 
             }
             QComboBox::drop-down { border: 0px; }
+            
+            /* --- PANEL DERECHO (INFO) --- */
+            QFrame#InfoBoard {
+                background-color: white;
+                border: 1px solid #DDD;
+                border-radius: 12px;
+            }
         """)
 
         self.setup_sidebar()
@@ -116,7 +121,7 @@ class VentanaModificarUsuario(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     # ==========================================
-    # --- SETUP SIDEBAR (ACTUALIZADO) ---
+    # --- SETUP SIDEBAR ---
     # ==========================================
 
     def setup_sidebar(self):
@@ -151,7 +156,7 @@ class VentanaModificarUsuario(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENÚS DESPLEGABLES (Igual a MAIN) ---
+        # --- MENÚS DESPLEGABLES ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
         self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
@@ -197,36 +202,30 @@ class VentanaModificarUsuario(QMainWindow):
         else: frame.show()
 
     # ==========================================
-    # --- NAVEGACIÓN (LOGICA COMPLETA) ---
+    # --- NAVEGACIÓN ---
     # ==========================================
     def navegar(self, categoria, opcion):
         print(f"Admin navegando a: {categoria} -> {opcion}")
         
-        # Evitar recargar la misma ventana
         if categoria == "Usuarios" and opcion == "Modificar":
              return
 
         try:
-            # --- CITA ---
             if categoria == "Cita":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
                     self.ventana = UI_Revisar_Cita(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- CONSULTA ---
             elif categoria == "Consulta":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
                     self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- MASCOTA ---
             elif categoria == "Mascota":
                 if opcion == "Visualizar":
-                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   from UI_ADMIN_Revisar_Paciente import MainWindow as revisar_mascota
                    self.ventana = revisar_mascota(self.nombre_usuario)
                    self.ventana.show()
                    self.close()
@@ -235,24 +234,18 @@ class VentanaModificarUsuario(QMainWindow):
                    self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
                    self.ventana.show()
                    self.close()
-
-            # --- CLIENTE ---
             elif categoria == "Cliente":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
                     self.ventana = UI_Modificar_cliente(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- HOSPITALIZACION ---
             elif categoria == "Hospitalizacion":
                 if opcion == "Visualizar":
                     from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
                     self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- MEDICAMENTOS ---
             elif categoria == "Medicamentos":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
@@ -264,8 +257,6 @@ class VentanaModificarUsuario(QMainWindow):
                     self.ventana = AddMed(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- USUARIOS ---
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
@@ -273,15 +264,12 @@ class VentanaModificarUsuario(QMainWindow):
                     self.ventana.show()
                     self.close()
                 elif opcion == "Modificar":
-                    # Estamos aquí
                     pass
                 elif opcion == "Visualizar":
                     from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
                     self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- ESPECIALIDAD ---
             elif categoria == "Especialidad":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
@@ -307,6 +295,7 @@ class VentanaModificarUsuario(QMainWindow):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
+        # Margen ajustado al nuevo diseño
         self.white_layout.setContentsMargins(40, 40, 20, 40)
 
         # 1. Header
@@ -320,7 +309,7 @@ class VentanaModificarUsuario(QMainWindow):
             QPushButton { background-color: #F0F0F0; color: #555; border-radius: 20px; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; }
             QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
-        btn_back.clicked.connect(self.volver_al_menu) # Actualizado
+        btn_back.clicked.connect(self.volver_al_menu)
 
         header.addWidget(lbl_header)
         header.addStretch()
@@ -328,7 +317,7 @@ class VentanaModificarUsuario(QMainWindow):
         self.white_layout.addLayout(header)
         self.white_layout.addSpacing(10)
 
-        # 2. Barra de Búsqueda (ID Usuario)
+        # 2. Barra de Búsqueda
         self.setup_search_bar()
         self.white_layout.addSpacing(20)
 
@@ -343,9 +332,6 @@ class VentanaModificarUsuario(QMainWindow):
         self.setup_info_right(content_split)
 
         self.white_layout.addLayout(content_split)
-        
-        # 4. Botón Guardar
-        self.setup_save_button()
         self.white_layout.addStretch()
 
     def setup_search_bar(self):
@@ -359,7 +345,11 @@ class VentanaModificarUsuario(QMainWindow):
         self.inp_search_id = QLineEdit()
         self.inp_search_id.setPlaceholderText("Ej: 1")
         self.inp_search_id.setFixedWidth(200)
-        self.inp_search_id.setStyleSheet("background-color: white;")
+        self.inp_search_id.setValidator(QIntValidator())
+        # Estilo diferente para búsqueda (gris)
+        self.inp_search_id.setStyleSheet("""
+            QLineEdit { border: 2px solid #ddd; border-radius: 10px; padding: 8px 15px; font-size: 16px; color: #333; background-color: #F9F9F9; }
+        """)
         
         btn_search = QPushButton("Buscar")
         btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -392,10 +382,9 @@ class VentanaModificarUsuario(QMainWindow):
         self.inp_correo = QLineEdit()
         
         self.inp_telefono = QLineEdit()
-        self.inp_telefono.setValidator(QDoubleValidator()) # Solo números
+        self.inp_telefono.setValidator(QDoubleValidator())
         
         self.inp_pass = QLineEdit()
-        # self.inp_pass.setEchoMode(QLineEdit.EchoMode.Password) # Opcional: si quieres verlo al editar o no
         self.inp_pass.setPlaceholderText("Nueva contraseña (Opcional)")
 
         self.inp_rol = QComboBox()
@@ -446,41 +435,61 @@ class VentanaModificarUsuario(QMainWindow):
         board_lay = QVBoxLayout(board)
         board_lay.setContentsMargins(0, 0, 0, 0)
         board_lay.setSpacing(0)
-        
-        # Estilo borde
-        board.setStyleSheet("""
-            QFrame#InfoBoard {
-                background-color: white;
-                border: 1px solid #DDD;
-                border-radius: 12px;
-            }
-        """)
 
-        # Header
+        # Header (AZUL SOLIDO #7CEBFC)
         header = QFrame()
         header.setFixedHeight(50)
         header.setStyleSheet("""
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 rgba(252, 124, 226, 0.9));
+            background-color: #7CEBFC; 
             border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom: none;
         """)
         head_lay = QHBoxLayout(header)
         lbl_tit = QLabel("Vista Previa")
-        lbl_tit.setStyleSheet("color: white; font-weight: bold; font-size: 16px; border: none; background: transparent;")
+        # Texto gris oscuro #444
+        lbl_tit.setStyleSheet("color: #444; font-weight: bold; font-size: 16px; border: none; background: transparent;")
         head_lay.addWidget(lbl_tit, alignment=Qt.AlignmentFlag.AlignCenter)
         board_lay.addWidget(header)
 
         # Content
         content = QWidget()
-        content.setStyleSheet("background: white; border: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;")
         content_lay = QVBoxLayout(content)
         content_lay.setContentsMargins(20, 30, 20, 30)
         content_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        lbl_pic = QLabel("👤")
-        lbl_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_pic.setStyleSheet("font-size: 50px; background: #f0f0f0; border-radius: 40px; min-height: 80px; min-width: 80px;")
-        content_lay.addWidget(lbl_pic, alignment=Qt.AlignmentFlag.AlignCenter)
+        # --- ICONO USERS.PNG ---
+        self.lbl_pic = QLabel()
+        self.lbl_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_pic.setStyleSheet("background: #f0f0f0; border-radius: 40px; min-height: 80px; min-width: 80px;")
+        
+        ruta_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "users.png")
+        
+        if os.path.exists(ruta_icon):
+            pixmap = QPixmap(ruta_icon)
+            if not pixmap.isNull():
+                scaled_size = 50
+                final_pixmap = QPixmap(scaled_size, scaled_size)
+                final_pixmap.fill(Qt.GlobalColor.transparent)
+                
+                painter = QPainter(final_pixmap)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+                
+                target_rect = QRect(0, 0, scaled_size, scaled_size)
+                painter.drawPixmap(target_rect, pixmap)
+                
+                painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+                painter.fillRect(target_rect, QColor("#7CEBFC")) 
+                painter.end()
+                
+                self.lbl_pic.setPixmap(final_pixmap)
+            else:
+                self.lbl_pic.setText("👤")
+        else:
+            self.lbl_pic.setText("👤")
 
+        content_lay.addWidget(self.lbl_pic, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Datos Preview
         self.prev_nombre = QLabel("Nombre Usuario")
         self.prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.prev_nombre.setStyleSheet("font-size: 22px; font-weight: bold; color: #333; margin-top: 10px;")
@@ -497,29 +506,36 @@ class VentanaModificarUsuario(QMainWindow):
         content_lay.addWidget(self.prev_rol)
         content_lay.addWidget(self.prev_status)
         content_lay.addStretch()
-
-        board_lay.addWidget(content)
-        parent_layout.addWidget(board, stretch=2)
-
-    def setup_save_button(self):
-        container = QHBoxLayout()
+        
+        # --- BOTON GUARDAR DENTRO DEL PANEL ---
         self.btn_guardar = QPushButton("Guardar Cambios")
         self.btn_guardar.setCursor(Qt.CursorShape.PointingHandCursor)
-        self.btn_guardar.setFixedSize(250, 55)
+        self.btn_guardar.setFixedSize(250, 50)
         self.btn_guardar.setEnabled(False)
         self.btn_guardar.setStyleSheet("""
             QPushButton {
-                background-color: #b67cfc; color: white; font-size: 20px; font-weight: bold; border-radius: 27px;
+                background-color: #7CEBFC; 
+                color: #444; 
+                font-size: 18px; 
+                font-weight: bold; 
+                border-radius: 25px;
+                border: 1px solid #5CD0E3;
             }
-            QPushButton:hover { background-color: #a060e8; }
-            QPushButton:disabled { background-color: #cccccc; color: #666; }
+            QPushButton:hover { background-color: #5CD0E3; }
+            QPushButton:disabled { background-color: #f0f0f0; color: #aaa; border: 1px solid #ddd; }
         """)
         self.btn_guardar.clicked.connect(self.guardar_cambios)
         
-        container.addStretch()
-        container.addWidget(self.btn_guardar)
-        container.addStretch()
-        self.white_layout.addLayout(container)
+        btn_container = QHBoxLayout()
+        btn_container.addStretch()
+        btn_container.addWidget(self.btn_guardar)
+        btn_container.addStretch()
+        
+        content_lay.addLayout(btn_container)
+        content_lay.addSpacing(20)
+
+        board_lay.addWidget(content)
+        parent_layout.addWidget(board, stretch=2)
 
     # ==========================================
     # --- LÓGICA ---
@@ -561,7 +577,6 @@ class VentanaModificarUsuario(QMainWindow):
 
         print(f"Buscando usuario {id_busqueda}...")
         
-        # Columnas a recuperar
         cols = ['nombre', 'apellido', 'correo', 'telefono', 'contraseña', 'status', 'rol']
         
         datos = self.conexion.consultar_registro(
@@ -572,7 +587,6 @@ class VentanaModificarUsuario(QMainWindow):
         )
         
         if datos:
-            # datos = (nombre, apellido, correo, telefono, contraseña, status, rol)
             self.current_user_id = id_busqueda
             
             self.inp_nombre.setText(str(datos[0]))
@@ -588,7 +602,6 @@ class VentanaModificarUsuario(QMainWindow):
             idx = self.inp_rol.findText(rol_db, Qt.MatchFlag.MatchFixedString)
             if idx >= 0: self.inp_rol.setCurrentIndex(idx)
 
-            # Habilitar
             self.form_widget.setEnabled(True)
             self.btn_guardar.setEnabled(True)
             self.update_preview()
@@ -604,7 +617,6 @@ class VentanaModificarUsuario(QMainWindow):
     def guardar_cambios(self):
         if not self.current_user_id: return
 
-        # Recolectar
         nombre = self.inp_nombre.text().strip()
         apellido = self.inp_apellido.text().strip()
         correo = self.inp_correo.text().strip()
@@ -615,12 +627,10 @@ class VentanaModificarUsuario(QMainWindow):
         
         status_bool = True if status_txt == "Activo" else False
 
-        # Validar
         if not nombre or not apellido or not contra:
             QMessageBox.warning(self, "Error", "Nombre, Apellido y Contraseña son obligatorios.")
             return
 
-        # Diccionario para update
         datos_nuevos = {
             "nombre": nombre,
             "apellido": apellido,
@@ -631,7 +641,6 @@ class VentanaModificarUsuario(QMainWindow):
             "status": status_bool
         }
 
-        # Actualizar
         try:
             exito = self.conexion.editar_registro(
                 id=int(self.current_user_id),

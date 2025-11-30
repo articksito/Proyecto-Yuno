@@ -295,91 +295,47 @@ class MainWindow(QMainWindow):
              return # Ya estamos aquí
 
         try:
-            # --- CITA ---
-            if categoria == "Cita":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
-                    self.ventana = UI_Revisar_Cita(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- CONSULTA ---
-            elif categoria == "Consulta":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
-                    self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- MASCOTA ---
-            elif categoria == "Mascota":
-                if opcion == "Visualizar":
-                   pass
-                elif opcion == "Modificar":
-                   from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
-                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
-                   self.ventana.show()
-                   self.close()
-
-            # --- CLIENTE ---
-            elif categoria == "Cliente":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
-                    self.ventana = UI_Modificar_cliente(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- HOSPITALIZACION ---
-            elif categoria == "Hospitalizacion":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
-                    self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- MEDICAMENTOS ---
-            elif categoria == "Medicamentos":
-                if opcion == "Visualizar":
-                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
-                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-                elif opcion == "Agregar":
+            # Lógica de navegación estándar
+            if categoria == "Cita" and opcion == "Visualizar":
+                from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
+                self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+            elif categoria == "Consulta" and opcion == "Visualizar":
+                from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
+                self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
+            elif categoria == "Mascota" and opcion == "Modificar":
+                from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
+                self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+            elif categoria == "Cliente" and opcion == "Visualizar":
+                from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
+                self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+            elif categoria == "Hospitalizacion" and opcion == "Visualizar":
+                from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
+                self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
+            elif categoria == "Medicamentos" and opcion == "Agregar":
                     from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
                     self.ventana = AddMed(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- USUARIOS ---
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
                     self.ventana = VentanaAgregarUsuario(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
                 elif opcion == "Modificar":
                     from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
                     self.ventana = VentanaModificarUsuario(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
                 elif opcion == "Visualizar":
                     from UI_ADMIN_Revisar_usuario import VentanaRevisarUsuario
                     self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-
-            # --- ESPECIALIDAD ---
             elif categoria == "Especialidad":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
                     self.ventana = VentanaAgregarEspecialidad(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
                 elif opcion == "Modificar":
                     from UI_ADMIN_Modificar_especialidad import VentanaModificarEspecialidad
                     self.ventana = VentanaModificarEspecialidad(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+
+            if hasattr(self, 'ventana') and self.ventana:
+                self.ventana.show()
+                self.close()
+
 
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")

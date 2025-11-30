@@ -364,8 +364,9 @@ class MainWindow(QMainWindow):
 
         header_frame = QFrame()
         header_frame.setFixedHeight(80)
+        # COLOR ACTUALIZADO: Azul #7CEBFC
         header_frame.setStyleSheet("""
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #7CEBFC, stop:1 rgba(252, 124, 226, 0.8));
+            background-color: #7CEBFC;
             border-top-left-radius: 15px;
             border-top-right-radius: 15px;
             border-bottom: none;
@@ -374,7 +375,8 @@ class MainWindow(QMainWindow):
         
         lbl_welcome = QLabel(f"Bienvenido, {self.nombre}") 
         lbl_welcome.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_welcome.setStyleSheet("color: white; font-size: 24px; font-weight: bold; background: transparent; border: none;")
+        # TEXTO ACTUALIZADO: Gris oscuro #444 para contraste
+        lbl_welcome.setStyleSheet("color: #444; font-size: 24px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_welcome)
 
         content_frame = QFrame()
@@ -442,7 +444,7 @@ class MainWindow(QMainWindow):
             # --- MASCOTA ---
             elif categoria == "Mascota":
                 if opcion == "Visualizar":
-                   from UI_ADMIN_Paciente import MainWindow as revisar_mascota
+                   from UI_ADMIN_Revisar_Paciente import MainWindow as revisar_mascota
                    self.apaciente = revisar_mascota(self.nombre)
                    self.apaciente.show()
                    self.close()

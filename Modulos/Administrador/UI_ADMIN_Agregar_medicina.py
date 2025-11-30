@@ -13,8 +13,8 @@ from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit, 
                              QGridLayout, QComboBox, QMessageBox, QTextEdit)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QPixmap, QIcon
+from PyQt6.QtCore import Qt, QRect
+from PyQt6.QtGui import QFont, QPixmap, QIcon, QPainter, QColor
 
 # Importar conexión
 from db_connection import Conexion
@@ -110,18 +110,17 @@ class MainWindow(QMainWindow):
             }
             QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
             
-            /* --- INPUTS Y COMBOBOX --- */
+            /* --- INPUTS Y COMBOBOX (ESTILO ROSA YUNO) --- */
             QLineEdit, QComboBox, QTextEdit {
-                background-color: rgba(241, 131, 227, 0.15); 
-                border: 1px solid rgba(241, 131, 227, 0.5);
+                background-color: rgba(241, 131, 227, 0.35); 
+                border: none;
                 border-radius: 10px;
                 padding: 5px 15px;
                 font-size: 16px;
                 color: #333;
             }
             QLineEdit:focus, QComboBox:focus, QTextEdit:focus {
-                background-color: rgba(241, 131, 227, 0.25);
-                border: 2px solid #FC7CE2;
+                background-color: rgba(241, 131, 227, 0.5); 
             }
             QComboBox::drop-down { border: 0px; }
             QComboBox { height: 40px; }
@@ -180,8 +179,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENÚS DESPLEGABLES (IGUAL QUE ADMIN MAIN) ---
-        
+        # --- MENÚS DESPLEGABLES ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
         self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
@@ -235,59 +233,45 @@ class MainWindow(QMainWindow):
         
         # Evitar recargar la misma ventana
         if categoria == "Medicamentos" and opcion == "Agregar":
-             QMessageBox.information(self, "Sistema", "Ya te encuentras en Agregar Medicamento.")
              return
 
         try:
-            # --- CITA ---
             if categoria == "Cita" and opcion == "Visualizar":
                 from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
-                self.cita = UI_Revisar_Cita(self.nombre_usuario)
-                self.cita.show()
+                self.ventana = UI_Revisar_Cita(self.nombre_usuario)
+                self.ventana.show()
                 self.close()
-
-            # --- CONSULTA ---
             elif categoria == "Consulta" and opcion == "Visualizar":
                 from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta
                 self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
                 self.ventana.show()
                 self.close()
-
-            # --- MASCOTA ---
             elif categoria == "Mascota":
                 if opcion == "Visualizar":
-                   from UI_ADMIN_Paciente import MainWindow as UI_ADMIN_Paciente
-                   self.apaciente = UI_ADMIN_Paciente(self.nombre_usuario)
-                   self.apaciente.show()
+                   from UI_ADMIN_Revisar_Paciente import MainWindow as UI_ADMIN_Paciente
+                   self.ventana = UI_ADMIN_Paciente(self.nombre_usuario)
+                   self.ventana.show()
                    self.close()
                 elif opcion == "Modificar":
                    from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
-                   self.mod_mascota = UI_Modificar_Mascota(self.nombre_usuario)
-                   self.mod_mascota.show()
+                   self.ventana = UI_Modificar_Mascota(self.nombre_usuario)
+                   self.ventana.show()
                    self.close()
-
-            # --- CLIENTE ---
             elif categoria == "Cliente" and opcion == "Visualizar":
                 from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
-                self.cliente = UI_Modificar_cliente(self.nombre_usuario)
-                self.cliente.show()
+                self.ventana = UI_Modificar_cliente(self.nombre_usuario)
+                self.ventana.show()
                 self.close()
-
-            # --- HOSPITALIZACION ---
             elif categoria == "Hospitalizacion" and opcion == "Visualizar":
                 from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion
                 self.ventana = VentanaRevisarHospitalizacion(self.nombre_usuario)
                 self.ventana.show()
                 self.close()
-
-            # --- MEDICAMENTOS ---
             elif categoria == "Medicamentos" and opcion == "Visualizar":
                 from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
                 self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
                 self.ventana.show()
                 self.close()
-
-            # --- USUARIOS ---
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
@@ -304,8 +288,6 @@ class MainWindow(QMainWindow):
                     self.ventana = VentanaRevisarUsuario(self.nombre_usuario)
                     self.ventana.show()
                     self.close()
-
-            # --- ESPECIALIDAD ---
             elif categoria == "Especialidad":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
@@ -324,13 +306,14 @@ class MainWindow(QMainWindow):
              QMessageBox.critical(self, "Error", f"Error al navegar: {e}")
 
     # ==========================================
-    # --- PANEL DERECHO (Agregar Medicina) ---
+    # --- PANEL CENTRAL (Agregar Medicina) ---
     # ==========================================
 
     def setup_white_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
+        # Margen aumentado a la izquierda para centrar mejor
         self.white_layout.setContentsMargins(40, 40, 20, 40)
 
         # 1. Header
@@ -359,14 +342,11 @@ class MainWindow(QMainWindow):
         # A. Izquierda: Formulario
         self.setup_form_left(content_split)
 
-        # B. Derecha: Preview
+        # B. Derecha: Preview + Botón Guardar
         self.setup_info_right(content_split)
 
         self.white_layout.addLayout(content_split)
-        
-        # 3. Botón Guardar
-        self.setup_save_button()
-        self.white_layout.addStretch()
+        self.white_layout.addStretch() # Empuja todo hacia arriba
 
     def setup_form_left(self, parent_layout):
         form_widget = QWidget()
@@ -416,6 +396,9 @@ class MainWindow(QMainWindow):
         grid.addWidget(QLabel("Vía Admin.:", styleSheet=label_style), 4, 0)
         grid.addWidget(self.inp_via, 4, 1)
 
+        # Empujar hacia arriba
+        grid.setRowStretch(5, 1)
+
         parent_layout.addWidget(form_widget, stretch=3)
 
     def setup_info_right(self, parent_layout):
@@ -436,16 +419,17 @@ class MainWindow(QMainWindow):
             }
         """)
 
-        # Header Board
+        # Header Board (AZUL SOLIDO)
         header = QFrame()
         header.setFixedHeight(50)
         header.setStyleSheet("""
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 rgba(252, 124, 226, 0.9));
+            background-color: #7CEBFC; 
             border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom: none;
         """)
         head_lay = QHBoxLayout(header)
         lbl_tit = QLabel("Vista Previa")
-        lbl_tit.setStyleSheet("color: white; font-weight: bold; font-size: 16px; border: none; background: transparent;")
+        # Color Gris Oscuro para texto sobre azul claro
+        lbl_tit.setStyleSheet("color: #444; font-weight: bold; font-size: 16px; border: none; background: transparent;")
         head_lay.addWidget(lbl_tit, alignment=Qt.AlignmentFlag.AlignCenter)
         board_lay.addWidget(header)
 
@@ -457,11 +441,41 @@ class MainWindow(QMainWindow):
         content_lay.setSpacing(10)
         content_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
 
-        lbl_pic = QLabel("💊")
-        lbl_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_pic.setStyleSheet("font-size: 50px; background: #f0f0f0; border-radius: 40px; min-height: 80px; min-width: 80px;")
-        content_lay.addWidget(lbl_pic, alignment=Qt.AlignmentFlag.AlignCenter)
+        # --- ICONO MEDICINE.PNG ---
+        self.lbl_pic = QLabel()
+        self.lbl_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.lbl_pic.setStyleSheet("background: #f0f0f0; border-radius: 40px; min-height: 80px; min-width: 80px;")
+        
+        ruta_icon = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "medicine.png")
+        
+        if os.path.exists(ruta_icon):
+            pixmap = QPixmap(ruta_icon)
+            if not pixmap.isNull():
+                scaled_size = 50
+                final_pixmap = QPixmap(scaled_size, scaled_size)
+                final_pixmap.fill(Qt.GlobalColor.transparent)
+                
+                painter = QPainter(final_pixmap)
+                painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+                painter.setRenderHint(QPainter.RenderHint.SmoothPixmapTransform)
+                
+                target_rect = QRect(0, 0, scaled_size, scaled_size)
+                painter.drawPixmap(target_rect, pixmap)
+                
+                # Pintar de Azul
+                painter.setCompositionMode(QPainter.CompositionMode.CompositionMode_SourceIn)
+                painter.fillRect(target_rect, QColor("#7CEBFC")) 
+                painter.end()
+                
+                self.lbl_pic.setPixmap(final_pixmap)
+            else:
+                self.lbl_pic.setText("💊")
+        else:
+            self.lbl_pic.setText("💊")
 
+        content_lay.addWidget(self.lbl_pic, alignment=Qt.AlignmentFlag.AlignCenter)
+
+        # Etiquetas Preview
         self.prev_nombre = QLabel("Nombre Medicina")
         self.prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.prev_nombre.setWordWrap(True)
@@ -480,26 +494,34 @@ class MainWindow(QMainWindow):
         content_lay.addWidget(self.prev_uso)
         content_lay.addStretch()
 
-        board_lay.addWidget(content)
-        parent_layout.addWidget(board, stretch=2)
-
-    def setup_save_button(self):
-        container = QHBoxLayout()
+        # --- BOTÓN GUARDAR (Dentro de la tarjeta) ---
         btn_save = QPushButton("Registrar Medicamento")
         btn_save.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_save.setFixedSize(250, 55)
+        btn_save.setFixedSize(250, 50)
+        # Estilo Azul para coincidir con el tema
         btn_save.setStyleSheet("""
             QPushButton {
-                background-color: #b67cfc; color: white; font-size: 20px; font-weight: bold; border-radius: 27px;
+                background-color: #7CEBFC; 
+                color: #444; 
+                font-size: 18px; 
+                font-weight: bold; 
+                border-radius: 25px;
+                border: 1px solid #5CD0E3;
             }
-            QPushButton:hover { background-color: #a060e8; }
+            QPushButton:hover { background-color: #5CD0E3; }
         """)
         btn_save.clicked.connect(self.guardar_datos)
         
-        container.addStretch()
-        container.addWidget(btn_save)
-        container.addStretch()
-        self.white_layout.addLayout(container)
+        btn_container = QHBoxLayout()
+        btn_container.addStretch()
+        btn_container.addWidget(btn_save)
+        btn_container.addStretch()
+        
+        content_lay.addLayout(btn_container)
+        content_lay.addSpacing(10)
+
+        board_lay.addWidget(content)
+        parent_layout.addWidget(board, stretch=2)
 
     # ==========================================
     # --- LÓGICA ---
