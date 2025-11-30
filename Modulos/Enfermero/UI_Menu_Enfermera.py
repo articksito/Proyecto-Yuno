@@ -2,6 +2,7 @@ import sys
 import os
 import traceback
 from datetime import datetime
+from functools import partial # Importante para los botones del menú
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QMessageBox)
 from PyQt6.QtCore import Qt, QTimer
@@ -32,9 +33,11 @@ class EnfermeroMain(QMainWindow):
         super().__init__()
         
         self.nombre_usuario = nombre_completo
+        self.ventana = None # Referencia para evitar que las ventanas hijas se cierren
         
         self.setWindowTitle(f"Sistema Veterinario Yuno - Panel de Enfermería ({self.nombre_usuario})")
         self.resize(1280, 720)
+        self.setMinimumSize(1024, 600)
 
         # Datos simulados (Actualizados con el nombre real)
         self.user_data = {
@@ -145,7 +148,8 @@ class EnfermeroMain(QMainWindow):
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
             
             # --- CONEXIÓN AL ROUTER ---
-            btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.abrir_ventana(t, o))
+            # Usamos partial para pasar los argumentos correctamente sin ejecutarlos
+            btn_sub.clicked.connect(partial(self.abrir_ventana, title, opt_text))
             
             layout_options.addWidget(btn_sub)
 
@@ -236,7 +240,7 @@ class EnfermeroMain(QMainWindow):
                 self.ventana = target_window
                 self.ventana.show()
                 self.close()
-
+            
         except ImportError as e:
             QMessageBox.warning(self, "Error de Navegación", f"Falta el archivo: {e.name}\n\nVerifica que esté en la misma carpeta.")
         except Exception as e:

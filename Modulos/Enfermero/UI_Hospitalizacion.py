@@ -2,13 +2,13 @@ import sys
 import os
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QLineEdit, QTextEdit, 
-                             QMessageBox, QFrame, QTreeWidget, QTreeWidgetItem, QHeaderView)
+                             QMessageBox, QFrame)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
 # --- AJUSTE DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir) # Subir un nivel a 'Modulos'
+parent_dir = os.path.dirname(current_dir) 
 if current_dir not in sys.path: sys.path.append(current_dir)
 if parent_dir not in sys.path: sys.path.append(parent_dir)
 
@@ -20,28 +20,25 @@ except ImportError:
     DB_AVAILABLE = False
 
 class MainWindow(QMainWindow):
-    # 1. RECIBIMOS EL NOMBRE
     def __init__(self, nombre_usuario="Enfermero"):
         super().__init__()
         
-        # 2. GUARDAMOS EL NOMBRE
         self.nombre_usuario = nombre_usuario
-        
         self.setWindowTitle(f"Sistema Veterinario Yuno - Hospitalización ({self.nombre_usuario})")
         self.resize(1280, 720)
+        # 1. TAMAÑO MÍNIMO
+        self.setMinimumSize(1024, 600)
 
-        # Inicializar conexión
         if DB_AVAILABLE:
             self.conexion1 = Conexion()
 
-        # Widget central
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         self.main_layout = QHBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS GENERALES ---
+        # --- ESTILOS ---
         self.setStyleSheet("""
             QMainWindow { background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC); }
             QWidget#WhitePanel { background-color: white; border-top-left-radius: 30px; border-bottom-left-radius: 30px; margin: 20px 20px 20px 0px; }
@@ -56,24 +53,25 @@ class MainWindow(QMainWindow):
             }
             QLineEdit:focus, QTextEdit:focus { border: 1px solid #b67cfc; background-color: white; }
             
-            /* Sidebar Styles */
-            QPushButton.menu-btn {
-                text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 15px; color: white; font-family: 'Segoe UI', sans-serif;
-                font-weight: bold; font-size: 18px; background-color: rgba(255, 255, 255, 0.1);
-                height: 50px; margin-bottom: 5px;
+            /* Botones Menú Lateral (Estilo Unificado) */
+            QPushButton.menu-btn { 
+                text-align: left; padding-left: 20px; 
+                border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px; 
+                color: white; font-family: 'Segoe UI', sans-serif; 
+                font-weight: bold; font-size: 18px; 
+                background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px; 
             }
-            QPushButton.menu-btn:hover {
-                background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF;
+            QPushButton.menu-btn:hover { 
+                background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF; 
             }
-            QPushButton.sub-btn {
-                text-align: left; font-family: 'Segoe UI', sans-serif; font-size: 16px;
-                font-weight: normal; padding-left: 40px; border-radius: 10px;
-                color: #F0F0F0; background-color: rgba(0, 0, 0, 0.05);
-                height: 35px; margin-bottom: 2px; margin-left: 10px; margin-right: 10px;
+            QPushButton.sub-btn { 
+                text-align: left; font-family: 'Segoe UI', sans-serif; font-size: 16px; 
+                font-weight: normal; padding-left: 40px; border-radius: 10px; 
+                color: #F0F0F0; background-color: rgba(0, 0, 0, 0.05); 
+                height: 35px; margin-bottom: 2px; margin-left: 10px; margin-right: 10px; 
             }
-            QPushButton.sub-btn:hover {
-                color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold;
+            QPushButton.sub-btn:hover { 
+                color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold; 
             }
         """)
 
@@ -91,9 +89,6 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Internar Paciente")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        
-        # CONEXIÓN AL MENU
-
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
         self.white_layout.addLayout(header_layout)
@@ -189,16 +184,17 @@ class MainWindow(QMainWindow):
         self.setup_accordion_group("Inventario", ["Farmacia", "Hospitalización"])
         self.setup_accordion_group("Expediente", ["Diagnóstico"])
 
+        # 2. EL RESORTE MÁGICO
         self.sidebar_layout.addStretch()
 
         btn_logout = QPushButton("Volver al Menú")
         btn_logout.setStyleSheet("""
-            QPushButton {
+            QPushButton { 
                 text-align: center; border: 2px solid white; 
-                border-radius: 15px; padding: 10px; margin-top: 20px;
-                font-size: 14px; color: white; font-weight: bold;
-                background-color: transparent;
-            }
+                border-radius: 15px; padding: 10px; margin-top: 20px; 
+                font-size: 14px; color: white; font-weight: bold; 
+                background-color: transparent; 
+            } 
             QPushButton:hover { background-color: rgba(255,255,255,0.2); }
         """)
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -240,7 +236,7 @@ class MainWindow(QMainWindow):
     def regresar_menu(self):
         try:
             from UI_Menu_Enfermera import EnfermeroMain
-            self.menu = EnfermeroMain(self.nombre_usuario) # DEVOLVEMOS EL NOMBRE
+            self.menu = EnfermeroMain(self.nombre_usuario)
             self.menu.show()
             self.close()
         except ImportError:
@@ -254,22 +250,22 @@ class MainWindow(QMainWindow):
             # 1. ENRUTAMIENTO
             if categoria == "Citas" and opcion == "Visualizar":
                 from UI_Cita_Enfermera import MainWindow as Win
-                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
+                target_window = Win(self.nombre_usuario) 
             
             elif categoria == "Mascotas" and opcion == "Visualizar":
                 from UI_Revisar_Mascota_Enfermera import MainWindow as Win
-                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
+                target_window = Win(self.nombre_usuario) 
             
             elif categoria == "Inventario":
                 if opcion == "Farmacia":
                     from UI_Farmacia import MainWindow as Win
-                    target_window = Win(self.nombre_usuario) # PASAR NOMBRE
+                    target_window = Win(self.nombre_usuario) 
                 elif opcion == "Hospitalización":
                     pass # Ya estamos aquí
             
             elif categoria == "Expediente" and opcion == "Diagnóstico":
                 from UI_Diagnostico import MainWindow as Win
-                target_window = Win(self.nombre_usuario) # PASAR NOMBRE
+                target_window = Win(self.nombre_usuario) 
 
             # 2. EJECUCIÓN
             if target_window:
