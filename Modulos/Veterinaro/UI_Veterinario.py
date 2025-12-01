@@ -60,31 +60,63 @@ class VeterinarioMenu(QMainWindow):
             }
             QLabel { font-family: 'Segoe UI', sans-serif; }
             
-            /* ESTILO TABLA (FONDO BLANCO PURO) */
+            /* --- ESTILO TABLA MODERNO --- */
             QTableWidget {
-                border: 1px solid black;
-                border-radius: 10px;
                 background-color: white;
-                gridline-color: black;
+                border-radius: 15px;
+                border: 1px solid #E0E0E0;
+                gridline-color: transparent; /* Ocultar lineas de cuadricula */
                 font-size: 14px;
-                color: black;
+                color: #333333;
+                selection-background-color: #E1F5FE; /* Azul muy suave al seleccionar */
+                selection-color: #000000;
+                padding: 5px;
             }
+            
             QHeaderView::section {
-                background-color: #FC7CE2;
+                background-color: #FC7CE2; /* Rosa de la marca */
                 color: white;
-                padding: 5px;
+                padding: 10px;
                 font-weight: bold;
-                border: 1px solid black;
+                border: none;
+                font-size: 15px;
+                border-bottom: 2px solid #FF9EE6;
             }
+            
+            /* Para redondear la esquina superior izquierda del header */
+            QHeaderView::section:first {
+                border-top-left-radius: 10px;
+            }
+            /* Para redondear la esquina superior derecha del header */
+            QHeaderView::section:last {
+                border-top-right-radius: 10px;
+            }
+
             QTableWidget::item {
-                padding: 5px;
-                color: black;
-                background-color: white;
-                border-bottom: 1px solid black;
+                padding: 8px; /* Mas espacio entre texto y bordes */
+                border-bottom: 1px solid #F0F0F0; /* Linea sutil entre filas */
             }
-            QTableWidget::item:selected {
-                background-color: #e0e0e0;
-                color: black;
+            
+            QTableWidget::item:focus {
+                border: none;
+                background-color: #E1F5FE;
+            }
+
+            /* Scrollbar personalizado sutil */
+            QScrollBar:vertical {
+                border: none;
+                background: #F0F0F0;
+                width: 8px;
+                margin: 0px 0px 0px 0px;
+                border-radius: 4px;
+            }
+            QScrollBar::handle:vertical {
+                background: #CCCCCC;
+                min-height: 20px;
+                border-radius: 4px;
+            }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
+                height: 0px;
             }
             
             /* ESTILO BOTONES SIDEBAR */
@@ -310,15 +342,19 @@ class VeterinarioMenu(QMainWindow):
         list_layout.setContentsMargins(0, 0, 0, 0)
 
         lbl_info = QLabel("Pacientes en espera:")
-        lbl_info.setStyleSheet("font-size: 18px; color: #666; font-weight: bold; margin-bottom: 10px;")
+        lbl_info.setStyleSheet("font-size: 18px; color: #666; font-weight: bold; margin-bottom: 15px;")
         list_layout.addWidget(lbl_info)
 
-        # TABLA
+        # TABLA (Configuración Visual Mejorada)
         self.tabla_citas = QTableWidget()
         self.tabla_citas.setColumnCount(4)
         self.tabla_citas.setHorizontalHeaderLabels(["Paciente ID", "Fecha", "Hora", "Estado"])
         
-        self.tabla_citas.setAlternatingRowColors(False) 
+        # -- Cambios visuales de configuración --
+        self.tabla_citas.setAlternatingRowColors(True) # Activado para mejor lectura
+        self.tabla_citas.setShowGrid(False)            # Desactivada la rejilla dura para look moderno
+        self.tabla_citas.setFrameShape(QFrame.Shape.NoFrame) # Quita el borde biselado por defecto
+        
         self.tabla_citas.verticalHeader().setVisible(False)
         self.tabla_citas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
         self.tabla_citas.setEditTriggers(QTableWidget.EditTrigger.NoEditTriggers)
@@ -341,6 +377,8 @@ class VeterinarioMenu(QMainWindow):
                     
                     item_estado = QTableWidgetItem(str(fila[3]))
                     item_estado.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
+                    # Color opcional para el texto de "Pendiente"
+                    item_estado.setForeground(QColor("#E67E22")) 
                     self.tabla_citas.setItem(row, 3, item_estado)
             else:
                 pass
