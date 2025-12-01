@@ -131,7 +131,7 @@ class MainWindow(QMainWindow):
 
         # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Gestión de Farmacia")
+        lbl_header = QLabel("Inventario de Farmacia") # Cambié ligeramente el título para reflejar que es solo vista
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
         header_layout.addWidget(lbl_header)
@@ -139,25 +139,17 @@ class MainWindow(QMainWindow):
         self.white_layout.addLayout(header_layout)
         self.white_layout.addSpacing(20)
 
-        # Contenido
-        content_layout = QHBoxLayout()
+        # Contenido (Solo Tabla y Buscador)
+        content_layout = QVBoxLayout() # Cambiado a vertical para ocupar todo el espacio
         
-        # Lado Izquierdo: Formulario
-        form_container = QFrame()
-        form_container.setStyleSheet("background: transparent;") 
-        form_layout = QVBoxLayout(form_container)
-        self.setup_form(form_layout)
-        
-        # Lado Derecho: Tabla + Búsqueda
+        # Tabla + Búsqueda
         table_container = QFrame()
         table_container.setStyleSheet("background: transparent;")
         table_layout = QVBoxLayout(table_container)
         self.setup_search_bar(table_layout) 
         self.setup_table(table_layout)
 
-        content_layout.addWidget(form_container, stretch=1)
-        content_layout.addSpacing(30)
-        content_layout.addWidget(table_container, stretch=2)
+        content_layout.addWidget(table_container)
 
         self.white_layout.addLayout(content_layout)
         self.main_layout.addWidget(self.sidebar)
@@ -246,34 +238,6 @@ class MainWindow(QMainWindow):
         search_layout.addWidget(btn_search)
         layout.addWidget(search_frame)
 
-    def setup_form(self, layout):
-        lbl_titulo = QLabel("Registrar Medicamento")
-        lbl_titulo.setStyleSheet("font-size: 20px; font-weight: bold; margin-bottom: 15px; color: #5f2c82;")
-        layout.addWidget(lbl_titulo)
-
-        self.inp_nombre = QLineEdit(); self.inp_nombre.setPlaceholderText("Nombre Medicina")
-        self.inp_tipo = QLineEdit(); self.inp_tipo.setPlaceholderText("Tipo (ej. Antibiótico)")
-        self.inp_comp = QLineEdit(); self.inp_comp.setPlaceholderText("Composición (mg)")
-        self.inp_dosis = QLineEdit(); self.inp_dosis.setPlaceholderText("Dosis Recomendada")
-        self.inp_via = QLineEdit(); self.inp_via.setPlaceholderText("Vía Admin. (ej. Oral)")
-
-        style_lbl = "font-size: 16px; color: #333; margin-top: 10px; font-weight: bold;"
-        
-        layout.addWidget(QLabel("Nombre:", styleSheet=style_lbl)); layout.addWidget(self.inp_nombre)
-        layout.addWidget(QLabel("Tipo:", styleSheet=style_lbl)); layout.addWidget(self.inp_tipo)
-        layout.addWidget(QLabel("Composición:", styleSheet=style_lbl)); layout.addWidget(self.inp_comp)
-        layout.addWidget(QLabel("Dosis:", styleSheet=style_lbl)); layout.addWidget(self.inp_dosis)
-        layout.addWidget(QLabel("Vía Admin:", styleSheet=style_lbl)); layout.addWidget(self.inp_via)
-        
-        layout.addStretch()
-        
-        btn_add = QPushButton("Agregar al Inventario")
-        btn_add.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_add.setFixedHeight(50)
-        btn_add.setStyleSheet("QPushButton { background-color: #b67cfc; color: white; font-size: 18px; font-weight: bold; border-radius: 25px; } QPushButton:hover { background-color: #a060e8; }")
-        btn_add.clicked.connect(self.agregar_medicamento)
-        layout.addWidget(btn_add)
-
     def setup_table(self, layout):
         # La tabla tomará el color rosa definido en el Stylesheet
         self.tree = QTreeWidget()
@@ -288,26 +252,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(btn_refresh)
 
     # --- LÓGICA ---
-    def agregar_medicamento(self):
-        nombre = self.inp_nombre.text()
-        tipo = self.inp_tipo.text()
-        comp = self.inp_comp.text()
-        dosis = self.inp_dosis.text()
-        via = self.inp_via.text()
-
-        if not nombre or not tipo:
-            QMessageBox.warning(self, "Error", "El nombre y tipo son obligatorios.")
-            return
-
-        try:
-            datos = (nombre, tipo, comp, dosis, via)
-            columnas = ('nombre', 'tipo', '"composicion(mg)"', 'dosis_recomendada', 'via_administracion')
-            self.conexion1.insertar_datos('medicamento', datos, columnas)
-            QMessageBox.information(self, "Éxito", "Medicamento agregado correctamente.")
-            self.limpiar_form()
-            self.cargar_tabla()
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"No se pudo guardar: {e}")
 
     def cargar_tabla(self):
         if not DB_AVAILABLE: return
@@ -340,9 +284,6 @@ class MainWindow(QMainWindow):
                 QMessageBox.warning(self, "Aviso", "No existe.")
                 self.cargar_tabla()
         except Exception as e: QMessageBox.critical(self, "Error", str(e))
-
-    def limpiar_form(self):
-        for w in [self.inp_nombre, self.inp_tipo, self.inp_comp, self.inp_dosis, self.inp_via]: w.clear()
 
     def regresar_menu(self):
         try:

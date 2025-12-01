@@ -22,7 +22,7 @@ except ImportError:
     # Intento secundario si estamos en la carpeta raíz
     try:
         sys.path.append(os.path.join(parent_dir, '..'))
-        from db_connection import Conexion
+
         DB_AVAILABLE = True
     except:
         DB_AVAILABLE = False

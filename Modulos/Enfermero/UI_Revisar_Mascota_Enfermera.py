@@ -233,10 +233,9 @@ class MainWindow(QMainWindow):
         add_row(0, "Nombre:", "inp_nombre")
         add_row(1, "Especie:", "inp_especie")
         add_row(2, "Raza:", "inp_raza")
-        add_row(3, "Sexo:", "inp_sexo")
-        add_row(4, "Edad:", "inp_edad")
-        add_row(5, "Peso:", "inp_peso")
-        add_row(6, "Dueño:", "inp_dueno")
+        add_row(3, "Edad:", "inp_edad")
+        add_row(4, "Peso:", "inp_peso")
+        add_row(5, "Dueño:", "inp_dueno")
 
         grid.setRowStretch(7, 1)
         parent_layout.addWidget(form_widget, stretch=3)
@@ -271,8 +270,7 @@ class MainWindow(QMainWindow):
         if not DB_AVAILABLE: return
 
         try:
-            cols = ["mascota.nombre", "mascota.especie", "mascota.raza", 
-                    "mascota.sexo", "mascota.edad", "mascota.peso",
+            cols = ["mascota.nombre", "mascota.especie", "mascota.raza", "mascota.edad", "mascota.peso",
                     "cliente.nombre", "cliente.apellido"]
             joins = "JOIN cliente ON mascota.fk_cliente = cliente.id_cliente"
             
@@ -282,10 +280,9 @@ class MainWindow(QMainWindow):
                 self.inp_nombre.setText(str(reg[0]))
                 self.inp_especie.setText(str(reg[1]))
                 self.inp_raza.setText(str(reg[2]))
-                self.inp_sexo.setText(str(reg[3]))
-                self.inp_edad.setText(str(reg[4]))
-                self.inp_peso.setText(str(reg[5]) + " kg")
-                self.inp_dueno.setText(f"{reg[6]} {reg[7]}")
+                self.inp_edad.setText(str(reg[3]))
+                self.inp_peso.setText(str(reg[4]) + " kg")
+                self.inp_dueno.setText(f"{reg[5]} {reg[6]}")
                 self.txt_notas.setText("Mascota encontrada. Verifique los datos.")
                 QMessageBox.information(self, "Éxito", "Mascota cargada.")
             else:
@@ -295,7 +292,7 @@ class MainWindow(QMainWindow):
             QMessageBox.critical(self, "Error", str(e))
 
     def limpiar_datos(self):
-        for attr in ["inp_nombre", "inp_especie", "inp_raza", "inp_sexo", "inp_edad", "inp_peso", "inp_dueno"]:
+        for attr in ["inp_nombre", "inp_especie", "inp_raza", "inp_edad", "inp_peso", "inp_dueno"]:
             getattr(self, attr).setText("---")
         self.txt_notas.setText("...")
 
