@@ -29,7 +29,7 @@ class MainWindow(QMainWindow):
 
         self.setWindowTitle(f"Sistema Veterinario Yuno - Menú Principal ({self.nombre_usuario})")
         self.resize(1280, 720)
-        self.setMinimumSize(1024, 600) # Evitar modo miniatura
+        self.setMinimumSize(1024, 600)
 
         # Datos visuales
         self.user_data = {
@@ -62,7 +62,7 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Botones del Menú Lateral (Igual que en las otras vistas) */
+            /* Botones del Menú Lateral */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px;
@@ -94,6 +94,7 @@ class MainWindow(QMainWindow):
         self.content_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         self.content_layout.setSpacing(20)
 
+        # 3. Info Central (DISEÑO ORIGINAL RESTAURADO)
         self.setup_central_info()
 
         self.main_layout.addWidget(self.sidebar)
@@ -104,8 +105,7 @@ class MainWindow(QMainWindow):
         self.sidebar.setObjectName("Sidebar")
         self.sidebar.setFixedWidth(300)
         self.sidebar_layout = QVBoxLayout(self.sidebar)
-        # Márgenes idénticos a las otras vistas para consistencia visual
-        self.sidebar_layout.setContentsMargins(20, 50, 20, 50) 
+        self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
         # Logo
@@ -128,13 +128,13 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addSpacing(20)
         
         # Menús
-        self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
-        self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar"])
-        self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar"])
+        self.setup_accordion_group("Cita", ["Agendar", "Visualizar", "Modificar"])
+        self.setup_accordion_group("Mascota", ["Registrar", "Visualizar", "Modificar"])
+        self.setup_accordion_group("Cliente", ["Registrar", "Visualizar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
-        # Botón Cerrar Sesión (Estilo unificado)
+        # Botón Cerrar Sesión
         btn_logout = QPushButton("Cerrar Sesión")
         btn_logout.setStyleSheet("""
             QPushButton {
@@ -156,7 +156,6 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(btn_logout)
 
     def logout_to_login(self):
-        """Cierra el menú y abre la ventana de inicio de sesión."""
         if LoginWindow:
             try:
                 self.ventana = LoginWindow()
@@ -195,6 +194,7 @@ class MainWindow(QMainWindow):
         if frame.isVisible(): frame.hide()
         else: frame.show()
 
+    # --- DISEÑO ORIGINAL (Sin Banner Azul) ---
     def setup_central_info(self):
         info_container = QFrame()
         info_layout = QVBoxLayout(info_container)
@@ -240,25 +240,29 @@ class MainWindow(QMainWindow):
         self.update_time()
 
     def update_time(self):
-        current_time = datetime.now().strftime("%H:%M:%S")
-        self.lbl_time.setText(current_time)
+        # --- AQUI ESTA LA CORRECCION (Sin segundos, con AM/PM) ---
+        now = datetime.now()
+        periodo = "AM" if now.hour < 12 else "PM"
+        hora_str = now.strftime("%I:%M")
+        
+        self.lbl_time.setText(f"{hora_str} {periodo}")
 
     def router_ventanas(self, categoria, opcion):
         print(f"Abriendo: {categoria} -> {opcion}") 
         
         # Mapeo de Nombres de Archivos
         mapa_ventanas = {
-            "Citas": {
+            "Cita": {
                 "Agendar": "UI_REP_Crear_cita",
                 "Visualizar": "UI_REP_Revisar_Cita",
                 "Modificar": "UI_REP_Modificar_cita"
             },
-            "Mascotas": {
+            "Mascota": {
                 "Registrar": "UI_REP_Registrar_mascota",
                 "Visualizar": "UI_Revisar_Mascota",
                 "Modificar": "UI_REP_Modificar_Mascota"
             },
-            "Clientes": {
+            "Cliente": {
                 "Registrar": "UI_REP_Registra_cliente",
                 "Visualizar": "UI_Revisar_cliente",
                 "Modificar": "UI_REP_Modificar_cliente"

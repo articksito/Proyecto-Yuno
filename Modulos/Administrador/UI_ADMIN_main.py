@@ -24,7 +24,7 @@ class GraficaCitas(QWidget):
         super().__init__()
         self.data = self.procesar_datos(data_dict)
         
-        # Colores actualizados
+        # Colores
         self.colors = {
             "Confirmada": QColor("#26C6DA"),  # Cian
             "Completada": QColor("#AB47BC"),  # Violeta
@@ -34,7 +34,6 @@ class GraficaCitas(QWidget):
         self.setMinimumHeight(350)
 
     def procesar_datos(self, data_raw):
-        """Une claves similares y limpia datos"""
         clean_data = {
             "Confirmada": 0,
             "Completada": 0,
@@ -225,7 +224,8 @@ class MainWindow(QMainWindow):
         header_layout.addStretch()
         
         self.lbl_reloj_header = QLabel()
-        self.lbl_reloj_header.setStyleSheet("font-size: 24px; color: #777; font-weight: 300;")
+        # Estilo para el reloj
+        self.lbl_reloj_header.setStyleSheet("font-size: 24px; color: #555; font-weight: 400;")
         header_layout.addWidget(self.lbl_reloj_header)
         
         self.white_layout.addLayout(header_layout)
@@ -252,7 +252,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ROBUSTO ---
+        # --- LOGO ---
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -276,32 +276,15 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENU ADMIN ACTUALIZADO ---
-        
-        # Cita
+        # --- MENU ADMIN ---
         self.setup_accordion_group("Cita", ["Visualizar"])
-        
-        # Consulta
         self.setup_accordion_group("Consulta", ["Visualizar"])
-        
-        # Mascota (AHORA CON MODIFICAR)
         self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
-        
-        # Cliente
         self.setup_accordion_group("Cliente", ["Visualizar"])
-        
-        # Hospitalizacion
         self.setup_accordion_group("Hospitalizacion", ["Visualizar"])
-        
-        # Medicamentos
         self.setup_accordion_group("Medicamentos", ["Visualizar", "Agregar"])
-        
-        # Usuarios
         self.setup_accordion_group("Usuarios", ["Agregar", "Modificar", "Visualizar"])
-        
-        # Especialidad
         self.setup_accordion_group("Especialidad", ["Agregar", "Modificar"])
-
 
         self.sidebar_layout.addStretch()
 
@@ -314,7 +297,7 @@ class MainWindow(QMainWindow):
                 font-size: 14px; color: white; font-weight: bold;
                 background-color: transparent;
             }
-            QPushButton:hover { background-color: rgba(255,255,255,0.2); }
+            QPushButton.logout-btn:hover { background-color: rgba(255,255,255,0.2); }
         """)
         btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_logout.clicked.connect(self.close)
@@ -343,10 +326,8 @@ class MainWindow(QMainWindow):
         btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
 
     def toggle_menu(self, frame):
-        if frame.isVisible():
-            frame.hide()
-        else:
-            frame.show()
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
 
     def setup_central_board(self):
         board_container = QFrame()
@@ -364,7 +345,7 @@ class MainWindow(QMainWindow):
 
         header_frame = QFrame()
         header_frame.setFixedHeight(80)
-        # COLOR ACTUALIZADO: Azul #7CEBFC
+        # Banner Azul
         header_frame.setStyleSheet("""
             background-color: #7CEBFC;
             border-top-left-radius: 15px;
@@ -375,7 +356,6 @@ class MainWindow(QMainWindow):
         
         lbl_welcome = QLabel(f"Bienvenido, {self.nombre}") 
         lbl_welcome.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        # TEXTO ACTUALIZADO: Gris oscuro #444 para contraste
         lbl_welcome.setStyleSheet("color: #444; font-size: 24px; font-weight: bold; background: transparent; border: none;")
         header_layout.addWidget(lbl_welcome)
 
@@ -402,7 +382,6 @@ class MainWindow(QMainWindow):
         self.white_layout.addWidget(board_container)
 
     def obtener_stats_citas(self):
-        """Consulta BD"""
         try:
             query = "SELECT estado, COUNT(*) FROM cita GROUP BY estado"
             self.conexion.cursor_uno.execute(query)
@@ -416,16 +395,29 @@ class MainWindow(QMainWindow):
             return {"Confirmada": 0, "Completada": 0, "Cancelada": 0, "Pendiente": 0}
 
     def update_time(self):
-        current_time = datetime.now().strftime("%I:%M:%S %p")
-        self.lbl_reloj_header.setText(current_time)
+        # --- AQUI ESTA EL CAMBIO ---
+        # 1. Obtener la hora actual
+        now = datetime.now()
+        
+        # 2. Determinar AM o PM
+        periodo = "AM" if now.hour < 12 else "PM"
+        
+        # 3. Formatear hora:minuto (formato 12 horas, sin segundos)
+        # %I: Hora (01-12)
+        # %M: Minuto (00-59)
+        hora_str = now.strftime("%I:%M")
+        
+        # 4. Combinar
+        texto_final = f"{hora_str} {periodo}"
+        
+        self.lbl_reloj_header.setText(texto_final)
 
     # ============================================================
-    #        ENRUTADOR DE VENTANAS (ACTUALIZADO)
+    #        ENRUTADOR DE VENTANAS
     # ============================================================
     def navegar(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
-            # --- CITA ---
             if categoria == "Cita":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
@@ -433,15 +425,13 @@ class MainWindow(QMainWindow):
                     self.cita.show()
                     self.close()
 
-            # --- CONSULTA ---
             elif categoria == "Consulta":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_consulta import VentanaRevisarConsulta as revisar_consulta
-                    self.ventana = revisar_consulta(self.nombre) # Pasamos el nombre
+                    self.ventana = revisar_consulta(self.nombre)
                     self.ventana.show()
                     self.close()
 
-            # --- MASCOTA ---
             elif categoria == "Mascota":
                 if opcion == "Visualizar":
                    from UI_ADMIN_Revisar_Paciente import MainWindow as revisar_mascota
@@ -449,13 +439,11 @@ class MainWindow(QMainWindow):
                    self.apaciente.show()
                    self.close()
                 elif opcion == "Modificar":
-                   # AQUI CONECTAMOS LA NUEVA OPCIÓN
                    from UI_Admin_Modificar_Mascota import MainWindow as UI_Modificar_Mascota
                    self.mod_mascota = UI_Modificar_Mascota(self.nombre)
                    self.mod_mascota.show()
                    self.close()
 
-            # --- CLIENTE ---
             elif categoria == "Cliente":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Visualizar_cliente import MainWindow as UI_Modificar_cliente
@@ -463,7 +451,6 @@ class MainWindow(QMainWindow):
                     self.cliente.show()
                     self.close()
 
-            # --- HOSPITALIZACION ---
             elif categoria == "Hospitalizacion":
                 if opcion == "Visualizar":
                     from UI_ADMIN_RevisarHospitalizacion import VentanaRevisarHospitalizacion as revisar_hospitalizacion
@@ -471,7 +458,6 @@ class MainWindow(QMainWindow):
                     self.cliente.show()
                     self.close()
 
-            # --- MEDICAMENTOS ---
             elif categoria == "Medicamentos":
                 if opcion == "Visualizar":
                     from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina as revisar_medicina
@@ -484,7 +470,6 @@ class MainWindow(QMainWindow):
                     self.ventana.show()
                     self.close()
 
-            # --- USUARIOS ---
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
@@ -502,8 +487,7 @@ class MainWindow(QMainWindow):
                     self.cliente.show()
                     self.close()
 
-            # --- ESPECIALIDAD ---
-            elif categoria == "Especialidad":
+            elif categoria == "Especialidad": 
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
                     self.cliente = VentanaAgregarEspecialidad(self.nombre)

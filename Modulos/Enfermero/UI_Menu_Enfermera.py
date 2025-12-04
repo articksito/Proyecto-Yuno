@@ -22,7 +22,7 @@ except ImportError:
     # Intento secundario si estamos en la carpeta raíz
     try:
         sys.path.append(os.path.join(parent_dir, '..'))
-
+        from db_connection import Conexion
         DB_AVAILABLE = True
     except:
         DB_AVAILABLE = False
@@ -207,8 +207,13 @@ class EnfermeroMain(QMainWindow):
         self.update_time()
 
     def update_time(self):
-        current_time = datetime.now().strftime("%H:%M:%S")
-        self.lbl_time.setText(current_time)
+        # --- CAMBIO AQUI: Formato HH:MM AM/PM sin segundos ---
+        now = datetime.now()
+        periodo = "AM" if now.hour < 12 else "PM"
+        hora_str = now.strftime("%I:%M")
+        
+        # Actualizamos el texto
+        self.lbl_time.setText(f"{hora_str} {periodo}")
 
     # --- 4. ROUTER DE NAVEGACIÓN (PASA EL NOMBRE) ---
     def abrir_ventana(self, categoria, opcion):

@@ -11,6 +11,7 @@ if current_dir not in sys.path:
     sys.path.append(current_dir)
 
 from datetime import datetime
+from functools import partial
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, 
                              QMessageBox, QTableWidget, QTableWidgetItem, QHeaderView)
@@ -65,36 +66,31 @@ class VeterinarioMenu(QMainWindow):
                 background-color: white;
                 border-radius: 15px;
                 border: 1px solid #E0E0E0;
-                gridline-color: transparent; /* Ocultar lineas de cuadricula */
+                gridline-color: transparent; 
                 font-size: 14px;
                 color: #333333;
-                selection-background-color: #E1F5FE; /* Azul muy suave al seleccionar */
+                selection-background-color: #E1F5FE; 
                 selection-color: #000000;
                 padding: 5px;
             }
             
+            /* --- HEADER AZUL TIPO ADMIN --- */
             QHeaderView::section {
-                background-color: #FC7CE2; /* Rosa de la marca */
-                color: white;
+                background-color: #7CEBFC; /* Azul Admin */
+                color: #444; /* Texto oscuro para contraste */
                 padding: 10px;
                 font-weight: bold;
                 border: none;
                 font-size: 15px;
-                border-bottom: 2px solid #FF9EE6;
+                border-bottom: 2px solid #5CD0E3;
             }
             
-            /* Para redondear la esquina superior izquierda del header */
-            QHeaderView::section:first {
-                border-top-left-radius: 10px;
-            }
-            /* Para redondear la esquina superior derecha del header */
-            QHeaderView::section:last {
-                border-top-right-radius: 10px;
-            }
+            QHeaderView::section:first { border-top-left-radius: 10px; }
+            QHeaderView::section:last { border-top-right-radius: 10px; }
 
             QTableWidget::item {
-                padding: 8px; /* Mas espacio entre texto y bordes */
-                border-bottom: 1px solid #F0F0F0; /* Linea sutil entre filas */
+                padding: 8px; 
+                border-bottom: 1px solid #F0F0F0; 
             }
             
             QTableWidget::item:focus {
@@ -102,24 +98,14 @@ class VeterinarioMenu(QMainWindow):
                 background-color: #E1F5FE;
             }
 
-            /* Scrollbar personalizado sutil */
+            /* Scrollbar */
             QScrollBar:vertical {
-                border: none;
-                background: #F0F0F0;
-                width: 8px;
-                margin: 0px 0px 0px 0px;
-                border-radius: 4px;
+                border: none; background: #F0F0F0; width: 8px; border-radius: 4px;
             }
-            QScrollBar::handle:vertical {
-                background: #CCCCCC;
-                min-height: 20px;
-                border-radius: 4px;
-            }
-            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical {
-                height: 0px;
-            }
+            QScrollBar::handle:vertical { background: #CCCCCC; min-height: 20px; border-radius: 4px; }
+            QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0px; }
             
-            /* ESTILO BOTONES SIDEBAR */
+            /* BOTONES SIDEBAR */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
                 border-radius: 15px; color: white; font-family: 'Segoe UI', sans-serif;
@@ -161,8 +147,7 @@ class VeterinarioMenu(QMainWindow):
         
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-
+        
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -178,15 +163,9 @@ class VeterinarioMenu(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- AQUI ESTAN LOS CAMBIOS DE MENU ---
-        
-        # 1. Consultas
+        # --- MENÚS ---
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
-        
-        # 2. Recetas (Agregada nueva opción)
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
-        
-        # 3. Extra (Nuevo Grupo)
         self.setup_accordion_group("Extra", ["Visualizar mascotas", "Visualizar medicamento", "Agregar notas para internar"])
 
         self.sidebar_layout.addStretch()
@@ -226,12 +205,11 @@ class VeterinarioMenu(QMainWindow):
         else: frame.show()
 
     # ============================================================
-    #  ENRUTADOR ACTUALIZADO
+    #  ENRUTADOR
     # ============================================================
     def router_ventanas(self, categoria, opcion):
         print(f"Navegando a: {categoria} -> {opcion}")
         try:
-            # --- CONSULTAS ---
             if categoria == "Consultas":
                 if opcion == "Crear Consulta":
                     from UI_Realizar_consulta import VentanaConsulta
@@ -244,7 +222,6 @@ class VeterinarioMenu(QMainWindow):
                     self.ventana.show()
                     self.close()
 
-            # --- RECETAS ---
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
                     from UI_Registrar_receta import VentanaReceta 
@@ -262,7 +239,6 @@ class VeterinarioMenu(QMainWindow):
                     self.ventana.show()
                     self.close()
 
-            # --- EXTRA (NUEVO) ---
             elif categoria == "Extra":
                 if opcion == "Visualizar mascotas":
                     from UI_RevisarMascota_Vete import VentanaRevisarMascota
@@ -277,7 +253,6 @@ class VeterinarioMenu(QMainWindow):
                     self.close()
                 
                 elif opcion == "Agregar notas para internar":
-                    # AQUI CONECTAS TU CLASE
                     QMessageBox.information(self, "Construcción", "Aquí iría Notas de Internación.")
 
         except ImportError as e:
@@ -293,7 +268,7 @@ class VeterinarioMenu(QMainWindow):
         panel_layout.setContentsMargins(40, 40, 40, 40)
         panel_layout.setSpacing(40)
 
-        # IZQUIERDA: Reloj
+        # IZQUIERDA: Reloj y Datos
         left_container = QFrame()
         info_layout = QVBoxLayout(left_container)
         info_layout.setSpacing(15)
@@ -345,15 +320,14 @@ class VeterinarioMenu(QMainWindow):
         lbl_info.setStyleSheet("font-size: 18px; color: #666; font-weight: bold; margin-bottom: 15px;")
         list_layout.addWidget(lbl_info)
 
-        # TABLA (Configuración Visual Mejorada)
+        # TABLA 
         self.tabla_citas = QTableWidget()
         self.tabla_citas.setColumnCount(4)
         self.tabla_citas.setHorizontalHeaderLabels(["Paciente ID", "Fecha", "Hora", "Estado"])
         
-        # -- Cambios visuales de configuración --
-        self.tabla_citas.setAlternatingRowColors(True) # Activado para mejor lectura
-        self.tabla_citas.setShowGrid(False)            # Desactivada la rejilla dura para look moderno
-        self.tabla_citas.setFrameShape(QFrame.Shape.NoFrame) # Quita el borde biselado por defecto
+        self.tabla_citas.setAlternatingRowColors(True)
+        self.tabla_citas.setShowGrid(False) 
+        self.tabla_citas.setFrameShape(QFrame.Shape.NoFrame)
         
         self.tabla_citas.verticalHeader().setVisible(False)
         self.tabla_citas.setSelectionBehavior(QTableWidget.SelectionBehavior.SelectRows)
@@ -377,7 +351,6 @@ class VeterinarioMenu(QMainWindow):
                     
                     item_estado = QTableWidgetItem(str(fila[3]))
                     item_estado.setFont(QFont("Segoe UI", 9, QFont.Weight.Bold))
-                    # Color opcional para el texto de "Pendiente"
                     item_estado.setForeground(QColor("#E67E22")) 
                     self.tabla_citas.setItem(row, 3, item_estado)
             else:
@@ -394,8 +367,11 @@ class VeterinarioMenu(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     def update_time(self):
-        current_time = datetime.now().strftime("%H:%M:%S")
-        self.lbl_time.setText(current_time)
+        # --- AQUI ESTA LA CORRECCION DE LA HORA ---
+        now = datetime.now()
+        periodo = "AM" if now.hour < 12 else "PM"
+        hora_str = now.strftime("%I:%M")
+        self.lbl_time.setText(f"{hora_str} {periodo}")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
