@@ -23,7 +23,7 @@ from PyQt6.QtGui import QFont, QPixmap
 from db_connection import Conexion
 
 class VentanaReceta(QMainWindow):
-    def __init__(self, nombre_usuario):
+    def __init__(self, nombre_usuario='prueba'):
         super().__init__()
         
         try:
@@ -367,9 +367,7 @@ class VentanaReceta(QMainWindow):
         except ValueError:
             QMessageBox.warning(self, "Error", "El ID Consulta debe ser numérico.")
             return
-
         # INSERTAR EN RECETA (SIN FECHA)
-        # Columnas: indicaciones, fk_consulta
         campos = ['indicaciones', 'fk_consulta']
         datos = [indicaciones, fk_consulta]
 

@@ -387,10 +387,6 @@ class MainWindow(QMainWindow):
         self.table.setRowCount(0)
         
         try:
-            # Asegúrate que db_connection.py tenga obtener_todos_pacientes o usa una consulta genérica
-            # Si no existe obtener_todos_pacientes, descomenta esto y ajusta:
-            # query = "SELECT id_mascota, nombre, especie, raza, padecimientos FROM mascota"
-            # datos = self.conexion.consultar_query(query)
             
             pacientes = self.conexion.obtener_todos_pacientes()
 

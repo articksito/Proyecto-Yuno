@@ -30,7 +30,7 @@ except ImportError:
 from db_connection import Conexion
 
 class VentanaRevisarConsulta(QMainWindow):
-    def __init__(self, nombre_usuario):
+    def __init__(self, nombre_usuario='Prueba'):
         super().__init__()
         
         # Conexión base

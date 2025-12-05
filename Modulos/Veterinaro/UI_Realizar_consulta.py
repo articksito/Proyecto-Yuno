@@ -423,12 +423,10 @@ class VentanaConsulta(QMainWindow):
         id_vet_str = self.inp_vet.text().strip()
         id_mascota_str = self.inp_mascota.text().strip()
         id_cita_str = self.inp_cita.text().strip()
-
         # 2. Validar
         if not motivo or not id_vet_str or not id_mascota_str:
             QMessageBox.warning(self, "Campos Vacíos", "ID Veterinario, ID Mascota y Motivo son obligatorios.")
             return
-
         try:
             fk_veterinario = int(id_vet_str)
             fk_mascota = int(id_mascota_str)
@@ -436,16 +434,12 @@ class VentanaConsulta(QMainWindow):
         except ValueError:
             QMessageBox.warning(self, "Error", "Los IDs deben ser numéricos.")
             return
-
-        # 3. Insertar (SIN FECHA NI HORA)
-        # Columnas: consultorio, motivo, metodo_pago, fk_veterinario, fk_mascota, fk_cita
+        # 3. Insertar
         campos = ['consultorio', 'motivo', 'metodo_pago', 'fk_veterinario', 'fk_mascota']
         datos = [consultorio, motivo, metodo_pago, fk_veterinario, fk_mascota]
-
         if fk_cita is not None:
             campos.append('fk_cita')
             datos.append(fk_cita)
-
         try:
             self.conexion.insertar_datos('consulta', tuple(datos), tuple(campos))
             QMessageBox.information(self, "Éxito", "Consulta registrada correctamente.")

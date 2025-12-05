@@ -24,7 +24,7 @@ from PyQt6.QtGui import QFont, QPixmap
 from db_connection import Conexion
 
 class VentanaAgregarMedicamento(QMainWindow):
-    def __init__(self, nombre_usuario):
+    def __init__(self, nombre_usuario='prueba'):
         super().__init__()
         self.nombre_usuario=nombre_usuario
         

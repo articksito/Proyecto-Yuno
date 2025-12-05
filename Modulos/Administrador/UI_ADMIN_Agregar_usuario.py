@@ -572,18 +572,14 @@ class VentanaAgregarUsuario(QMainWindow):
         contra = self.inp_pass.text().strip()
         rol = self.inp_rol.currentText()
         status_txt = self.inp_status.currentText()
-
         # 2. Validar Campos Obligatorios
         if not nombre or not apellido or not contra or not rol:
             QMessageBox.warning(self, "Campos Vacíos", "Nombre, Apellido, Contraseña y Rol son obligatorios.")
             return
-
         # 3. Conversiones
         telefono = int(tel_str) if tel_str else None
         status_bool = True if status_txt == "Activo" else False
-
         # 4. Insertar
-        # Columnas: nombre, apellido, correo, telefono, contraseña, status, rol
         campos = ('nombre', 'apellido', 'correo', 'telefono', 'contraseña', 'status', 'rol')
         datos = (nombre, apellido, correo, telefono, contra, status_bool, rol)
         tabla = 'usuario'
