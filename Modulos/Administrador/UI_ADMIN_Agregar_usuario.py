@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QDoubleValidator
 
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 class VentanaAgregarUsuario(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):

@@ -17,7 +17,7 @@ from PyQt6.QtCore import Qt, QRect
 from PyQt6.QtGui import QFont, QPixmap, QIcon, QPainter, QColor
 
 # Importar conexión
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):

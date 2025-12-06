@@ -8,7 +8,7 @@ class Conexion:
         self.conexion = psycopg2.connect("postgresql://neondb_owner:npg_M1nvy9aksESm@ep-raspy-star-afucb7a1-pooler.c-2.us-west-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
         self.cursor = self.conexion.cursor()
     
-    #Consulta
+    #Consulta total
     def consultar_tabla(self,columnas:tuple,tabla:str,joins:list=None ,filtro:str=None,campo_filtro:str=None,orden:tuple=None):
         try:
             columna_safe = []
@@ -56,7 +56,7 @@ class Conexion:
             if orden:
                 orden_safe = []
                 for dato in orden:
-                    # Asumimos orden Ascendente por defecto
+
                     if '.' in dato:
                         t_orden, c_orden = dato.split('.')
                         orden_safe.append(sql.SQL('{}.{} ASC').format(sql.Identifier(t_orden), sql.Identifier(c_orden)))
@@ -71,9 +71,79 @@ class Conexion:
                 self.cursor.execute(comando_final, params)
             else:
                 self.cursor.execute(comando_final)
-            
+      
             devolver = self.cursor.fetchall()
+
+            print('Consulta correcta en db conexion')
             return devolver
 
         except Exception as a:
             print(f'Error en db conexion al consultar: {a}')
+            return None
+        
+        #Consultar uno
+    def consultar_registro(self, tabla: str, id_columna: str, id_valor, columnas=None, joins: str = ""):
+
+        try:
+            if columnas:
+                cols_sql = sql.SQL(", ").join([
+                    sql.SQL(c) if "." in c else sql.Identifier(c)
+                    for c in columnas
+                ])
+            else:
+                cols_sql = sql.SQL("*")
+
+            # --- WHERE ---
+            # Manejo seguro de tabla.id vs id simple
+            if "." in id_columna:
+                tabla_id, col_id = id_columna.split(".")
+                where_sql = sql.SQL("{}.{}").format(sql.Identifier(tabla_id), sql.Identifier(col_id))
+            else:
+                where_sql = sql.Identifier(id_columna)
+
+            joins_sql = sql.SQL(joins) if joins else sql.SQL("")
+
+            query = sql.SQL("SELECT {cols} FROM {tabla} {joins} WHERE {where} = %s").format(
+                cols=cols_sql,
+                tabla=sql.Identifier(tabla),
+                joins=joins_sql,
+                where=where_sql
+            )
+
+            self.cursor.execute(query, (id_valor,))
+
+            print('Consulta correcta en db conexion')
+            return self.cursor.fetchone()
+
+        except Exception as e:
+            print(f"Error en db conexion al consultar: {e}")
+            return None
+
+        
+    #Insertar
+    def insertar_datos(self, table: str, datos: tuple = None, columna: tuple = None):
+        try:
+            columas_safe = [sql.Identifier(c) for c in columna]
+            lugares = [sql.SQL('%s')] * len(datos)
+
+            pk_columna = 'id_' + table
+
+            comando = sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(
+                sql.Identifier(table),
+                sql.SQL(', ').join(columas_safe), 
+                sql.SQL(', ').join(lugares),
+                sql.Identifier(pk_columna)
+            )
+            
+            self.cursor.execute(comando, datos)
+            row = self.cursor.fetchone()
+            id_generado = row[0] if row else None
+            
+            self.conexion.commit() 
+            print("Insert correcto en db conexion")
+            return id_generado
+            
+        except psycopg2.Error as error:
+            print(f"Error en db conexion al insertar: {error}")
+            self.conexion.rollback()
+            return None

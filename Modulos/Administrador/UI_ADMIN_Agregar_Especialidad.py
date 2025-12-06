@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, QRect
 from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor
 
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 class VentanaAgregarEspecialidad(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -488,12 +488,6 @@ class VentanaAgregarEspecialidad(QMainWindow):
 
         board_lay.addWidget(content)
         parent_layout.addWidget(board, stretch=2)
-
-    def setup_save_button(self):
-        # Esta función ya no se usa en el layout principal porque el botón 
-        # se movió dentro de setup_info_right, pero la mantenemos por si acaso 
-        # o la puedes borrar si quieres limpiar el código.
-        pass
 
     # ==========================================
     # --- LÓGICA ---
