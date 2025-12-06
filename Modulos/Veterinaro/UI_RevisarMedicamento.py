@@ -1,55 +1,47 @@
 import sys
 import os
 
-# --- 1. CONFIGURACIÓN DE RUTAS ---
+# --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
-# Ajuste para subir niveles correctamente
-if 'Veterinaro' in current_dir:
-    project_root = os.path.abspath(os.path.join(current_dir, '..'))
-else:
-    project_root = os.path.abspath(os.path.join(current_dir, '..'))
-
+project_root = os.path.abspath(os.path.join(current_dir, '..'))
 if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-from datetime import datetime
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QLineEdit,
-                             QMessageBox, QGridLayout)
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-# Importamos la clase de funciones
-try:
-    from funciones_vete import FuncinesVete
-except ImportError:
-    pass 
-
-from db_connection import Conexion
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class VentanaRevisarMedicamento(QMainWindow):
-    def __init__(self, nombre_usuario):
+    def __init__(self, nombre_usuario='Veterinario'):
         super().__init__()
         
-        # Conexión base
+        self.nombre_usuario = nombre_usuario
+        self.setWindowTitle("Sistema Veterinario Yuno - Inventario Medicamentos")
+        self.resize(1280, 720)
+        self.setMinimumSize(1024, 600)
+
+        # Conexión DB
         try:
             self.conexion = Conexion()
         except Exception as e:
             print(f"Error Conexión: {e}")
 
-        self.nombre_usuario = nombre_usuario
-        self.setWindowTitle("Sistema Veterinario Yuno - Visualizar Medicamento")
-        self.resize(1280, 720)
-
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
+
         self.main_layout = QHBoxLayout(self.central_widget)
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS VISUALES ---
+        # --- ESTILOS GENERALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -68,56 +60,26 @@ class VentanaRevisarMedicamento(QMainWindow):
                 color: #333;
             }
             
-            /* Inputs del Formulario (Solo Lectura) */
-            QLineEdit {
-                background-color: #F0F0F0;
-                border: 1px solid #DDD;
-                border-radius: 10px;
-                padding: 5px 15px;
-                font-size: 16px;
-                color: #555;
-            }
-
-            /* BOTONES MENU PRINCIPAL */
+            /* --- ESTILOS DEL SIDEBAR --- */
             QPushButton.menu-btn {
-                text-align: left;
-                padding-left: 20px;
+                text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 15px;
-                color: white;
-                font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
-                font-size: 18px;
-                background-color: rgba(255, 255, 255, 0.1);
-                height: 50px;
-                margin-bottom: 5px;
+                border-radius: 15px; color: white;
+                font-weight: bold; font-size: 18px;
+                background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
-                background-color: rgba(255, 255, 255, 0.25);
-                border: 1px solid white;
-                color: #FFF;
+                background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF;
             }
-
-            /* SUB-BOTONES */
             QPushButton.sub-btn {
-                text-align: left;
-                padding-left: 40px;
-                border-radius: 10px;
-                color: #F0F0F0;
-                font-family: 'Segoe UI', sans-serif;
-                font-size: 16px;
-                font-weight: normal;
-                background-color: rgba(0, 0, 0, 0.05);
-                height: 35px;
-                margin-bottom: 2px;
-                margin-left: 10px;
-                margin-right: 10px;
-                border: none;
+                text-align: left; font-family: 'Segoe UI', sans-serif;
+                font-size: 16px; font-weight: normal; padding-left: 40px;
+                border-radius: 10px; color: #F0F0F0;
+                background-color: rgba(0, 0, 0, 0.05); height: 35px;
+                margin-bottom: 2px; margin-left: 10px; margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
-                color: white;
-                background-color: rgba(255, 255, 255, 0.3);
-                font-weight: bold;
+                color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold;
             }
             
             /* Botón Logout */
@@ -128,21 +90,40 @@ class VentanaRevisarMedicamento(QMainWindow):
                 background-color: transparent;
             }
             QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
+
+            /* --- ESTILO TABLA --- */
+            QTableWidget {
+                background-color: white; border: 1px solid #E0E0E0; border-radius: 15px;
+                gridline-color: transparent; font-size: 14px;
+                selection-background-color: #E1BEE7; selection-color: #333;
+                alternate-background-color: #FAFAFA; outline: 0;
+            }
+            QHeaderView::section {
+                background-color: #7CEBFC; color: #444; font-weight: bold; border: none;
+                padding: 12px; font-size: 15px; font-family: 'Segoe UI';
+            }
+            QHeaderView::section:first { border-top-left-radius: 15px; }
+            QHeaderView::section:last { border-top-right-radius: 15px; }
             
-            /* Labels de datos */
-            QLabel.label-key { font-size: 18px; color: #666; font-weight: normal; }
-            QLabel.label-value { font-size: 22px; color: #000; font-weight: bold; padding-bottom: 5px; border-bottom: 1px solid #EEE; }
+            QScrollBar:vertical {
+                border: none; background: #F5F5F5; width: 10px; border-radius: 5px;
+            }
+            QScrollBar::handle:vertical { background: #CCC; min-height: 20px; border-radius: 5px; }
+            QScrollBar::handle:vertical:hover { background: #BBB; }
         """)
 
+        # --- 1. BARRA LATERAL ---
         self.setup_sidebar()
-        self.setup_content_panel()
+
+        # --- 2. PANEL BLANCO ---
+        self.setup_white_panel()
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
-    # ============================================================
-    #  SIDEBAR
-    # ============================================================
+    # ==========================================
+    # --- SIDEBAR (VETERINARIO) ---
+    # ==========================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
@@ -151,31 +132,24 @@ class VentanaRevisarMedicamento(QMainWindow):
         self.sidebar_layout.setContentsMargins(20, 50, 20, 50)
         self.sidebar_layout.setSpacing(5)
 
-        # --- LOGO ROBUSTO ---
+        # Logo
         lbl_logo = QLabel()
         lbl_logo.setObjectName("Logo")
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        directorio_actual = os.path.dirname(os.path.abspath(__file__))
-        ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-
+        ruta_logo = os.path.join(current_dir, "..", "FILES", "logo_yuno.png")
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
-                scaled_pixmap = pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
-                lbl_logo.setPixmap(scaled_pixmap)
+                lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             else:
-                lbl_logo.setText("YUNO VET")
-                lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
+                lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
         else:
-            lbl_logo.setText("YUNO VET")
-            lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 20px;")
-
+            lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
+        
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
-        
-        # --- MENÚS DESPLEGABLES ---
+
+        # MENÚ ESPECÍFICO DE VETERINARIO
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
         self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
         self.setup_accordion_group("Extra", ["Visualizar mascotas", "Visualizar medicamento", "Agregar notas para internar"])
@@ -188,7 +162,12 @@ class VentanaRevisarMedicamento(QMainWindow):
         btn_logout.clicked.connect(self.close)
         self.sidebar_layout.addWidget(btn_logout)
 
-        self.main_layout.addWidget(self.sidebar)
+        btn_back = QPushButton("Volver al Menú")
+        btn_back.setProperty("class", "logout-btn")
+        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_back.setStyleSheet("margin-top: 5px; font-size: 12px;") 
+        btn_back.clicked.connect(self.volver_al_menu)
+        self.sidebar_layout.addWidget(btn_back)
 
     def setup_accordion_group(self, title, options):
         btn_main = QPushButton(title)
@@ -196,88 +175,75 @@ class VentanaRevisarMedicamento(QMainWindow):
         btn_main.setCursor(Qt.CursorShape.PointingHandCursor)
         self.sidebar_layout.addWidget(btn_main)
 
-        frame_options = QFrame()
-        layout_options = QVBoxLayout(frame_options)
-        layout_options.setContentsMargins(0, 0, 0, 10)
-        layout_options.setSpacing(2) 
+        frame = QFrame()
+        layout = QVBoxLayout(frame)
+        layout.setContentsMargins(0, 0, 0, 10)
+        layout.setSpacing(2)
         
         for opt_text in options:
             btn_sub = QPushButton(opt_text)
             btn_sub.setProperty("class", "sub-btn")
             btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn_sub.clicked.connect(lambda checked=False, cat=title, opt=opt_text: self.router_ventanas(cat, opt))
-            layout_options.addWidget(btn_sub)
+            btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.router_ventanas(t, o))
+            layout.addWidget(btn_sub)
 
-        frame_options.hide()
-        self.sidebar_layout.addWidget(frame_options)
-        btn_main.clicked.connect(lambda: self.toggle_menu(frame_options))
+        frame.hide()
+        self.sidebar_layout.addWidget(frame)
+        btn_main.clicked.connect(lambda: self.toggle_menu(frame))
 
     def toggle_menu(self, frame):
-        if frame.isVisible():
-            frame.hide()
-        else:
-            frame.show()
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
 
     def router_ventanas(self, categoria, opcion):
-        print(f"Navegando: {categoria} -> {opcion}")
+        if categoria == "Extra" and opcion == "Visualizar medicamento":
+            return # Ya estamos aquí
+
         try:
+            # CONSULTAS
             if categoria == "Consultas":
                 if opcion == "Crear Consulta":
                     from UI_Realizar_consulta import VentanaConsulta
                     self.ventana = VentanaConsulta(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+                    self.ventana.show(); self.close()
                 elif opcion == "Ver Registro":
                     from UI_Revisar_consulta import VentanaRevisarConsulta
                     self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+                    self.ventana.show(); self.close()
 
-            # --- RECETAS ---
+            # RECETAS
             elif categoria == "Recetas":
                 if opcion == "Crear Receta":
                     from UI_Registrar_receta import VentanaReceta 
                     self.ventana = VentanaReceta(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+                    self.ventana.show(); self.close()
                 elif opcion == "Ver Registro":
                     from UI_Revisar_recetas import VentanaRevisarReceta
                     self.ventana = VentanaRevisarReceta(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+                    self.ventana.show(); self.close()
                 elif opcion == "Agregar medicina a receta":
                     from UI_Agregar_MReceta import VentanaAgregarMedicamento
                     self.ventana=VentanaAgregarMedicamento(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+                    self.ventana.show(); self.close()
 
-            # --- EXTRA (NUEVO) ---
+            # EXTRA
             elif categoria == "Extra":
                 if opcion == "Visualizar mascotas":
                     from UI_RevisarMascota_Vete import VentanaRevisarMascota
                     self.ventana = VentanaRevisarMascota(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
-                
-                elif opcion == "Visualizar medicamento":
-                    from UI_RevisarMedicamento import VentanaRevisarMedicamento
-                    self.ventana = VentanaRevisarMedicamento(self.nombre_usuario)
-                    self.ventana.show()
-                    self.close()
+                    self.ventana.show(); self.close()
                 
                 elif opcion == "Agregar notas para internar":
-                    # AQUI CONECTAS TU CLASE
-                    QMessageBox.information(self, "Construcción", "Aquí iría Notas de Internación.")
+                    QMessageBox.information(self, "Info", "Módulo de Notas de Internación.")
 
-        except ImportError as e:
-            QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
         except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error: {e}")
+            QMessageBox.critical(self, "Error", f"Error al navegar: {e}")
 
-    # ============================================================
-    #  PANEL CENTRAL (VISUALIZAR MEDICAMENTO)
-    # ============================================================
-    def setup_content_panel(self):
+    # ==========================================
+    # --- PANEL CENTRAL (TABLA) ---
+    # ==========================================
+
+    def setup_white_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
@@ -285,93 +251,152 @@ class VentanaRevisarMedicamento(QMainWindow):
 
         # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Visualizar Medicamento")
+        lbl_header = QLabel("Inventario de Medicamentos")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_back = QPushButton("✕")
-        btn_back.setFixedSize(40, 40)
+        # Barra de Búsqueda
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar medicamento...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        
+        # Botón Volver
+        btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_back.setStyleSheet("""
-            QPushButton { background-color: #F0F0F0; border-radius: 20px; font-size: 20px; color: #666; border: none; }
-            QPushButton:hover { background-color: #ffcccc; color: #cc0000; }
+            QPushButton {
+                background-color: #F0F0F0; color: #555; border-radius: 20px;
+                padding: 10px 20px; font-size: 16px; font-weight: bold; border: none;
+            }
+            QPushButton:hover { background-color: #E0E0E0; color: #333; }
         """)
         btn_back.clicked.connect(self.volver_al_menu)
 
+        # Botón Actualizar
+        btn_refresh = QPushButton("↻ Actualizar")
+        btn_refresh.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_refresh.setFixedSize(120, 40)
+        btn_refresh.setStyleSheet("""
+            QPushButton { 
+                background-color: #7CEBFC; color: #444; border-radius: 10px; 
+                font-weight: bold; border: 1px solid #5CD0E3; 
+            }
+            QPushButton:hover { background-color: #5CD0E3; }
+        """)
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
+
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar)
+        header_layout.addWidget(btn_buscar)
+        header_layout.addSpacing(10)
+        header_layout.addWidget(btn_refresh)
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
 
         self.white_layout.addLayout(header_layout)
-        self.white_layout.addSpacing(30)
+        self.white_layout.addSpacing(20)
 
-        # --- BARRA DE BÚSQUEDA ---
-        self.setup_search_bar()
-        self.white_layout.addSpacing(30)
+        # Tabla
+        self.setup_table()
 
-        # --- DATOS DEL MEDICAMENTO ---
-        self.setup_med_data()
+        # Cargar datos
+        self.cargar_datos_tabla()
 
         self.white_layout.addStretch()
-        self.main_layout.addWidget(self.sidebar)
-        self.main_layout.addWidget(self.white_panel)
 
-    def setup_search_bar(self):
-        search_container = QWidget()
-        search_layout = QHBoxLayout(search_container)
-        search_layout.setContentsMargins(0, 0, 0, 0)
+    def setup_table(self):
+        # Columnas: ID, Nombre, Tipo, Composición, Dosis, Vía Admin
+        self.table = QTableWidget()
+        self.table.setColumnCount(6)
+        self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Tipo", "Composición", "Dosis Rec.", "Vía Admin."])
         
-        lbl_search = QLabel("ID Medicamento:")
-        lbl_search.setStyleSheet("font-size: 18px; font-weight: bold; color: #555;")
+        # Configuración visual
+        self.table.setShowGrid(False) 
+        self.table.setAlternatingRowColors(True) 
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus) 
         
-        self.inp_search = QLineEdit()
-        self.inp_search.setPlaceholderText("Ingrese ID...")
-        self.inp_search.setFixedWidth(300)
-        self.inp_search.setStyleSheet("background-color: white; border: 2px solid #ddd; border-radius: 10px; padding: 8px; font-size: 16px;")
+        # Ajuste de cabeceras
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed) # ID
+        self.table.setColumnWidth(0, 60)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.ResizeToContents) # Nombre
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.Fixed) # Tipo
+        self.table.setColumnWidth(2, 120)
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.Stretch) # Composición
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.ResizeToContents) # Dosis
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Vía
+        self.table.setColumnWidth(5, 120)
         
-        btn_search = QPushButton("Buscar")
-        btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_search.setFixedSize(120, 40)
-        btn_search.setStyleSheet("background-color: #7CEBFC; color: #333; font-weight: bold; border-radius: 10px; border: 1px solid #5CD0E3;")
-        btn_search.clicked.connect(self.buscar_medicamento)
-        
-        search_layout.addWidget(lbl_search)
-        search_layout.addWidget(self.inp_search)
-        search_layout.addWidget(btn_search)
-        search_layout.addStretch()
-        
-        self.white_layout.addWidget(search_container)
+        self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(50)
 
-    def setup_med_data(self):
-        data_widget = QWidget()
-        data_layout = QVBoxLayout(data_widget)
-        data_layout.setSpacing(15)
-        
-        # Etiquetas de datos
-        self.lbl_nombre = self.crear_fila_datos("Nombre:", "---", data_layout)
-        self.lbl_tipo = self.crear_fila_datos("Tipo:", "---", data_layout)
-        self.lbl_composicion = self.crear_fila_datos("Composición:", "---", data_layout)
-        self.lbl_dosis = self.crear_fila_datos("Dosis Recomendada:", "---", data_layout)
-        self.lbl_via = self.crear_fila_datos("Vía de Administración:", "---", data_layout)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
-        self.white_layout.addWidget(data_widget)
+        self.white_layout.addWidget(self.table)
 
-    def crear_fila_datos(self, titulo, valor_inicial, layout):
-        row = QWidget()
-        l = QHBoxLayout(row) 
-        l.setContentsMargins(0,0,0,0)
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
+        """Obtiene datos de la BD y rellena la tabla"""
+        self.table.setRowCount(0)
         
-        lbl_tit = QLabel(titulo)
-        lbl_tit.setFixedWidth(250)
-        lbl_tit.setProperty("class", "label-key")
-        
-        lbl_val = QLabel(valor_inicial)
-        lbl_val.setProperty("class", "label-value")
-        
-        l.addWidget(lbl_tit)
-        l.addWidget(lbl_val)
-        layout.addWidget(row)
-        
-        return lbl_val
+        try:
+            # Columnas
+            columnas = ('id_medicamento', 'nombre', 'tipo', 'composicion', 'dosis_recomendada', 'via_administracion')
+            orden_por = ('nombre',)
+            
+            # Sin joins para medicamento
+            if filtro:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='medicamento',
+                    filtro=filtro,
+                    campo_filtro='nombre',
+                    orden=orden_por
+                )
+            else:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='medicamento',
+                    orden=orden_por
+                )
+
+            for row_idx, row_data in enumerate(datos):
+                self.table.insertRow(row_idx)
+                
+                # row_data = (id, nombre, tipo, comp, dosis, via)
+                
+                for col_idx, val in enumerate(row_data):
+                    item = QTableWidgetItem(str(val))
+                    item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                    
+                    if col_idx in [3, 4]: # Tooltip para composición y dosis
+                        item.setToolTip(str(val))
+                        
+                    self.table.setItem(row_idx, col_idx, item)
+                    
+        except Exception as e:
+            print(f"Error cargando tabla de medicamentos: {e}")
 
     def volver_al_menu(self):
         try:
@@ -380,51 +405,10 @@ class VentanaRevisarMedicamento(QMainWindow):
             self.menu.show()
             self.close()
         except ImportError:
-            self.close()
-
-    def buscar_medicamento(self):
-        id_med = self.inp_search.text().strip()
-
-        if not id_med.isdigit():
-            QMessageBox.warning(self, "Error", "El ID debe ser un número.")
-            return
-
-        try:
-            from funciones_vete import FuncinesVete
-            funcion = FuncinesVete()
-
-            # Columnas exactas de la tabla
-            columnas = ('nombre', 'tipo', 'composicion', 'dosis_recomendada', 'via_administracion')
-            
-            # Buscar ID único
-            resultado = funcion.buscarId_unico(columnas, id_med, table='medicamento')
-
-            if resultado:
-                self.lbl_nombre.setText(str(resultado[0]))
-                self.lbl_tipo.setText(str(resultado[1]))
-                self.lbl_composicion.setText(str(resultado[2]))
-                self.lbl_dosis.setText(str(resultado[3]))
-                self.lbl_via.setText(str(resultado[4]))
-                
-                QMessageBox.information(self, "Encontrado", "Medicamento encontrado.")
-            else:
-                self.limpiar_datos()
-                QMessageBox.warning(self, "No Encontrado", "No existe un medicamento con ese ID.")
-
-        except Exception as e:
-            QMessageBox.critical(self, "Error", f"Error al buscar:\n{e}")
-
-    def limpiar_datos(self):
-        self.lbl_nombre.setText("---")
-        self.lbl_tipo.setText("---")
-        self.lbl_composicion.setText("---")
-        self.lbl_dosis.setText("---")
-        self.lbl_via.setText("---")
+            QMessageBox.warning(self, "Error", "No se encuentra el menú de Veterinario.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    font = QFont("Segoe UI", 10)
-    app.setFont(font)
     window = VentanaRevisarMedicamento('Veterinario')
     window.show()
     sys.exit(app.exec())

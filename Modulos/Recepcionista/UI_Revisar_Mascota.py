@@ -1,49 +1,38 @@
 import sys
 import os
-from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
-                             QHBoxLayout, QPushButton, QLabel, QFrame, QMessageBox, 
-                             QLineEdit, QGridLayout)
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QFont, QIcon, QPixmap
 
 # --- CONFIGURACIÓN DE RUTAS ---
 current_dir = os.path.dirname(os.path.abspath(__file__))
 project_root = os.path.abspath(os.path.join(current_dir, '..'))
-
 if project_root not in sys.path:
     sys.path.append(project_root)
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
-# --- IMPORTACIONES BASE DE DATOS ---
-try:
-    from db_connection import Conexion
-    DB_AVAILABLE = True
-except ImportError:
-    DB_AVAILABLE = False
-    class Conexion:
-        def consultar_registro(self, *args, **kwargs): return None
+from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
+                             QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QFont, QPixmap
 
-# --- IMPORTACIONES MENU ---
-try:
-    from UI_REP_main import MainWindow as MenuPrincipal
-except ImportError:
-    class MenuPrincipal(QMainWindow):
-        def __init__(self, u): super().__init__(); self.show()
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Recepcionista"):
         super().__init__()
+
         self.nombre_usuario = nombre_usuario
-        self.ventana = None 
-
-        # Inicializar Conexión
-        if DB_AVAILABLE:
-            self.conexion = Conexion()
-
-        self.setWindowTitle("Sistema Veterinario Yuno - Revisar Mascota")
+        self.setWindowTitle(f"Sistema Veterinario Yuno - Listado de Mascotas ({self.nombre_usuario})")
         self.resize(1280, 720)
         self.setMinimumSize(1024, 600)
+
+        # Conexión DB
+        try:
+            self.conexion = Conexion()
+        except Exception as e:
+            print(f"Error al conectar BD: {e}")
 
         # Widget central
         self.central_widget = QWidget()
@@ -54,7 +43,7 @@ class MainWindow(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
 
-        # --- ESTILOS VISUALES (Mismo diseño que Clientes) ---
+        # --- ESTILOS GENERALES ---
         self.setStyleSheet("""
             QMainWindow {
                 background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 #7CEBFC);
@@ -73,72 +62,70 @@ class MainWindow(QMainWindow):
                 color: #333;
             }
             
-            /* --- INPUTS --- */
-            QLineEdit {
-                background-color: rgba(241, 131, 227, 0.15); 
-                border: 1px solid rgba(241, 131, 227, 0.5);
-                border-radius: 10px;
-                padding: 5px 15px;
-                font-size: 16px;
-                color: #333;
-                height: 40px;
-            }
-            QLineEdit:focus {
-                background-color: rgba(241, 131, 227, 0.25);
-                border: 2px solid #FC7CE2;
-            }
-            /* Solo lectura */
-            QLineEdit[readOnly="true"] {
-                background-color: #F8F8F8;
-                border: 1px solid #DDD;
-                color: #555;
-            }
-
-            /* --- BOTONES SIDEBAR --- */
+            /* --- ESTILOS DEL SIDEBAR --- */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.3); border-radius: 15px;
-                color: white; font-weight: bold; font-size: 18px;
+                border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px; color: white;
+                font-weight: bold; font-size: 18px;
                 background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px;
             }
             QPushButton.menu-btn:hover {
                 background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF;
             }
             QPushButton.sub-btn {
-                text-align: left; padding-left: 40px; border-radius: 10px;
-                color: #F0F0F0; font-family: 'Segoe UI', sans-serif; font-size: 16px;
-                background-color: rgba(0, 0, 0, 0.05); height: 35px; margin: 2px 10px; border: none;
+                text-align: left; font-family: 'Segoe UI', sans-serif;
+                font-size: 16px; font-weight: normal; padding-left: 40px;
+                border-radius: 10px; color: #F0F0F0;
+                background-color: rgba(0, 0, 0, 0.05); height: 35px;
+                margin-bottom: 2px; margin-left: 10px; margin-right: 10px;
             }
             QPushButton.sub-btn:hover {
                 color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold;
             }
             
-            /* Botón Volver */
-            QPushButton.back-btn {
+            /* Botón Logout */
+            QPushButton.logout-btn {
                 text-align: center; border: 2px solid white; 
                 border-radius: 15px; padding: 10px; margin-top: 20px;
                 font-size: 14px; color: white; font-weight: bold;
                 background-color: transparent;
             }
-            QPushButton.back-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
+            QPushButton.logout-btn:hover { background-color: rgba(255, 255, 255, 0.2); }
 
-            /* Botón Buscar */
-            QPushButton#BtnBuscar {
-                background-color: #7CEBFC; color: #333; border-radius: 10px; 
-                font-weight: bold; border: 1px solid #5CD0E3; font-size: 14px;
+            /* --- ESTILO TABLA --- */
+            QTableWidget {
+                background-color: white; border: 1px solid #E0E0E0; border-radius: 15px;
+                gridline-color: transparent; font-size: 14px;
+                selection-background-color: #E1BEE7; selection-color: #333;
+                alternate-background-color: #FAFAFA; outline: 0;
             }
-            QPushButton#BtnBuscar:hover { background-color: #5CD0E3; }
+            QHeaderView::section {
+                background-color: #7CEBFC; color: #444; font-weight: bold; border: none;
+                padding: 12px; font-size: 15px; font-family: 'Segoe UI';
+            }
+            QHeaderView::section:first { border-top-left-radius: 15px; }
+            QHeaderView::section:last { border-top-right-radius: 15px; }
+            
+            QScrollBar:vertical {
+                border: none; background: #F5F5F5; width: 10px; border-radius: 5px;
+            }
+            QScrollBar::handle:vertical { background: #CCC; min-height: 20px; border-radius: 5px; }
+            QScrollBar::handle:vertical:hover { background: #BBB; }
         """)
 
+        # --- 1. BARRA LATERAL ---
         self.setup_sidebar()
-        self.setup_content_panel()
+
+        # --- 2. PANEL BLANCO ---
+        self.setup_white_panel()
 
         self.main_layout.addWidget(self.sidebar)
         self.main_layout.addWidget(self.white_panel)
 
-    # ============================================================
-    #  SIDEBAR
-    # ============================================================
+    # ==========================================
+    # --- SIDEBAR (RECEPCIONISTA) ---
+    # ==========================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
         self.sidebar.setObjectName("Sidebar")
@@ -150,33 +137,38 @@ class MainWindow(QMainWindow):
         # Logo
         lbl_logo = QLabel()
         lbl_logo.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        ruta_logo = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "FILES", "logo_yuno.png")
-        
+        ruta_logo = os.path.join(current_dir, "..", "FILES", "logo_yuno.png")
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
                 lbl_logo.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation))
             else:
-                lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+                lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
         else:
-            lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold; margin-bottom: 30px;")
+            lbl_logo.setText("YUNO VET"); lbl_logo.setStyleSheet("color: white; font-size: 36px; font-weight: bold;")
         
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # Menús
+        # MENÚ ESPECÍFICO DE RECEPCIONISTA
         self.setup_accordion_group("Citas", ["Agendar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Mascotas", ["Registrar", "Visualizar", "Modificar"])
         self.setup_accordion_group("Clientes", ["Registrar", "Visualizar", "Modificar"])
 
         self.sidebar_layout.addStretch()
 
-        # Botón Volver
-        btn_back = QPushButton("↶ Volver al Menú")
-        btn_back.setProperty("class", "back-btn")
-        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_back.clicked.connect(self.return_to_menu)
-        self.sidebar_layout.addWidget(btn_back)
+        btn_logout = QPushButton("Cerrar Sesión")
+        btn_logout.setProperty("class", "logout-btn")
+        btn_logout.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_logout.clicked.connect(self.close)
+        self.sidebar_layout.addWidget(btn_logout)
+
+        btn_back_menu = QPushButton("Volver al Menú")
+        btn_back_menu.setProperty("class", "logout-btn")
+        btn_back_menu.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_back_menu.setStyleSheet("margin-top: 5px; font-size: 12px;") 
+        btn_back_menu.clicked.connect(self.regresar_menu)
+        self.sidebar_layout.addWidget(btn_back_menu)
 
     def setup_accordion_group(self, title, options):
         btn_main = QPushButton(title)
@@ -189,247 +181,248 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(0, 0, 0, 10)
         layout.setSpacing(2)
         
-        for opt in options:
-            btn = QPushButton(opt)
-            btn.setProperty("class", "sub-btn")
-            btn.setCursor(Qt.CursorShape.PointingHandCursor)
-            btn.clicked.connect(lambda checked=False, c=title, o=opt: self.abrir_ventana(c, o))
-            layout.addWidget(btn)
+        for opt_text in options:
+            btn_sub = QPushButton(opt_text)
+            btn_sub.setProperty("class", "sub-btn")
+            btn_sub.setCursor(Qt.CursorShape.PointingHandCursor)
+            btn_sub.clicked.connect(lambda checked, t=title, o=opt_text: self.navegar(t, o))
+            layout.addWidget(btn_sub)
 
         frame.hide()
         self.sidebar_layout.addWidget(frame)
-        btn_main.clicked.connect(lambda: frame.setVisible(not frame.isVisible()))
+        btn_main.clicked.connect(lambda: self.toggle_menu(frame))
 
-    # ============================================================
-    #  CONTENIDO (DISEÑO REVISIÓN MASCOTA)
-    # ============================================================
-    def setup_content_panel(self):
+    def toggle_menu(self, frame):
+        if frame.isVisible(): frame.hide()
+        else: frame.show()
+
+    def navegar(self, categoria, opcion):
+        if categoria == "Mascotas" and opcion == "Visualizar":
+            return # Ya estamos aquí
+
+        mapa = {
+            "Citas": {"Agendar": "UI_REP_Crear_cita", "Visualizar": "UI_REP_Revisar_Cita", "Modificar": "UI_REP_Modificar_cita"},
+            "Mascotas": {"Registrar": "UI_REP_Registrar_mascota", "Visualizar": "UI_Revisar_Mascota", "Modificar": "UI_REP_Modificar_Mascota"},
+            "Clientes": {"Registrar": "UI_REP_Registra_cliente", "Visualizar": "UI_Revisar_cliente", "Modificar": "UI_REP_Modificar_cliente"}
+        }
+
+        archivo = mapa.get(categoria, {}).get(opcion)
+        
+        if archivo:
+            try:
+                module = __import__(archivo, fromlist=['MainWindow'])
+                self.ventana = module.MainWindow(self.nombre_usuario)
+                self.ventana.show()
+                self.close()
+            except ImportError as e:
+                QMessageBox.warning(self, "Error", f"No se encuentra el archivo: {archivo}\n{e}")
+            except Exception as e:
+                QMessageBox.critical(self, "Error", f"Error al abrir ventana: {e}")
+
+    # ==========================================
+    # --- PANEL CENTRAL (TABLA) ---
+    # ==========================================
+
+    def setup_white_panel(self):
         self.white_panel = QWidget()
         self.white_panel.setObjectName("WhitePanel")
         self.white_layout = QVBoxLayout(self.white_panel)
         self.white_layout.setContentsMargins(50, 40, 50, 40)
 
-        # 1. Header
+        # Header
         header_layout = QHBoxLayout()
-        lbl_header = QLabel("Revisar Mascota")
-        lbl_header.setStyleSheet("font-size: 32px; font-weight: bold; color: #333;")
+        lbl_header = QLabel("Listado de Mascotas")
+        lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        btn_close = QPushButton("✕")
-        btn_close.setFixedSize(40, 40)
-        btn_close.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_close.setStyleSheet("""
-            QPushButton { background-color: #F0F0F0; border-radius: 20px; font-size: 20px; color: #666; border: none; }
-            QPushButton:hover { background-color: #ffcccc; color: #cc0000; }
+        # Barra de Búsqueda
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar por nombre...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
         """)
-        btn_close.clicked.connect(self.return_to_menu)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        
+        # Botón Volver
+        btn_back = QPushButton("↶ Volver")
+        btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_back.setStyleSheet("""
+            QPushButton { background-color: #F0F0F0; color: #555; border-radius: 20px; padding: 10px 20px; font-size: 16px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #E0E0E0; color: #333; }
+        """)
+        btn_back.clicked.connect(self.regresar_menu)
+
+        # Botón Actualizar
+        btn_refresh = QPushButton("↻ Actualizar")
+        btn_refresh.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_refresh.setFixedSize(120, 40)
+        btn_refresh.setStyleSheet("""
+            QPushButton { 
+                background-color: #7CEBFC; color: #444; border-radius: 10px; 
+                font-weight: bold; border: 1px solid #5CD0E3; 
+            }
+            QPushButton:hover { background-color: #5CD0E3; }
+        """)
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
-        header_layout.addWidget(btn_close)
+        header_layout.addWidget(self.txt_buscar)
+        header_layout.addWidget(btn_buscar)
+        header_layout.addSpacing(10)
+        header_layout.addWidget(btn_refresh)
+        header_layout.addSpacing(10)
+        header_layout.addWidget(btn_back)
 
         self.white_layout.addLayout(header_layout)
         self.white_layout.addSpacing(20)
 
-        # 2. Barra de Búsqueda
-        search_layout = QHBoxLayout()
-        search_layout.addWidget(QLabel("ID Mascota:", styleSheet="font-size: 16px; font-weight: 500; color: #444;"))
-        
-        self.inp_search = QLineEdit()
-        self.inp_search.setPlaceholderText("Ingrese ID (ej. 10)...")
-        self.inp_search.setFixedWidth(250)
-        
-        btn_search = QPushButton("Buscar")
-        btn_search.setObjectName("BtnBuscar")
-        btn_search.setFixedSize(120, 40)
-        btn_search.setCursor(Qt.CursorShape.PointingHandCursor)
-        btn_search.clicked.connect(self.buscar_mascota)
+        # Tabla
+        self.setup_table()
 
-        search_layout.addWidget(self.inp_search)
-        search_layout.addWidget(btn_search)
-        search_layout.addStretch()
-        
-        self.white_layout.addLayout(search_layout)
-        self.white_layout.addSpacing(30)
+        # Cargar datos
+        self.cargar_datos_tabla()
 
-        # 3. Contenedor Dividido
-        content_split = QHBoxLayout()
-        content_split.setSpacing(40)
-
-        # --- A. IZQUIERDA: FORMULARIO (READ ONLY) ---
-        self.setup_form_left(content_split)
-
-        # --- B. DERECHA: TARJETA INFO ---
-        self.setup_info_right(content_split)
-
-        self.white_layout.addLayout(content_split)
         self.white_layout.addStretch()
 
-    def setup_form_left(self, parent_layout):
-        form_widget = QWidget()
-        grid = QGridLayout(form_widget)
-        grid.setVerticalSpacing(15)
-        grid.setHorizontalSpacing(20)
-        grid.setContentsMargins(0, 0, 0, 0)
-
-        label_style = "font-size: 16px; font-weight: 500; color: #444;"
-
-        # Campos
-        self.inp_id = QLineEdit(); self.inp_id.setReadOnly(True)
-        self.inp_nombre = QLineEdit(); self.inp_nombre.setReadOnly(True)
-        # self.inp_especie = QLineEdit(); self.inp_especie.setReadOnly(True) # Especie removida
-        self.inp_raza = QLineEdit(); self.inp_raza.setReadOnly(True)
-        self.inp_edad = QLineEdit(); self.inp_edad.setReadOnly(True)
-        self.inp_peso = QLineEdit(); self.inp_peso.setReadOnly(True)
-        self.inp_dueno = QLineEdit(); self.inp_dueno.setReadOnly(True) # Para ID o Nombre del dueño
-
-        self.inp_id.setPlaceholderText("-")
-        self.inp_nombre.setPlaceholderText("-")
+    def setup_table(self):
+        # Columnas: ID, Nombre, Especie, Raza, Edad, Peso, Dueño
+        self.table = QTableWidget()
+        self.table.setColumnCount(7)
+        self.table.setHorizontalHeaderLabels(["ID", "Nombre", "Especie", "Raza", "Edad", "Peso", "Dueño"])
         
-        # Grid
-        campos = [
-            ("ID Sistema:", self.inp_id),
-            ("Nombre:", self.inp_nombre),
-            # ("Especie:", self.inp_especie), # Especie removida
-            ("Raza:", self.inp_raza),
-            ("Edad:", self.inp_edad),
-            ("Peso (kg):", self.inp_peso),
-            ("Dueño (ID):", self.inp_dueno)
-        ]
-
-        row = 0
-        for label_text, widget in campos:
-            grid.addWidget(QLabel(label_text, styleSheet=label_style), row, 0)
-            grid.addWidget(widget, row, 1)
-            row += 1
-
-        parent_layout.addWidget(form_widget, stretch=3)
-
-    def setup_info_right(self, parent_layout):
-        board = QFrame()
-        board.setFixedWidth(350)
-        board.setStyleSheet("""
-            QFrame {
-                background-color: white;
-                border: 1px solid #DDD;
-                border-radius: 12px;
-            }
-        """)
+        # Configuración visual
+        self.table.setShowGrid(False) 
+        self.table.setAlternatingRowColors(True) 
+        self.table.setFocusPolicy(Qt.FocusPolicy.NoFocus) 
         
-        board_lay = QVBoxLayout(board)
-        board_lay.setContentsMargins(0, 0, 0, 0)
-        board_lay.setSpacing(0)
-
-        # Header Board
-        header = QFrame()
-        header.setFixedHeight(50)
-        header.setStyleSheet("""
-            background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #FC7CE2, stop:1 rgba(252, 124, 226, 0.9));
-            border-top-left-radius: 12px; border-top-right-radius: 12px; border-bottom: none;
-        """)
-        head_lay = QHBoxLayout(header)
-        lbl_tit = QLabel("Información Mascota")
-        lbl_tit.setStyleSheet("color: white; font-weight: bold; font-size: 16px; border: none; background: transparent;")
-        head_lay.addWidget(lbl_tit, alignment=Qt.AlignmentFlag.AlignCenter)
-        board_lay.addWidget(header)
-
-        # Contenido
-        content = QWidget()
-        content.setStyleSheet("background: white; border: none; border-bottom-left-radius: 12px; border-bottom-right-radius: 12px;")
-        content_lay = QVBoxLayout(content)
-        content_lay.setContentsMargins(20, 30, 20, 30)
-        content_lay.setSpacing(10)
-        content_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
-
-        # Icono Mascota
-        lbl_pic = QLabel("🐶")
-        lbl_pic.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        lbl_pic.setStyleSheet("font-size: 60px; background: #f0f0f0; border-radius: 50px; min-height: 100px; min-width: 100px;")
-        content_lay.addWidget(lbl_pic, alignment=Qt.AlignmentFlag.AlignCenter)
-
-        # Nombre y Estado
-        self.prev_nombre = QLabel("Nombre Mascota")
-        self.prev_nombre.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.prev_nombre.setWordWrap(True)
-        self.prev_nombre.setStyleSheet("font-size: 22px; font-weight: bold; color: #333; margin-top: 10px;")
+        # Ajuste de cabeceras
+        header = self.table.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.Fixed) # ID
+        self.table.setColumnWidth(0, 60)
+        header.setSectionResizeMode(1, QHeaderView.ResizeMode.Fixed) # Nombre
+        self.table.setColumnWidth(1, 150)
+        header.setSectionResizeMode(2, QHeaderView.ResizeMode.ResizeToContents) # Especie
+        header.setSectionResizeMode(3, QHeaderView.ResizeMode.ResizeToContents) # Raza
+        header.setSectionResizeMode(4, QHeaderView.ResizeMode.Fixed) # Edad
+        self.table.setColumnWidth(4, 80)
+        header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Peso
+        self.table.setColumnWidth(5, 80)
+        header.setSectionResizeMode(6, QHeaderView.ResizeMode.Stretch) # Dueño (Nombre completo)
         
-        content_lay.addWidget(self.prev_nombre)
-        content_lay.addStretch()
+        self.table.verticalHeader().setVisible(False)
+        self.table.verticalHeader().setDefaultSectionSize(50)
 
-        board_lay.addWidget(content)
-        parent_layout.addWidget(board, stretch=2)
+        self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
+        self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
+        self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
-    # ============================================================
-    #  LÓGICA DE BÚSQUEDA
-    # ============================================================
-    def buscar_mascota(self):
-        id_masc = self.inp_search.text().strip()
-        if not id_masc:
-            QMessageBox.warning(self, "Aviso", "Por favor ingrese un ID de mascota.")
-            return
+        self.white_layout.addWidget(self.table)
 
-        if not DB_AVAILABLE:
-            QMessageBox.critical(self, "Error", "No hay conexión a la base de datos.")
-            return
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
 
+    def cargar_datos_tabla(self, filtro=""):
+        """Obtiene datos de la BD y rellena la tabla"""
+        self.table.setRowCount(0)
+        
         try:
-            # Consultamos tabla 'mascota' por 'id_mascota'
-            # Asumiendo estructura típica: id, nombre, edad, peso, especie, raza, fk_cliente
-            # Ajustar índices según tu base de datos real
-            datos = self.conexion.consultar_registro('mascota', 'id_mascota', id_masc)
+            # Columnas: ID, Nombre, Especie, Raza, Edad, Peso, Dueño(Nombre), Dueño(Apellido)
+            columnas = (
+                'mascota.id_mascota', 
+                'mascota.nombre', 
+                'mascota.especie', 
+                'mascota.raza', 
+                'mascota.edad', 
+                'mascota.peso',
+                'cliente.nombre', 
+                'cliente.apellido'
+            )
             
-            if datos:
-                # Mapeo tentativo (ajusta según tus columnas reales en DB)
-                # 0: id, 1: nombre, 2: edad, 3: peso, 4: especie, 5: raza, 6: fk_cliente
-                self.inp_id.setText(str(datos[0]))
-                self.inp_nombre.setText(str(datos[1]))
-                self.inp_edad.setText(str(datos[2]))
-                self.inp_peso.setText(str(datos[3]))
-                # self.inp_especie.setText(str(datos[4])) # Especie removida
-                self.inp_raza.setText(str(datos[5]))
-                self.inp_dueno.setText(str(datos[6])) # ID Cliente
-                
-                # Actualizar tarjeta derecha
-                self.prev_nombre.setText(str(datos[1]))
+            orden_por = ('mascota.nombre',)
+            
+            # JOIN con Cliente para obtener el nombre del dueño
+            mis_joins = [('cliente', 'mascota')]
+
+            if filtro:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='mascota',
+                    joins=mis_joins,
+                    filtro=filtro,
+                    campo_filtro='mascota.nombre',
+                    orden=orden_por
+                )
             else:
-                QMessageBox.warning(self, "No encontrado", "No se encontró una mascota con ese ID.")
-                self.limpiar_datos()
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='mascota',
+                    joins=mis_joins,
+                    orden=orden_por
+                )
 
+            for row_idx, row_data in enumerate(datos):
+                self.table.insertRow(row_idx)
+                
+                # row_data = (id, nombre, especie, raza, edad, peso, cli_nom, cli_ape)
+                
+                item_id = QTableWidgetItem(str(row_data[0]))
+                item_id.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 0, item_id)
+                
+                item_nombre = QTableWidgetItem(str(row_data[1]))
+                item_nombre.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 1, item_nombre)
+                
+                item_esp = QTableWidgetItem(str(row_data[2]))
+                item_esp.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 2, item_esp)
+                
+                item_raza = QTableWidgetItem(str(row_data[3]))
+                item_raza.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 3, item_raza)
+                
+                item_edad = QTableWidgetItem(str(row_data[4]))
+                item_edad.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 4, item_edad)
+
+                item_peso = QTableWidgetItem(f"{row_data[5]} kg")
+                item_peso.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 5, item_peso)
+
+                # Dueño (Concatenado)
+                dueño_str = f"{row_data[6]} {row_data[7]}"
+                item_dueño = QTableWidgetItem(dueño_str)
+                item_dueño.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
+                self.table.setItem(row_idx, 6, item_dueño)
+                    
         except Exception as e:
-            QMessageBox.critical(self, "Error BD", f"Error al buscar mascota: {e}")
+            print(f"Error cargando tabla de mascotas: {e}")
 
-    def limpiar_datos(self):
-        # for w in [self.inp_id, self.inp_nombre, self.inp_especie, self.inp_raza, self.inp_edad, self.inp_peso, self.inp_dueno]:
-        for w in [self.inp_id, self.inp_nombre, self.inp_raza, self.inp_edad, self.inp_peso, self.inp_dueno]:
-            w.clear()
-        self.prev_nombre.setText("Nombre Mascota")
-
-    def return_to_menu(self):
+    def regresar_menu(self):
         try:
-            self.ventana = MenuPrincipal(self.nombre_usuario)
-            self.ventana.show()
+            from UI_REP_main import MainWindow as RepMenu
+            self.menu = RepMenu(self.nombre_usuario)
+            self.menu.show()
             self.close()
-        except Exception as e:
-            print(f"Error al volver al menú: {e}")
-            self.close()
-
-    def abrir_ventana(self, categoria, opcion):
-        if categoria == "Mascotas" and opcion == "Visualizar": return 
-        ventana_map = {
-            "Citas": {"Agendar": "UI_REP_Crear_cita", "Visualizar": "UI_REP_Revisar_Cita", "Modificar": "UI_REP_Modificar_cita"},
-            "Mascotas": {"Registrar": "UI_REP_Registrar_mascota", "Visualizar": "UI_Revisar_Mascota", "Modificar": "UI_REP_Modificar_Mascota"},
-            "Clientes": {"Registrar": "UI_REP_Registra_cliente", "Visualizar": "UI_Revisar_cliente", "Modificar": "UI_REP_Modificar_cliente"}
-        }
-        nombre_modulo = ventana_map.get(categoria, {}).get(opcion)
-        if nombre_modulo:
-            try:
-                module = __import__(nombre_modulo, fromlist=['MainWindow'])
-                self.ventana = module.MainWindow(self.nombre_usuario)
-                self.ventana.show(); self.close()
-            except ImportError as e: QMessageBox.warning(self, "Error", f"Falta archivo: {nombre_modulo}.py\n{e}")
-            except Exception as e: QMessageBox.critical(self, "Error", f"Error: {e}")
+        except ImportError:
+            QMessageBox.warning(self, "Error", "No se encuentra el menú principal de Recepcionista.")
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
-    window = MainWindow()
+    window = MainWindow("TEST USER")
     window.show()
     sys.exit(app.exec())
