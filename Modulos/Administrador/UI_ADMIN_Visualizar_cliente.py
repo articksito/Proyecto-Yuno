@@ -9,14 +9,16 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# Agregamos QLineEdit
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
-                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-# Importar conexión
-from db_connection import Conexion
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -60,7 +62,7 @@ class MainWindow(QMainWindow):
                 color: #333;
             }
             
-            /* --- ESTILOS DEL SIDEBAR (ADMIN) --- */
+            /* --- ESTILOS DEL SIDEBAR --- */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
@@ -268,6 +270,28 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Listado de Clientes")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
+        # --- BARRA DE BÚSQUEDA ---
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar por nombre...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        # -------------------------
+        
         # Botón Volver
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -291,10 +315,13 @@ class MainWindow(QMainWindow):
             }
             QPushButton:hover { background-color: #5CD0E3; }
         """)
-        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar) # Agregado
+        header_layout.addWidget(btn_buscar)      # Agregado
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_refresh)
         header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
@@ -342,14 +369,33 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(self.table)
 
-    def cargar_datos_tabla(self):
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
         """Obtiene datos de la BD y rellena la tabla"""
         self.table.setRowCount(0)
         
         try:
-            query = "SELECT id_cliente, nombre, apellido, correo, telefono, direccion FROM cliente"
-            self.conexion.cursor_uno.execute(query)
-            clientes = self.conexion.cursor_uno.fetchall()
+            # Columnas a solicitar
+            columnas = ('id_cliente', 'nombre', 'apellido', 'correo', 'telefono', 'direccion')
+            orden_por = ('nombre', 'apellido')
+
+            if filtro:
+                clientes = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='cliente',
+                    filtro=filtro,
+                    campo_filtro='nombre',
+                    orden=orden_por
+                )
+            else:
+                clientes = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='cliente',
+                    orden=orden_por
+                )
 
             for row_idx, data in enumerate(clientes):
                 self.table.insertRow(row_idx)
@@ -367,12 +413,6 @@ class MainWindow(QMainWindow):
                     
         except Exception as e:
             print(f"Error cargando tabla de clientes: {e}")
-            # Si falla, intentar usar método genérico si existe
-            try:
-                datos = self.conexion.obtener_todos_clientes() # Asumiendo que existe este método
-                # Lógica similar...
-            except:
-                pass
 
     def volver_al_menu(self):
         try:

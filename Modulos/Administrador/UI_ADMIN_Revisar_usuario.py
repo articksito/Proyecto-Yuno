@@ -9,14 +9,16 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# Agregamos QLineEdit
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
-                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap, QColor
 
-# Importar conexión
-from db_connection import Conexion
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class VentanaRevisarUsuario(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -57,7 +59,7 @@ class VentanaRevisarUsuario(QMainWindow):
                 color: #333;
             }
             
-            /* --- ESTILOS DEL SIDEBAR (ADMINISTRADOR) --- */
+            /* --- ESTILOS DEL SIDEBAR --- */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
@@ -116,7 +118,7 @@ class VentanaRevisarUsuario(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     # ============================================================
-    #  SIDEBAR (ADMIN ACTUALIZADO)
+    #  SIDEBAR
     # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
@@ -218,6 +220,9 @@ class VentanaRevisarUsuario(QMainWindow):
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_medicina import MainWindow as AddMed
                     self.ventana = AddMed(self.nombre_usuario)
+                elif opcion == "Visualizar":
+                    from UI_ADMIN_Revisar_medicina import VentanaRevisarMedicina
+                    self.ventana = VentanaRevisarMedicina(self.nombre_usuario)
             elif categoria == "Usuarios":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_usuario import VentanaAgregarUsuario
@@ -225,9 +230,6 @@ class VentanaRevisarUsuario(QMainWindow):
                 elif opcion == "Modificar":
                     from UI_ADMIN_Modificar_usuario import VentanaModificarUsuario
                     self.ventana = VentanaModificarUsuario(self.nombre_usuario)
-                elif opcion == "Visualizar":
-                     # Ya estamos aqui
-                     pass
             elif categoria == "Especialidad":
                 if opcion == "Agregar":
                     from UI_ADMIN_Agregar_Especialidad import VentanaAgregarEspecialidad
@@ -259,6 +261,28 @@ class VentanaRevisarUsuario(QMainWindow):
         lbl_header = QLabel("Listado de Usuarios")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
+        # --- BARRA DE BÚSQUEDA ---
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar por nombre...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        # -------------------------
+        
         # Botones Header
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -278,10 +302,13 @@ class VentanaRevisarUsuario(QMainWindow):
             }
             QPushButton:hover { background-color: #5CD0E3; }
         """)
-        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar) # Agregado
+        header_layout.addWidget(btn_buscar)      # Agregado
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_refresh)
         header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
@@ -329,26 +356,33 @@ class VentanaRevisarUsuario(QMainWindow):
 
         self.white_layout.addWidget(self.table)
 
-    def cargar_datos_tabla(self):
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
         """Obtiene datos de la BD y rellena la tabla"""
         self.table.setRowCount(0)
         
         try:
-            # Query a tabla usuario
-            query = """
-                SELECT 
-                    id_usuario,
-                    nombre,
-                    apellido,
-                    correo,
-                    rol,
-                    status
-                FROM usuario
-                ORDER BY rol ASC, nombre ASC
-            """
-            
-            self.conexion.cursor_uno.execute(query)
-            datos = self.conexion.cursor_uno.fetchall()
+            # Campos a traer
+            columnas = ('id_usuario', 'nombre', 'apellido', 'correo', 'rol', 'status')
+            orden_por = ('rol', 'nombre')
+
+            if filtro:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='usuario',
+                    filtro=filtro,
+                    campo_filtro='nombre',
+                    orden=orden_por
+                )
+            else:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='usuario',
+                    orden=orden_por
+                )
 
             for row_idx, row_data in enumerate(datos):
                 self.table.insertRow(row_idx)

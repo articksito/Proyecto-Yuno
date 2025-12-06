@@ -9,14 +9,16 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# Agregamos QLineEdit para la búsqueda
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
-                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-# Importar conexión
-from db_connection import Conexion
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class VentanaRevisarMedicina(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -57,7 +59,7 @@ class VentanaRevisarMedicina(QMainWindow):
                 color: #333;
             }
             
-            /* --- ESTILOS DEL SIDEBAR (ADMINISTRADOR) --- */
+            /* --- ESTILOS DEL SIDEBAR --- */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
@@ -116,7 +118,7 @@ class VentanaRevisarMedicina(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     # ============================================================
-    #  SIDEBAR (ADMIN ACTUALIZADO)
+    #  SIDEBAR
     # ============================================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
@@ -148,7 +150,7 @@ class VentanaRevisarMedicina(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENÚS (COMPLETOS) ---
+        # --- MENÚS ---
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
         self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
@@ -259,6 +261,28 @@ class VentanaRevisarMedicina(QMainWindow):
         lbl_header = QLabel("Inventario de Medicamentos")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
+        # --- BARRA DE BÚSQUEDA ---
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar medicina...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        # -------------------------
+        
         # Botones Header
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -278,10 +302,14 @@ class VentanaRevisarMedicina(QMainWindow):
             }
             QPushButton:hover { background-color: #5CD0E3; }
         """)
-        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+        # Actualizar limpia la búsqueda
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar) # Agregado
+        header_layout.addWidget(btn_buscar)      # Agregado
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_refresh)
         header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
@@ -331,26 +359,34 @@ class VentanaRevisarMedicina(QMainWindow):
 
         self.white_layout.addWidget(self.table)
 
-    def cargar_datos_tabla(self):
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
         """Obtiene datos de la BD y rellena la tabla"""
         self.table.setRowCount(0)
         
         try:
-            # Consulta a tabla medicamento
-            query = """
-                SELECT 
-                    id_medicamento,
-                    nombre,
-                    tipo,
-                    composicion,
-                    dosis_recomendada,
-                    via_administracion
-                FROM medicamento
-                ORDER BY nombre ASC
-            """
-            
-            self.conexion.cursor_uno.execute(query)
-            datos = self.conexion.cursor_uno.fetchall()
+            # Campos a traer
+            columnas = ('id_medicamento', 'nombre', 'tipo', 'composicion', 'dosis_recomendada', 'via_administracion')
+            orden_por = ('nombre',) # Ordenar por nombre (Tuple)
+
+            # Uso de consultar_tabla (SIN joins porque no necesitamos otras tablas aquí)
+            if filtro:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='medicamento',
+                    filtro=filtro,
+                    campo_filtro='nombre',
+                    orden=orden_por
+                )
+            else:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='medicamento',
+                    orden=orden_por
+                )
 
             for row_idx, row_data in enumerate(datos):
                 self.table.insertRow(row_idx)
@@ -361,7 +397,7 @@ class VentanaRevisarMedicina(QMainWindow):
                     item = QTableWidgetItem(str(val))
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                     
-                    # Tooltip para textos largos (Composición, Dosis)
+                    # Tooltip para textos largos
                     if col_idx in [3, 4]:
                         item.setToolTip(str(val))
                         
@@ -369,6 +405,7 @@ class VentanaRevisarMedicina(QMainWindow):
                     
         except Exception as e:
             print(f"Error cargando tabla de medicamentos: {e}")
+            QMessageBox.warning(self, "Error", f"No se pudo cargar la tabla: {e}")
 
     def volver_al_menu(self):
         try:

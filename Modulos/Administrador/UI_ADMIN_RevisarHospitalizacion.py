@@ -9,14 +9,16 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# Agregamos QLineEdit para la búsqueda
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
-                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-# Importar conexión
-from db_connection import Conexion
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class VentanaRevisarHospitalizacion(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -60,7 +62,7 @@ class VentanaRevisarHospitalizacion(QMainWindow):
                 color: #333;
             }
             
-            /* --- ESTILOS DEL SIDEBAR (ADMIN) --- */
+            /* --- ESTILOS DEL SIDEBAR --- */
             QPushButton.menu-btn {
                 text-align: left; padding-left: 20px;
                 border: 1px solid rgba(255, 255, 255, 0.3);
@@ -265,6 +267,28 @@ class VentanaRevisarHospitalizacion(QMainWindow):
         lbl_header = QLabel("Historial Hospitalizaciones")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
+        # --- BARRA DE BÚSQUEDA ---
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar por mascota...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        # -------------------------
+        
         # Botones Header
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -287,10 +311,14 @@ class VentanaRevisarHospitalizacion(QMainWindow):
             }
             QPushButton:hover { background-color: #5CD0E3; }
         """)
-        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+        # Limpiar búsqueda al actualizar
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar) # Agregado
+        header_layout.addWidget(btn_buscar)      # Agregado
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_refresh)
         header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
@@ -335,27 +363,50 @@ class VentanaRevisarHospitalizacion(QMainWindow):
 
         self.white_layout.addWidget(self.table)
 
-    def cargar_datos_tabla(self):
-        """Obtiene datos de la BD y rellena la tabla con JOINs"""
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
+        """Obtiene datos de la BD y rellena la tabla con JOINs usando la LISTA"""
         self.table.setRowCount(0)
         
         try:
-            # JOIN: hospitalizacion -> consulta -> mascota
-            # Para mostrar datos legibles (Nombre mascota, Fecha) en lugar de IDs
-            query = """
-                SELECT 
-                    h.id_hospitalizacion,
-                    c.fecha,
-                    m.nombre,
-                    h.observaciones
-                FROM hospitalizacion h
-                JOIN consulta c ON h.fk_consulta = c.id_consulta
-                JOIN mascota m ON c.fk_mascota = m.id_mascota
-                ORDER BY h.id_hospitalizacion DESC
-            """
+            # QUEREMOS: ID Hosp, Fecha (de la consulta), Nombre Mascota, Observaciones
+            columnas = (
+                'hospitalizacion.id_hospitalizacion', 
+                'consulta.fecha', 
+                'mascota.nombre', 
+                'hospitalizacion.observaciones'
+            )
             
-            self.conexion.cursor_uno.execute(query)
-            datos = self.conexion.cursor_uno.fetchall()
+            # ORDEN: Preferiblemente por fecha de consulta
+            orden_por = ('consulta.fecha',)
+
+            # LISTA DE JOINS:
+            # 1. Hospitalización -> Consulta (fk_consulta está en hospitalizacion)
+            # 2. Consulta -> Mascota (fk_mascota está en consulta)
+            mis_joins = [
+                ('consulta', 'hospitalizacion'),
+                ('mascota', 'consulta')
+            ]
+
+            if filtro:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='hospitalizacion',
+                    joins=mis_joins,    # Lista de joins
+                    filtro=filtro,
+                    campo_filtro='mascota.nombre',
+                    orden=orden_por
+                )
+            else:
+                datos = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='hospitalizacion',
+                    joins=mis_joins,    # Lista de joins
+                    orden=orden_por
+                )
 
             for row_idx, row_data in enumerate(datos):
                 self.table.insertRow(row_idx)
@@ -366,23 +417,14 @@ class VentanaRevisarHospitalizacion(QMainWindow):
                     item = QTableWidgetItem(str(val))
                     item.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                     
-                    if col_idx == 3: # Observaciones
-                        item.setToolTip(str(val)) # Mostrar texto completo al pasar mouse
+                    if col_idx == 3: # Observaciones con tooltip
+                        item.setToolTip(str(val))
                         
                     self.table.setItem(row_idx, col_idx, item)
                     
         except Exception as e:
             print(f"Error cargando tabla de hospitalizaciones: {e}")
-            # Fallback simple
-            try:
-                self.conexion.cursor_uno.execute("SELECT * FROM hospitalizacion")
-                datos = self.conexion.cursor_uno.fetchall()
-                for row_idx, row_data in enumerate(datos):
-                    self.table.insertRow(row_idx)
-                    for col_idx, val in enumerate(row_data):
-                        self.table.setItem(row_idx, col_idx, QTableWidgetItem(str(val)))
-            except:
-                pass
+            QMessageBox.warning(self, "Error", f"No se pudo cargar la tabla: {e}")
 
     def volver_al_menu(self):
         try:

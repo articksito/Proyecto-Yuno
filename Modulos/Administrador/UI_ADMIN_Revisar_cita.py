@@ -11,12 +11,13 @@ if current_dir not in sys.path:
 
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
-                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
 # Importar conexión
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -118,6 +119,27 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Listado de Citas")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
+        # Barra de Búsqueda
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar por mascota...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        
         # Botón Volver
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
@@ -138,10 +160,13 @@ class MainWindow(QMainWindow):
             }
             QPushButton:hover { background-color: #5CD0E3; }
         """)
-        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar)
+        header_layout.addWidget(btn_buscar)
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_refresh)
         header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
@@ -284,7 +309,7 @@ class MainWindow(QMainWindow):
     def setup_table(self):
         # Columnas: ID, Fecha, Hora, Mascota, Estado (SIN ACCIONES)
         self.table = QTableWidget()
-        self.table.setColumnCount(5) # Reducido a 5
+        self.table.setColumnCount(5)
         self.table.setHorizontalHeaderLabels(["ID", "Fecha", "Hora", "Mascota", "Estado"])
         
         # Configuración visual
@@ -315,33 +340,39 @@ class MainWindow(QMainWindow):
 
         self.white_layout.addWidget(self.table)
 
-    def cargar_datos_tabla(self):
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
         """Obtiene datos de la BD y rellena la tabla"""
         self.table.setRowCount(0)
         
         try:
-            # Query para obtener citas con nombre de mascota
-            query = """
-                SELECT 
-                    cita.id_cita, 
-                    cita.fecha, 
-                    cita.hora, 
-                    mascota.nombre, 
-                    cita.estado,
-                    cita.motivo
-                FROM cita
-                JOIN mascota ON cita.fk_mascota = mascota.id_mascota
-                ORDER BY cita.fecha DESC, cita.hora DESC
-            """
+            columnas = ('cita.id_cita', 'cita.fecha', 'cita.hora', 'mascota.nombre', 'cita.estado', 'cita.motivo')
+            orden_por = ('cita.fecha', 'cita.hora')
             
-            # Ejecutamos query directamente usando el cursor de la conexión
-            self.conexion.cursor_uno.execute(query)
-            citas = self.conexion.cursor_uno.fetchall()
+            mis_joins = [('mascota', 'cita')]
+
+            if filtro:
+                citas = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='cita',
+                    joins=mis_joins,             
+                    filtro=filtro,
+                    campo_filtro='mascota.nombre',
+                    orden=orden_por
+                )
+            else:
+                citas = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='cita',
+                    joins=mis_joins,             
+                    orden=orden_por 
+                )
 
             for row_idx, data in enumerate(citas):
                 self.table.insertRow(row_idx)
-                
-                # data = (id, fecha, hora, nombre_mascota, estado, motivo)
                 
                 item_id = QTableWidgetItem(str(data[0]))
                 item_id.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -362,7 +393,6 @@ class MainWindow(QMainWindow):
                 item_estado = QTableWidgetItem(str(data[4]))
                 item_estado.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 
-                # Colorear estado para mejor visibilidad
                 estado_str = str(data[4]).lower()
                 if "confirmada" in estado_str:
                     item_estado.setForeground(Qt.GlobalColor.darkBlue)
@@ -371,11 +401,8 @@ class MainWindow(QMainWindow):
                 elif "completada" in estado_str:
                     item_estado.setForeground(Qt.GlobalColor.darkGreen)
                 
-                # Motivo como Tooltip del estado
                 item_estado.setToolTip(f"Motivo: {data[5]}")
                 self.table.setItem(row_idx, 4, item_estado)
-
-                # SE ELIMINÓ EL BOTÓN EDITAR AQUÍ
                 
         except Exception as e:
             print(f"Error cargando tabla de citas: {e}")

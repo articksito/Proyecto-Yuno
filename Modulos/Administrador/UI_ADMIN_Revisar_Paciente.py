@@ -9,13 +9,16 @@ if project_root not in sys.path:
 if current_dir not in sys.path:
     sys.path.append(current_dir)
 
+# Agregamos QLineEdit
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, 
                              QHBoxLayout, QPushButton, QLabel, QFrame, QTableWidget, 
-                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView)
+                             QTableWidgetItem, QHeaderView, QMessageBox, QAbstractItemView,
+                             QLineEdit)
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 
-from db_connection import Conexion
+# IMPORTAMOS LA NUEVA CONEXIÓN
+from db_conexionNew import Conexion
 
 class MainWindow(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
@@ -58,45 +61,21 @@ class MainWindow(QMainWindow):
                 font-family: 'Segoe UI', sans-serif;
                 color: #333;
             }
-            /* Estilo Botones Menú Principal */
+            /* Botones Menú */
             QPushButton.menu-btn {
-                text-align: left;
-                padding-left: 20px;
-                border: 1px solid rgba(255, 255, 255, 0.3);
-                border-radius: 15px;
-                color: white;
-                font-family: 'Segoe UI', sans-serif;
-                font-weight: bold;
-                font-size: 18px;
-                background-color: rgba(255, 255, 255, 0.1);
-                height: 50px;
-                margin-bottom: 5px;
+                text-align: left; padding-left: 20px; border: 1px solid rgba(255, 255, 255, 0.3);
+                border-radius: 15px; color: white; font-weight: bold; font-size: 18px;
+                background-color: rgba(255, 255, 255, 0.1); height: 50px; margin-bottom: 5px;
             }
-            QPushButton.menu-btn:hover {
-                background-color: rgba(255, 255, 255, 0.25);
-                border: 1px solid white;
-                color: #FFF;
-            }
-            /* Estilo Sub-botones */
+            QPushButton.menu-btn:hover { background-color: rgba(255, 255, 255, 0.25); border: 1px solid white; color: #FFF; }
+            
+            /* Sub-botones */
             QPushButton.sub-btn {
-                text-align: left;
-                font-family: 'Segoe UI', sans-serif;
-                font-size: 16px;
-                font-weight: normal;
-                padding-left: 40px;
-                border-radius: 10px;
-                color: #F0F0F0;
-                background-color: rgba(0, 0, 0, 0.05);
-                height: 35px;
-                margin-bottom: 2px;
-                margin-left: 10px;
-                margin-right: 10px;
+                text-align: left; font-size: 16px; padding-left: 40px; border-radius: 10px;
+                color: #F0F0F0; background-color: rgba(0, 0, 0, 0.05); height: 35px;
+                margin-bottom: 2px; margin-left: 10px; margin-right: 10px;
             }
-            QPushButton.sub-btn:hover {
-                color: white;
-                background-color: rgba(255, 255, 255, 0.3);
-                font-weight: bold;
-            }
+            QPushButton.sub-btn:hover { color: white; background-color: rgba(255, 255, 255, 0.3); font-weight: bold; }
             
             /* Botón Logout */
             QPushButton.logout-btn {
@@ -108,44 +87,22 @@ class MainWindow(QMainWindow):
 
             /* --- ESTILO TABLA --- */
             QTableWidget {
-                background-color: white;
-                border: 1px solid #E0E0E0;
-                border-radius: 15px;
-                gridline-color: transparent; 
-                font-size: 14px;
-                selection-background-color: #E1BEE7; 
-                selection-color: #333;
-                alternate-background-color: #FAFAFA; 
-                outline: 0;
+                background-color: white; border: 1px solid #E0E0E0; border-radius: 15px;
+                gridline-color: transparent; font-size: 14px;
+                selection-background-color: #E1BEE7; selection-color: #333;
+                alternate-background-color: #FAFAFA; outline: 0;
             }
             QHeaderView::section {
-                background-color: #7CEBFC; 
-                color: #444;
-                font-weight: bold;
-                border: none;
-                padding: 12px;
-                font-size: 15px;
-                font-family: 'Segoe UI';
+                background-color: #7CEBFC; color: #444; font-weight: bold; border: none;
+                padding: 12px; font-size: 15px; font-family: 'Segoe UI';
             }
             QHeaderView::section:first { border-top-left-radius: 15px; }
             QHeaderView::section:last { border-top-right-radius: 15px; }
             
-            QTableWidget::item {
-                padding: 5px 10px;
-                border-bottom: 1px solid #F0F0F0; 
-            }
-            
             QScrollBar:vertical {
-                border: none;
-                background: #F5F5F5;
-                width: 10px;
-                border-radius: 5px;
+                border: none; background: #F5F5F5; width: 10px; border-radius: 5px;
             }
-            QScrollBar::handle:vertical {
-                background: #CCC;
-                min-height: 20px;
-                border-radius: 5px;
-            }
+            QScrollBar::handle:vertical { background: #CCC; min-height: 20px; border-radius: 5px; }
             QScrollBar::handle:vertical:hover { background: #BBB; }
         """)
 
@@ -163,7 +120,29 @@ class MainWindow(QMainWindow):
         lbl_header = QLabel("Listado de Pacientes")
         lbl_header.setStyleSheet("font-size: 36px; font-weight: bold; color: #333;")
         
-        # Botón Volver (Nuevo)
+        # --- BARRA DE BÚSQUEDA ---
+        self.txt_buscar = QLineEdit()
+        self.txt_buscar.setPlaceholderText("🔍 Buscar por nombre...")
+        self.txt_buscar.setFixedSize(250, 40)
+        self.txt_buscar.setStyleSheet("""
+            QLineEdit { 
+                border: 2px solid #ddd; border-radius: 10px; padding: 5px 10px; font-size: 14px;
+            }
+            QLineEdit:focus { border: 2px solid #7CEBFC; }
+        """)
+        self.txt_buscar.returnPressed.connect(self.realizar_busqueda)
+        
+        btn_buscar = QPushButton("Buscar")
+        btn_buscar.setFixedSize(80, 40)
+        btn_buscar.setCursor(Qt.CursorShape.PointingHandCursor)
+        btn_buscar.setStyleSheet("""
+            QPushButton { background-color: #E1BEE7; color: #4A148C; border-radius: 10px; font-weight: bold; border: none; }
+            QPushButton:hover { background-color: #D1C4E9; }
+        """)
+        btn_buscar.clicked.connect(self.realizar_busqueda)
+        # -------------------------
+
+        # Botón Volver
         btn_back = QPushButton("↶ Volver")
         btn_back.setCursor(Qt.CursorShape.PointingHandCursor)
         btn_back.setStyleSheet("""
@@ -178,18 +157,18 @@ class MainWindow(QMainWindow):
         btn_refresh.setFixedSize(120, 40)
         btn_refresh.setStyleSheet("""
             QPushButton { 
-                background-color: #7CEBFC; 
-                color: #444; 
-                border-radius: 10px; 
-                font-weight: bold; 
-                border: 1px solid #5CD0E3; 
+                background-color: #7CEBFC; color: #444; border-radius: 10px; 
+                font-weight: bold; border: 1px solid #5CD0E3; 
             }
             QPushButton:hover { background-color: #5CD0E3; }
         """)
-        btn_refresh.clicked.connect(self.cargar_datos_tabla)
+        btn_refresh.clicked.connect(lambda: [self.txt_buscar.clear(), self.cargar_datos_tabla()])
 
         header_layout.addWidget(lbl_header)
         header_layout.addStretch()
+        header_layout.addWidget(self.txt_buscar) # Agregado
+        header_layout.addWidget(btn_buscar)      # Agregado
+        header_layout.addSpacing(10)
         header_layout.addWidget(btn_refresh)
         header_layout.addSpacing(10)
         header_layout.addWidget(btn_back)
@@ -207,7 +186,7 @@ class MainWindow(QMainWindow):
         self.main_layout.addWidget(self.white_panel)
 
     # ==========================================
-    # --- SIDEBAR (ACTUALIZADO) ---
+    # --- SIDEBAR ---
     # ==========================================
     def setup_sidebar(self):
         self.sidebar = QWidget()
@@ -224,8 +203,6 @@ class MainWindow(QMainWindow):
         
         directorio_actual = os.path.dirname(os.path.abspath(__file__))
         ruta_logo = os.path.join(directorio_actual, "..", "FILES", "logo_yuno.png")
-        ruta_logo = os.path.normpath(ruta_logo)
-        
         if os.path.exists(ruta_logo):
             pixmap = QPixmap(ruta_logo)
             if not pixmap.isNull():
@@ -241,7 +218,7 @@ class MainWindow(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo)
         self.sidebar_layout.addSpacing(20)
 
-        # --- MENU COMPLETO ---
+        # Menu
         self.setup_accordion_group("Cita", ["Visualizar"])
         self.setup_accordion_group("Consulta", ["Visualizar"])
         self.setup_accordion_group("Mascota", ["Visualizar", "Modificar"])
@@ -285,17 +262,10 @@ class MainWindow(QMainWindow):
         if frame.isVisible(): frame.hide()
         else: frame.show()
 
-    # ==========================================
-    # --- NAVEGACIÓN (COMPLETA) ---
-    # ==========================================
     def navegar(self, categoria, opcion):
-        print(f"Admin navegando a: {categoria} -> {opcion}")
-        
-        if categoria == "Mascota" and opcion == "Visualizar":
-             return # Ya estamos aquí
+        if categoria == "Mascota" and opcion == "Visualizar": return 
 
         try:
-            # Lógica de navegación estándar
             if categoria == "Cita" and opcion == "Visualizar":
                 from UI_ADMIN_Revisar_cita import MainWindow as UI_Revisar_Cita
                 self.ventana = UI_Revisar_Cita(self.nombre_usuario)
@@ -336,7 +306,6 @@ class MainWindow(QMainWindow):
                 self.ventana.show()
                 self.close()
 
-
         except ImportError as e:
             QMessageBox.warning(self, "Error", f"Falta archivo: {e.name}")
         except Exception as e:
@@ -371,29 +340,51 @@ class MainWindow(QMainWindow):
         header.setSectionResizeMode(5, QHeaderView.ResizeMode.Fixed) # Botón fijo
         self.table.setColumnWidth(5, 100)
         
-        # Altura de filas
         self.table.verticalHeader().setDefaultSectionSize(50)
         self.table.verticalHeader().setVisible(False)
 
-        # Comportamiento
         self.table.setSelectionBehavior(QAbstractItemView.SelectionBehavior.SelectRows)
         self.table.setSelectionMode(QAbstractItemView.SelectionMode.SingleSelection)
         self.table.setEditTriggers(QAbstractItemView.EditTrigger.NoEditTriggers)
 
         self.white_layout.addWidget(self.table)
 
-    def cargar_datos_tabla(self):
+    def realizar_busqueda(self):
+        texto = self.txt_buscar.text().strip()
+        self.cargar_datos_tabla(filtro=texto)
+
+    def cargar_datos_tabla(self, filtro=""):
         """Obtiene datos de la BD y rellena la tabla"""
         self.table.setRowCount(0)
         
         try:
-            
-            pacientes = self.conexion.obtener_todos_pacientes()
+            columnas = (
+                'id_mascota', 'nombre',
+                  'especie', 'raza')
+
+            orden_por = ('mascota.nombre',)
+
+            if filtro:
+                pacientes = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='mascota',
+                    joins=None,
+                    filtro=filtro,
+                    campo_filtro='mascota.nombre',
+                    orden=orden_por
+                )
+            else:
+                pacientes = self.conexion.consultar_tabla(
+                    columnas=columnas,
+                    tabla='mascota',
+                    joins=None,
+                    orden=orden_por
+                )
 
             for row_idx, data in enumerate(pacientes):
                 self.table.insertRow(row_idx)
                 
-                # data = (id_mascota, nombre, especie, raza, padecimientos)
+                # data = (id, nombre, desc_especie, desc_raza, padecimientos)
                 
                 item_id = QTableWidgetItem(str(data[0]))
                 item_id.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -411,7 +402,7 @@ class MainWindow(QMainWindow):
                 item_raza.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
                 self.table.setItem(row_idx, 3, item_raza)
                 
-                # Observaciones
+                # Observaciones / Padecimientos
                 obs = str(data[4]) if len(data) > 4 and data[4] else ""
                 item_obs = QTableWidgetItem(obs)
                 item_obs.setToolTip(obs)
@@ -444,6 +435,7 @@ class MainWindow(QMainWindow):
                 self.table.setCellWidget(row_idx, 5, cell_widget)
         except Exception as e:
             print(f"Error cargando tabla: {e}")
+            QMessageBox.warning(self, "Error", f"Error cargando datos: {e}")
 
     def ir_a_modificar(self, id_mascota):
         print(f"Editando mascota ID: {id_mascota}")
