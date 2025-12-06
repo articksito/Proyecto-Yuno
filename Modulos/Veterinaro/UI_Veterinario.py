@@ -18,7 +18,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, QTimer
 from PyQt6.QtGui import QFont, QPixmap, QColor
 
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 class VeterinarioMenu(QMainWindow):
     def __init__(self, nombre_usuario="Veterinario"):
@@ -332,9 +332,11 @@ class VeterinarioMenu(QMainWindow):
         header.setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
 
         try:
-            datos_citas = self.conexion.Select_users('cita') 
-            if datos_citas:
-                pendientes = [fila for fila in datos_citas if fila[3] == 'Pendiente']
+            query = "SELECT * FROM cita"
+            self.conexion.cursor.execute(query)
+            resultados = self.conexion.cursor.fetchall()
+            if resultados:
+                pendientes = [fila for fila in resultados if fila[3] == 'Pendiente']
                 pendientes = pendientes[::-1][:15] 
 
                 self.tabla_citas.setRowCount(len(pendientes))

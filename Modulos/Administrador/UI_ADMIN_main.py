@@ -16,7 +16,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, QTimer, QRectF
 from PyQt6.QtGui import QFont, QPixmap, QPainter, QColor, QBrush, QPen
 
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 # --- WIDGET PERSONALIZADO PARA LA GRÁFICA ---
 class GraficaCitas(QWidget):
@@ -384,8 +384,8 @@ class MainWindow(QMainWindow):
     def obtener_stats_citas(self):
         try:
             query = "SELECT estado, COUNT(*) FROM cita GROUP BY estado"
-            self.conexion.cursor_uno.execute(query)
-            resultados = self.conexion.cursor_uno.fetchall()
+            self.conexion.cursor.execute(query)
+            resultados = self.conexion.cursor.fetchall()
             stats = {row[0]: row[1] for row in resultados}
             defaults = ["Confirmada", "Completada", "Cancelada", "Pendiente"]
             for d in defaults:
