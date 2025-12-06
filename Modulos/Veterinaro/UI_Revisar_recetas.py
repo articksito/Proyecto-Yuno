@@ -94,7 +94,7 @@ class VentanaRevisarReceta(QMainWindow):
         self.sidebar_layout.addWidget(lbl_logo); self.sidebar_layout.addSpacing(20)
 
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
-        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
+        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
         self.setup_accordion_group("Extra", ["Visualizar mascotas", "Visualizar medicamento", "Agregar notas para internar"])
 
         self.sidebar_layout.addStretch()
@@ -127,7 +127,7 @@ class VentanaRevisarReceta(QMainWindow):
                 elif opcion == "Ver Registro": from UI_Revisar_consulta import VentanaRevisarConsulta; self.ventana = VentanaRevisarConsulta(self.nombre_usuario)
             elif categoria == "Recetas":
                 if opcion == "Crear Receta": from UI_Registrar_receta import VentanaReceta; self.ventana = VentanaReceta(self.nombre_usuario)
-                elif opcion == "Agregar medicina a receta": from UI_Agregar_MReceta import VentanaAgregarMedicamento; self.ventana=VentanaAgregarMedicamento(self.nombre_usuario)
+            
             elif categoria == "Extra":
                 if opcion == "Visualizar mascotas": from UI_RevisarMascota_Vete import VentanaRevisarMascota; self.ventana = VentanaRevisarMascota(self.nombre_usuario)
                 elif opcion == "Visualizar medicamento": from UI_RevisarMedicamento import VentanaRevisarMedicamento; self.ventana = VentanaRevisarMedicamento(self.nombre_usuario)

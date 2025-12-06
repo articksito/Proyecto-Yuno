@@ -12,18 +12,18 @@ class Conexion:
     def consultar_tabla(self,columnas:tuple,tabla:str,joins:list=None ,filtro:str=None,campo_filtro:str=None,orden:tuple=None):
         try:
             columna_safe = []
-            for dato in columnas:
-                partes = dato.split('.')
-                if len(partes) == 2:
-                    nombre_tabla, nombre_columna = partes
+            for dato in columnas: #Verifica
+                partes = dato.split('.')#Las separa
+                if len(partes) == 2: 
+                    nombre_tabla, nombre_columna = partes 
                     columna_safe.append(
                         sql.SQL('{}.{}').format(
                             sql.Identifier(nombre_tabla),
-                            sql.Identifier(nombre_columna)
+                            sql.Identifier(nombre_columna) 
                         )
                     )
                 else:
-                    columna_safe.append(sql.Identifier(dato))
+                    columna_safe.append(sql.Identifier(dato))#Lo salta
             
             comando=[]
             comando.append(sql.SQL('SELECT {}').format(sql.SQL(', ').join(columna_safe)))
@@ -121,29 +121,140 @@ class Conexion:
 
         
     #Insertar
-    def insertar_datos(self, table: str, datos: tuple = None, columna: tuple = None):
+    def insertar_datos(self, table: str, datos: tuple = None, columna: tuple = None,retornar:bool=True):
         try:
-            columas_safe = [sql.Identifier(c) for c in columna]
-            lugares = [sql.SQL('%s')] * len(datos)
+            if retornar: #Si ocupa retornar que es lo usual.
+                columas_safe = [sql.Identifier(c) for c in columna]
+                lugares = [sql.SQL('%s')] * len(datos)
 
-            pk_columna = 'id_' + table
+                pk_columna = 'id_' + table
 
-            comando = sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(
-                sql.Identifier(table),
-                sql.SQL(', ').join(columas_safe), 
-                sql.SQL(', ').join(lugares),
-                sql.Identifier(pk_columna)
-            )
-            
-            self.cursor.execute(comando, datos)
-            row = self.cursor.fetchone()
-            id_generado = row[0] if row else None
-            
-            self.conexion.commit() 
-            print("Insert correcto en db conexion")
-            return id_generado
-            
+                comando = sql.SQL('INSERT INTO {}({}) VALUES ({}) RETURNING {}').format(
+                    sql.Identifier(table),
+                    sql.SQL(', ').join(columas_safe), 
+                    sql.SQL(', ').join(lugares),
+                    sql.Identifier(pk_columna)
+                )
+                
+                self.cursor.execute(comando, datos)
+                row = self.cursor.fetchone()
+                id_generado = row[0] if row else None
+                
+                self.conexion.commit() 
+                print("Insert correcto en db conexion")
+                return id_generado
+            else: #Para los que no la acupan, como tablas intermedias.
+                columas_safe = [sql.Identifier(c) for c in columna]
+                lugares = [sql.SQL('%s')] * len(datos)
+
+                comando = sql.SQL('INSERT INTO {}({}) VALUES ({})').format(
+                    sql.Identifier(table),
+                    sql.SQL(', ').join(columas_safe), 
+                    sql.SQL(', ').join(lugares)
+                )
+                
+                self.cursor.execute(comando, datos)
+                self.conexion.commit()
+
+                print("Insert correcto en db conexion") 
+
         except psycopg2.Error as error:
             print(f"Error en db conexion al insertar: {error}")
             self.conexion.rollback()
             return None
+
+    #Modificar  
+    def editar_registro(self, id: int, datos: dict, tabla: str, id_columna: str):
+        try:
+            comando = []
+            valores = []
+
+            for columna, valor in datos.items():
+                comando.append(sql.SQL("{} = %s").format(sql.Identifier(columna)))
+                valores.append(valor)
+
+            unir = sql.SQL(', ').join(comando)
+
+            comando_sql = sql.SQL("""
+                                 UPDATE {}
+                                 SET {}
+                                 WHERE {} = %s
+                                 """).format(sql.Identifier(tabla), unir, sql.Identifier(id_columna))
+            
+            valores.append(id)
+
+            self.cursor.execute(comando_sql, tuple(valores))
+            self.conexion.commit()
+            print('Editar Correcto en db conexion')
+            return True
+        except Exception as a:
+            print(f"Error al editar registro/s en db conexion: {a}")
+            self.conexion.rollback()
+            return False
+    
+     # ----------------------------
+    # MÉTODOS DE USUARIO / LOGIN
+    # ----------------------------
+    def Validacion_usuario(self, id_user: int):
+        self.id_user = id_user
+        
+        try:
+            sql_q = "SELECT 1 FROM usuario WHERE id_usuario = %s"
+            self.cursor.execute(sql_q, (id_user,))
+            result = self.cursor.fetchone()
+            return result is not None
+        except Exception:
+            return False
+
+    def Validacion_Perfil(self, perffil: int):
+        try:
+            self.cursor.execute("SELECT rol FROM usuario WHERE id_usuario = %s", (perffil,))
+            result = self.cursor.fetchone()
+            if result:
+                return result[0]
+            return ""
+        except Exception:
+            return ""
+
+    def Nombre_Usuario(self, perffil: int):
+        try:
+            self.cursor.execute("SELECT nombre, apellido FROM usuario WHERE id_usuario = %s", (perffil,))
+            result = self.cursor.fetchone()
+            if result:
+                return f"{result[0]} {result[1]}"
+            return ""
+        except Exception:
+            return ""
+
+    def Validacion_contrasena(self, user_pwd):
+        try:
+            # Asumiendo que self.id_user fue seteado previamente
+            if not hasattr(self, 'id_user'): return False
+            
+            sql_q = "SELECT contraseña FROM usuario WHERE id_usuario = %s"
+            self.cursor.execute(sql_q, (self.id_user,))
+            row = self.cursor.fetchone()
+            
+            if row and row[0] == user_pwd:
+                return True
+            return False
+        except Exception:
+            return False
+    
+    def cambiar_contraseña(self):
+        try:
+            id_u = int(input('¿Cual es tu id?:'))  
+            nuevo_valor = input(f'nueva contraseña:')
+
+            comando_sql = sql.SQL("""
+                                 UPDATE {}
+                                 SET contraseña = %s
+                                 WHERE id_usuario = %s
+                                 """).format(sql.Identifier('usuario'))
+
+            self.cursor.execute(comando_sql, (nuevo_valor, id_u))
+            self.conexion.commit()
+            print('Correcto')
+        except Exception as a:
+            print(f'Error al cambiar contraseña: {a}')
+            self.conexion.rollback()

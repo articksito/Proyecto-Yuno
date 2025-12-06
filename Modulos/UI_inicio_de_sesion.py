@@ -5,7 +5,7 @@ from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QFont, QPalette, QLinearGradient, QColor, QBrush
 import sys
 
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 
 # ---------------------------

@@ -153,7 +153,7 @@ class VentanaRevisarMascota(QMainWindow):
 
         # MENÚ ESPECÍFICO DE VETERINARIO
         self.setup_accordion_group("Consultas", ["Crear Consulta", "Ver Registro"])
-        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro", "Agregar medicina a receta"])
+        self.setup_accordion_group("Recetas", ["Crear Receta", "Ver Registro"])
         self.setup_accordion_group("Extra", ["Visualizar mascotas", "Visualizar medicamento", "Agregar notas para internar"])
 
         self.sidebar_layout.addStretch()
@@ -223,11 +223,7 @@ class VentanaRevisarMascota(QMainWindow):
                     from UI_Revisar_recetas import VentanaRevisarReceta
                     self.ventana = VentanaRevisarReceta(self.nombre_usuario)
                     self.ventana.show(); self.close()
-                elif opcion == "Agregar medicina a receta":
-                    from UI_Agregar_MReceta import VentanaAgregarMedicamento
-                    self.ventana=VentanaAgregarMedicamento(self.nombre_usuario)
-                    self.ventana.show(); self.close()
-
+            
             # EXTRA
             elif categoria == "Extra":
                 if opcion == "Visualizar medicamento":

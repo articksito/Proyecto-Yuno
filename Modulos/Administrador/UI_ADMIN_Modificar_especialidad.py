@@ -15,7 +15,7 @@ from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout,
 from PyQt6.QtCore import Qt, QRect
 from PyQt6.QtGui import QFont, QPixmap, QIntValidator, QPainter, QColor
 
-from db_connection import Conexion
+from db_conexionNew import Conexion
 
 class VentanaModificarEspecialidad(QMainWindow):
     def __init__(self, nombre_usuario="Admin"):
