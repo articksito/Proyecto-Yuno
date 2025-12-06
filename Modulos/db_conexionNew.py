@@ -241,6 +241,20 @@ class Conexion:
         except Exception:
             return False
     
+    def Validar_estado(self, perfil: int) -> bool:
+        try:
+            self.cursor.execute("SELECT status FROM usuario WHERE id_usuario = %s",(perfil,))
+            result = self.cursor.fetchone()
+
+            if result is None:
+                return False  # No existe el usuario
+            return bool(result[0])
+
+        except Exception as e:
+            print(f"Error al validar estado del usuario: {e}")
+            return False
+
+    
     def cambiar_contraseña(self):
         try:
             id_u = int(input('¿Cual es tu id?:'))  

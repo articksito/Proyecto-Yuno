@@ -116,29 +116,33 @@ class LoginWindow(QWidget):
         if conexion.Validacion_usuario(username) and conexion.Validacion_contrasena(password):
             self.animate_success()
             
-            rol = conexion.Validacion_Perfil(username)
+            if conexion.Validar_estado(username):
+                rol = conexion.Validacion_Perfil(username)
             
-            if rol == "ADMIN":
-                from Administrador.UI_ADMIN_main import MainWindow as UI_Administrador_main
-                self.admin = UI_Administrador_main(f"{conexion.Nombre_Usuario(username)}")
-                self.admin.show()
-                self.close()
+                if rol == "ADMIN":
+                    from Administrador.UI_ADMIN_main import MainWindow as UI_Administrador_main
+                    self.admin = UI_Administrador_main(f"{conexion.Nombre_Usuario(username)}")
+                    self.admin.show()
+                    self.close()
 
-            elif rol == "VET":
-                from Veterinaro.UI_Veterinario import VeterinarioMenu
-                self.vet = VeterinarioMenu(f"{conexion.Nombre_Usuario(username)}")
-                self.vet.show()
-                self.close()
-            elif rol == "REP":
-                from Recepcionista.UI_REP_main import MainWindow
-                self.rep = MainWindow(f'{conexion.Nombre_Usuario(username)}')
-                self.rep.show()
-                self.close()
-            elif rol== "ENF":
-                from Enfermero.UI_Menu_Enfermera import EnfermeroMain
-                self.enf=EnfermeroMain(f'{conexion.Nombre_Usuario(username)}')
-                self.enf.show()
-                self.close()
+                elif rol == "VET":
+                    from Veterinaro.UI_Veterinario import VeterinarioMenu
+                    self.vet = VeterinarioMenu(f"{conexion.Nombre_Usuario(username)}")
+                    self.vet.show()
+                    self.close()
+                elif rol == "REP":
+                    from Recepcionista.UI_REP_main import MainWindow
+                    self.rep = MainWindow(f'{conexion.Nombre_Usuario(username)}')
+                    self.rep.show()
+                    self.close()
+                elif rol== "ENF":
+                    from Enfermero.UI_Menu_Enfermera import EnfermeroMain
+                    self.enf=EnfermeroMain(f'{conexion.Nombre_Usuario(username)}')
+                    self.enf.show()
+                    self.close()
+            else:
+                self.status_label.setText("❌ El usuario no se encuentra activo")
+                QMessageBox.warning(self, "Error", "El usuario no se encuentra activo")
         else:
             self.status_label.setText("❌ Usuario o contraseña incorrectos")
             QMessageBox.warning(self, "Error", "Credenciales inválidas")
